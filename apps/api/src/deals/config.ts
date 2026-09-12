@@ -14,6 +14,11 @@ const AddressSchema = z.object({
   /** Stable id used as Deal.addressKey and in URLs/CLI, e.g. "15232". */
   key: z.string().min(1),
   label: z.string().min(1),
+  /**
+   * Full street address. DoorDash resolves results against this, and a bare city
+   * or zip does not resolve reliably, so actors that take an address get this one.
+   */
+  streetAddress: z.string().min(1),
   lat: z.number(),
   lng: z.number(),
   radiusMi: z.number().positive().default(3),
@@ -27,11 +32,20 @@ const PricingSchema = z.object({
 });
 
 const ActorSchema = z.object({
+  /** Free-text note about the actor's pricing, kept beside the numbers it explains. */
+  _pricingNote: z.string().optional(),
   /** Apify actor id or "username/name". Empty = platform not wired up yet; jobs refuse to start. */
   actorId: z.string().default(''),
   pricing: PricingSchema.default({}),
   memoryMbytes: z.number().int().positive().optional(),
   timeoutSecs: z.number().int().positive().default(600),
+  /**
+   * Search URL the provider builds one entry per query from; `{query}` is
+   * URL-encoded in. Kept in config so a DoorDash search URL copied from the
+   * browser (with its deals / rating filters already applied) can be pasted in
+   * without a code change.
+   */
+  searchUrlTemplate: z.string().default('https://www.doordash.com/search/store/{query}?event_type=search'),
   /** Static input merged into every run of this actor (proxy settings, toggles). */
   input: z.record(z.unknown()).default({}),
 });

@@ -1,0 +1,111 @@
+[
+  {
+    "record_type": "store",
+    "store_id": "1234567",
+    "name": "Pizza Milano",
+    "url": "/store/pizza-milano-pittsburgh-1234567/",
+    "lat": 40.4535,
+    "lng": -79.9338,
+    "address": "5100 Centre Ave, Pittsburgh, PA 15232",
+    "street": "5100 Centre Ave",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "delivery_fee_display": "$0.00 delivery fee",
+    "delivery_fee_is_surging": false,
+    "is_dashpass": true,
+    "is_open": true,
+    "asap_minutes": 27,
+    "rating": 4.6,
+    "num_ratings_display": "3,900+",
+    "price_range": 2,
+    "distance_from_consumer": "0.3 mi",
+    "tags": [
+      { "id": "t1", "name": "Pizza", "priority": 1 },
+      { "id": "t2", "name": "Italian", "priority": 2 },
+      { "id": "t3", "name": "20% off orders $25+", "priority": 3 }
+    ],
+    "menu_categories": [
+      {
+        "category_id": "c1",
+        "category_name": "Popular Items",
+        "is_popular": true,
+        "items": [
+          {
+            "item_id": "i1",
+            "name": "Large Pepperoni Pizza",
+            "price_cents": 1500,
+            "price_display": "$18.00 $15.00",
+            "badges": [{ "placement": "PRICE", "text": "Save $3", "type": "DISCOUNT" }]
+          },
+          {
+            "item_id": "i2",
+            "name": "Garlic Knots",
+            "price_cents": 699,
+            "price_display": "$6.99",
+            "badges": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "record_type": "store",
+    "store_id": "7654321",
+    "name": "Sushi Fuku",
+    "url": "https://www.doordash.com/store/sushi-fuku-pittsburgh-7654321/",
+    "lat": 40.4432,
+    "lng": -79.9436,
+    "delivery_fee_display": "$2.99 delivery fee",
+    "is_dashpass": false,
+    "asap_minutes": 34,
+    "rating": 4.4,
+    "tags": [
+      { "id": "t4", "name": "Sushi", "priority": 1 },
+      { "id": "t5", "name": "Buy 1, get 1 free", "priority": 2 }
+    ],
+    "menu_categories": [
+      {
+        "category_id": "c2",
+        "category_name": "Rolls",
+        "items": [
+          {
+            "item_id": "i3",
+            "name": "Spicy Tuna Roll",
+            "price_cents": 1099,
+            "price_display": "$10.99",
+            "badges": [{ "placement": "CALLOUT", "text": "Free delivery on orders $15+", "type": "OFFER" }]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "record_type": "store",
+    "store_id": "2468101",
+    "name": "Bangkok Balcony",
+    "url": "/store/bangkok-balcony-2468101/",
+    "lat": 40.4386,
+    "lng": -79.9231,
+    "delivery_fee_display": "$4.99 delivery fee",
+    "is_dashpass": false,
+    "asap_minutes": 41,
+    "tags": [{ "id": "t6", "name": "Thai", "priority": 1 }],
+    "menu_categories": [
+      { "category_id": "c3", "category_name": "Curries", "items": [{ "item_id": "i4", "name": "Green Curry", "price_display": "$16.50" }] }
+    ]
+  },
+  {
+    "record_type": "store",
+    "name": "Nameless Store With No Id",
+    "delivery_fee_display": "Free delivery"
+  },
+  {
+    "record_type": "store",
+    "store_id": "1357911",
+    "name": "Prince of India",
+    "url": "/store/prince-of-india-1357911/",
+    "delivery_fee_display": "Free delivery",
+    "tags": [{ "id": "t7", "name": "Indian", "priority": 1 }],
+    "menu_categories": []
+  }
+]

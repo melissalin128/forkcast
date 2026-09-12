@@ -9,13 +9,15 @@ test('the checked-in deals.config.json validates', () => {
   assert.equal(cfg.caps.feedRunsPerDay, 4);
   assert.equal(cfg.caps.searchesPerDay, 10);
   assert.equal(cfg.caps.spendCeilingUsd, 5);
-  // no actor id wired yet -> actorFor() says "not configured" instead of returning a blank id
+  assert.equal(cfg.addresses[0].streetAddress, '5500 Walnut St, Pittsburgh, PA 15232');
+  assert.equal(actorFor(cfg, 'doordash')?.actorId, 'dz_omar/doordash-scraper');
+  // Uber Eats and Grubhub are out of scope -> actorFor() says "not configured" rather than a blank id
   assert.equal(actorFor(cfg, 'grubhub'), undefined);
 });
 
 test('a minimal config gets defaults for caps, weights and actors', () => {
   const cfg = parseDealsConfig({
-    addresses: [{ key: 'a', label: 'A', lat: 1, lng: 2 }],
+    addresses: [{ key: 'a', label: 'A', streetAddress: '1 Main St, Pittsburgh, PA', lat: 1, lng: 2 }],
     feedQueries: ['pizza'],
     actors: { doordash: { actorId: 'user/actor', pricing: { perRunUsd: 0.08, perResultUsd: 0.002 } } },
   });

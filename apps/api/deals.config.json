@@ -1,9 +1,23 @@
 {
   "$comment": "Non-secret configuration for the Apify deals layer (src/deals). Secrets live in env: APIFY_API_KEY, APIFY_WEBHOOK_SECRET, CRON_SECRET.",
   "addresses": [
-    { "key": "15232", "label": "Shadyside, Pittsburgh PA 15232", "lat": 40.4514, "lng": -79.933, "radiusMi": 3 }
+    {
+      "key": "15232",
+      "label": "Shadyside, Pittsburgh PA 15232",
+      "lat": 40.4514,
+      "lng": -79.933,
+      "radiusMi": 3,
+      "streetAddress": "5500 Walnut St, Pittsburgh, PA 15232"
+    }
   ],
-  "feedQueries": ["pizza", "sushi", "chinese", "burgers", "indian", "thai"],
+  "feedQueries": [
+    "pizza",
+    "sushi",
+    "chinese",
+    "burgers",
+    "indian",
+    "thai"
+  ],
   "caps": {
     "feedRunsPerDay": 4,
     "searchesPerDay": 10,
@@ -14,10 +28,19 @@
   },
   "actors": {
     "doordash": {
-      "actorId": "",
-      "pricing": { "perRunUsd": 0, "perResultUsd": 0, "computeUsdEstimate": 0 },
-      "timeoutSecs": 600,
-      "input": {}
+      "actorId": "dz_omar/doordash-scraper",
+      "_pricingNote": "PAY_PER_EVENT, FREE tier: $0.006 per store result, $0.001 per review (reviews off). No actor-start fee.",
+      "pricing": {
+        "perRunUsd": 0,
+        "perResultUsd": 0.006,
+        "computeUsdEstimate": 0
+      },
+      "timeoutSecs": 900,
+      "searchUrlTemplate": "https://www.doordash.com/search/store/{query}?event_type=search",
+      "input": {
+        "includeMenu": true,
+        "fetchReviews": false
+      }
     }
   },
   "scoreWeights": {

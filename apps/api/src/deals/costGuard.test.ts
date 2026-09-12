@@ -9,7 +9,7 @@ const now = new Date('2026-09-12T18:00:00Z');
 const hoursAgo = (h: number): Date => new Date(now.getTime() - h * 3600 * 1000);
 
 const cfg = parseDealsConfig({
-  addresses: [{ key: '15232', label: 'Shadyside', lat: 40.45, lng: -79.93 }],
+  addresses: [{ key: '15232', label: 'Shadyside', streetAddress: '5500 Walnut St, Pittsburgh, PA 15232', lat: 40.45, lng: -79.93 }],
   feedQueries: ['pizza'],
   caps: { feedRunsPerDay: 2, searchesPerDay: 3, searchCooldownHours: 0, maxResultsPerRun: 40, spendCeilingUsd: 1 },
   actors: { doordash: { actorId: 'u/a', pricing: { perRunUsd: 0.08, perResultUsd: 0.002 } } },
