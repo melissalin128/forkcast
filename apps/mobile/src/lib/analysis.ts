@@ -55,6 +55,8 @@ export const fees = (o: Offer) =>
   Math.round((o.serviceFee + o.deliveryFee + o.smallOrderFee + o.tax + o.tip) * 100) / 100;
 
 export function deepLink(slug: PlatformSlug, r: Restaurant): string {
+  const exact = offerFor(r, slug)?.deepLink;
+  if (exact) return exact;
   return PLATFORM_BY_SLUG[slug].deepLink.replace('{q}', encodeURIComponent(r.name));
 }
 

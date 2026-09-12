@@ -5,6 +5,7 @@ import type { PlatformSlug } from '../types';
 interface PrefsApi {
   prefs: Prefs;
   setZip: (zip: string) => void;
+  setTipPct: (tipPct: number) => void;
   toggleSubscription: (slug: PlatformSlug) => void;
 }
 
@@ -22,6 +23,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     () => ({
       prefs,
       setZip: (zip) => update({ ...prefs, zip }),
+      setTipPct: (tipPct) => update({ ...prefs, tipPct }),
       toggleSubscription: (slug) =>
         update({
           ...prefs,

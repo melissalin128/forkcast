@@ -7,6 +7,7 @@ interface PrefsApi {
   /** False until AsyncStorage has answered; data hooks wait for it. */
   ready: boolean;
   setZip: (zip: string) => void;
+  setTipPct: (tipPct: number) => void;
   toggleSubscription: (slug: PlatformSlug) => void;
 }
 
@@ -38,6 +39,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       prefs,
       ready,
       setZip: (zip) => update({ ...prefs, zip }),
+      setTipPct: (tipPct) => update({ ...prefs, tipPct }),
       toggleSubscription: (slug) =>
         update({
           ...prefs,

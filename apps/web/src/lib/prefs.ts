@@ -9,10 +9,12 @@ import type { Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
 export interface Prefs {
   zip: string;
   subscriptions: PlatformSlug[];
+  /** Tip as a decimal fraction, e.g. 0.15. */
+  tipPct: number;
 }
 
 /** No passes until the user turns one on in Account. */
-export const DEFAULT_PREFS: Prefs = { zip: ZIP, subscriptions: [] };
+export const DEFAULT_PREFS: Prefs = { zip: ZIP, subscriptions: [], tipPct: 0.15 };
 
 const KEY = 'forkcast.prefs';
 
@@ -27,7 +29,8 @@ export function loadPrefs(): Prefs {
       ? o.subscriptions.filter((s): s is PlatformSlug => s === 'doordash' || s === 'ubereats' || s === 'grubhub')
       : DEFAULT_PREFS.subscriptions;
     const zip = typeof o.zip === 'string' && /^\d{5}$/.test(o.zip) ? o.zip : DEFAULT_PREFS.zip;
-    return { zip, subscriptions: subs };
+    const tipPct = typeof o.tipPct === 'number' && o.tipPct >= 0 && o.tipPct <= 0.3 ? o.tipPct : DEFAULT_PREFS.tipPct;
+    return { zip, subscriptions: subs, tipPct };
   } catch {
     return DEFAULT_PREFS;
   }
@@ -51,23 +54,19 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * or waive the delivery fee. Everything else (markup, service fee, promo) is
  * left untouched.
  */
-export function applyPrefsToOffer(o: Offer, subs: PlatformSlug[]): Offer {
+export function applyPrefsToOffer(o: Offer, subs: PlatformSlug[], tipPct = 0.15): Offer {
   const holds = subs.includes(o.platformSlug);
-  if (holds === o.subscriptionApplied) return o;
-  if (holds) {
-    return { ...o, deliveryFee: 0, total: round2(o.total - o.deliveryFee), subscriptionApplied: true };
-  }
-  return {
-    ...o,
-    deliveryFee: DELIVERY_FEE_WITHOUT_PASS,
-    total: round2(o.total + DELIVERY_FEE_WITHOUT_PASS),
-    subscriptionApplied: false,
-  };
+  const deliveryFee = holds ? 0 : o.subscriptionApplied ? DELIVERY_FEE_WITHOUT_PASS : o.deliveryFee;
+  const tip = round2(o.subtotal * tipPct);
+  const total = round2(o.total + (deliveryFee - o.deliveryFee) + (tip - o.tip));
+  if (deliveryFee === o.deliveryFee && tip === o.tip && holds === o.subscriptionApplied) return o;
+  return { ...o, deliveryFee, tip, total, subscriptionApplied: holds };
 }
 
-export function applyPrefs(r: Restaurant, subs: PlatformSlug[]): Restaurant {
-  const offers = r.offers.map((o) => applyPrefsToOffer(o, subs));
-  return offers.every((o, i) => o === r.offers[i]) ? r : { ...r, offers };
+export function applyPrefs(r: Restaurant, subs: PlatformSlug[], tipPct = 0.15): Restaurant {
+  const offers = r.offers.map((o) => applyPrefsToOffer(o, subs, tipPct));
+  const displayTip = Math.round(tipPct * 100);
+  return offers.every((o, i) => o === r.offers[i]) && r.tipPct === displayTip ? r : { ...r, offers, tipPct: displayTip };
 }
 
 /** Shift each platform's history by the same delta its live offer moved. */

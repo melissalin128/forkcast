@@ -51,6 +51,8 @@ export interface Offer {
   /** True when the user's subscription (DashPass / Uber One / Grubhub+) shaped this total. */
   subscriptionApplied: boolean;
   fetchedAt: string;
+  /** Exact platform restaurant URL returned by the scraper. */
+  deepLink?: string;
 }
 
 /** Append-only history row. */
@@ -114,6 +116,7 @@ export interface Restaurant {
 export interface RestaurantsResponse {
   restaurants: Restaurant[];
   refreshedAt: string;
+  dataMode?: 'demo' | 'live';
 }
 
 export interface HistoryResponse {

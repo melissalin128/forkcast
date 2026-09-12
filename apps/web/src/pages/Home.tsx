@@ -50,12 +50,20 @@ function writeDismissed() {
   }
 }
 
+function freshness(iso: string): string {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (!Number.isFinite(minutes) || minutes < 1) return 'updated just now';
+  if (minutes === 1) return 'updated 1 min ago';
+  if (minutes < 60) return `updated ${minutes} min ago`;
+  return 'updated today';
+}
+
 export function Home() {
   const [params, setParams] = useSearchParams();
   const urlQ = params.get('q') ?? '';
   const { prefs, setZip } = usePrefs();
   const toast = useToast();
-  const { restaurants, loading } = useRestaurants();
+  const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
   const sample = useMockFallback();
 
   const [input, setInput] = useState(urlQ);
@@ -154,7 +162,7 @@ export function Home() {
 
       {sample && !barDismissed && (
         <div className="bar" role="status">
-          <span>Showing sample prices. Start the API for live prices.</span>
+          <span>Demo prices are on. Totals are simulated and clearly separated from live platform data.</span>
           <button
             type="button"
             className="bar__close"
@@ -200,11 +208,16 @@ export function Home() {
               ? 'Checking three apps…'
               : noCoverage
                 ? 'No prices for this zip'
-                : `${count}${hasQuery ? ` for “${q.trim()}”` : ''} · Prices from today`}
+                : `${count}${hasQuery ? ` for “${q.trim()}”` : ''} · ${freshness(refreshedAt)}`}
           </span>
           {passLine && !loading && <span className="section-head__pass">{passLine}</span>}
         </div>
-        <SortSegment options={SORTS} value={sort} onChange={setSort} label="Sort by" />
+        <div className="section-head__actions">
+          <button type="button" className="refresh" onClick={refresh} disabled={loading} aria-label="Refresh prices">
+            Refresh
+          </button>
+          <SortSegment options={SORTS} value={sort} onChange={setSort} label="Sort by" />
+        </div>
       </div>
 
       {noCoverage ? (

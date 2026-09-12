@@ -14,12 +14,14 @@ interface Props {
   action?: { label: string; onClick: () => void };
   /** Rendered above the first card and scrolls with the list. */
   header?: ReactElement;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const SKELETON = [0, 1, 2];
 
 /** Vertical list of RestaurantRows with loading skeletons and an empty state. */
-export function Feed({ restaurants, loading, sort, emptyText, action, header }: Props) {
+export function Feed({ restaurants, loading, sort, emptyText, action, header, refreshing = false, onRefresh }: Props) {
   if (loading) {
     return (
       <FlatList
@@ -28,6 +30,8 @@ export function Feed({ restaurants, loading, sort, emptyText, action, header }: 
         ListHeaderComponent={header}
         contentContainerStyle={styles.feed}
         accessibilityLabel="Loading prices"
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         renderItem={() => (
           <View style={styles.skRow}>
             <View style={[styles.sk, styles.skPhoto]} />
@@ -55,6 +59,8 @@ export function Feed({ restaurants, loading, sort, emptyText, action, header }: 
       contentContainerStyle={styles.feed}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
+      refreshing={refreshing}
+      onRefresh={onRefresh}
       ListEmptyComponent={
         <View style={styles.empty}>
           <Text style={styles.emptyText}>{emptyText}</Text>

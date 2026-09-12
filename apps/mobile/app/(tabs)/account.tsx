@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { TopBar } from '../../src/components/TopBar';
 import { Btn, Card } from '../../src/components/ui';
 import { COVERED_ZIPS, PLATFORMS } from '../../src/data/mock';
@@ -12,7 +12,7 @@ const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIP
 
 /** Zip + pass toggles. Both feed every total in the app. */
 export default function Account() {
-  const { prefs, ready, setZip, toggleSubscription } = usePrefs();
+  const { prefs, ready, setZip, setTipPct, toggleSubscription } = usePrefs();
   const toast = useToast();
   const [draft, setDraft] = useState(prefs.zip);
   const valid = /^\d{5}$/.test(draft);
@@ -51,6 +51,30 @@ export default function Account() {
             Currently <Text style={num}>{prefs.zip}</Text> · {zipLabel(prefs.zip)}. We cover Pittsburgh zips {coverage} right
             now.
           </Text>
+        </Card>
+
+        <Card>
+          <Text style={styles.cardTitle}>Tip included in comparisons</Text>
+          <View accessibilityRole="radiogroup" style={styles.tipOptions}>
+            {[0, 0.1, 0.15, 0.2, 0.25].map((tip) => {
+              const on = prefs.tipPct === tip;
+              return (
+                <Pressable
+                  key={tip}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: on }}
+                  onPress={() => {
+                    setTipPct(tip);
+                    toast(`Totals updated with ${Math.round(tip * 100)}% tip`);
+                  }}
+                  style={[styles.tipOption, on && styles.tipOptionActive]}
+                >
+                  <Text style={[styles.tipOptionText, on && styles.tipOptionTextActive]}>{Math.round(tip * 100)}%</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.foot}>Tip is shown separately in the fee math and can change which app wins.</Text>
         </Card>
 
         <Card>
@@ -117,6 +141,11 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   foot: { fontSize: 12, color: C.muted, marginTop: 10, lineHeight: 18 },
+  tipOptions: { flexDirection: 'row', gap: 6, marginTop: 10 },
+  tipOption: { flex: 1, height: 36, borderRadius: R.pill, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center', backgroundColor: C.inset },
+  tipOptionActive: { borderColor: C.accent, backgroundColor: C.accentBg },
+  tipOptionText: { fontSize: 13, fontWeight: '700', color: C.muted },
+  tipOptionTextActive: { color: C.accentInk },
   toggles: { marginTop: 4 },
   toggle: {
     flexDirection: 'row',

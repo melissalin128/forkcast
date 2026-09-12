@@ -10,7 +10,7 @@ const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIP
 
 /** Zip + pass toggles. Both feed every total in the app. */
 export function Account() {
-  const { prefs, setZip, toggleSubscription } = usePrefs();
+  const { prefs, setZip, setTipPct, toggleSubscription } = usePrefs();
   const toast = useToast();
   const [draft, setDraft] = useState(prefs.zip);
   const valid = /^\d{5}$/.test(draft);
@@ -49,6 +49,33 @@ export function Account() {
           Currently <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}. We cover Pittsburgh zips {coverage}{' '}
           right now.
         </p>
+      </section>
+
+      <section className="card card--gap" aria-labelledby="tip-title">
+        <h3 id="tip-title" className="card__title">
+          Tip included in comparisons
+        </h3>
+        <div className="tip-options" role="radiogroup" aria-label="Tip percentage">
+          {[0, 0.1, 0.15, 0.2, 0.25].map((tip) => {
+            const on = prefs.tipPct === tip;
+            return (
+              <button
+                key={tip}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                className={`tip-option${on ? ' tip-option--active' : ''}`}
+                onClick={() => {
+                  setTipPct(tip);
+                  toast(`Totals updated with ${Math.round(tip * 100)}% tip`);
+                }}
+              >
+                {Math.round(tip * 100)}%
+              </button>
+            );
+          })}
+        </div>
+        <p className="card__foot">Tip is shown separately in the fee math and can change which app wins.</p>
       </section>
 
       <section className="card card--gap" aria-labelledby="subs-title">

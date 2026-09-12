@@ -31,13 +31,21 @@ const coverageList = () => {
   return `${z.slice(0, -1).join(', ')} and ${z[z.length - 1]}`;
 };
 
+function freshness(iso: string): string {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (!Number.isFinite(minutes) || minutes < 1) return 'updated just now';
+  if (minutes === 1) return 'updated 1 min ago';
+  if (minutes < 60) return `updated ${minutes} min ago`;
+  return 'updated today';
+}
+
 /** Once dismissed the sample bar stays hidden until the app restarts (sessionStorage on the web). */
 let barDismissedThisSession = false;
 
 export default function Home() {
   const { prefs, setZip } = usePrefs();
   const toast = useToast();
-  const { restaurants, loading } = useRestaurants();
+  const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
   const sample = useMockFallback();
 
   const [input, setInput] = useState('');
@@ -103,7 +111,7 @@ export default function Home() {
     <View>
       {sample && !barDismissed && (
         <View accessibilityRole="alert" style={styles.bar}>
-          <Text style={styles.barText}>Showing sample prices. Start the API for live prices.</Text>
+          <Text style={styles.barText}>Demo prices are on. Totals are simulated and separated from live platform data.</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Dismiss"
@@ -149,7 +157,7 @@ export default function Home() {
               ? 'Checking three apps…'
               : noCoverage
                 ? 'No prices for this zip'
-                : `${count}${hasQuery ? ` for “${q.trim()}”` : ''} · Prices from today`}
+                : `${count}${hasQuery ? ` for “${q.trim()}”` : ''} · ${freshness(refreshedAt)}`}
           </Text>
           {passLine && !loading && <Text style={styles.sectionPass}>{passLine}</Text>}
         </View>
@@ -174,6 +182,8 @@ export default function Home() {
               toast('Prices updated');
             },
           }}
+          refreshing={loading}
+          onRefresh={refresh}
         />
       ) : (
         <Feed
@@ -183,6 +193,8 @@ export default function Home() {
           sort={sort}
           emptyText={emptyText}
           action={hasQuery || showChips ? { label: hasQuery ? 'Clear search' : 'Clear filters', onClick: clearAll } : undefined}
+          refreshing={loading}
+          onRefresh={refresh}
         />
       )}
     </View>

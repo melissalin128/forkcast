@@ -87,12 +87,12 @@ const FALLBACK_ART = 'linear-gradient(135deg, #f6dcc6, #e9b48c)';
  * The API's `imageUrl` (from the scrapers) becomes the card photo; `image`
  * stays the gradient shown only when there is no photo.
  */
-function normalizeRestaurant(r: Restaurant): Restaurant {
+function normalizeRestaurant(r: Restaurant, allowRemoteImage = true): Restaurant {
   const raw = r as Restaurant & { imageUrl?: unknown; image?: unknown };
   const imageUrl =
     typeof raw.imageUrl === 'string' && /^(https?:)?\/\//.test(raw.imageUrl.trim()) ? raw.imageUrl.trim() : undefined;
   const image = typeof raw.image === 'string' && raw.image ? raw.image : FALLBACK_ART;
-  return { ...r, imageUrl, image };
+  return { ...r, imageUrl: allowRemoteImage ? imageUrl : undefined, image };
 }
 
 const covered = (zip: string) => zip === '' || (COVERED_ZIPS as readonly string[]).includes(zip);
@@ -109,26 +109,33 @@ function filterMock(zip: string, q: string): Restaurant[] {
   });
 }
 
-export async function getRestaurants(zip: string, q = ''): Promise<Sourced<RestaurantsResponse>> {
+export async function getRestaurants(zip: string, q = '', subscriptions: string[] = [], tipPct = 0.15): Promise<Sourced<RestaurantsResponse>> {
   const params = new URLSearchParams({ zip });
   if (q.trim()) params.set('q', q.trim());
+  if (subscriptions.length) params.set('subs', subscriptions.join(','));
+  params.set('tip', String(tipPct));
   const json = await tryJson(`/api/restaurants?${params}`, isRestaurantsResponse);
   if (json) {
+    const demo = !Array.isArray(json) && json.dataMode === 'demo';
     const data: RestaurantsResponse = Array.isArray(json)
-      ? { restaurants: json.map(normalizeRestaurant), refreshedAt: new Date().toISOString() }
-      : { ...json, restaurants: json.restaurants.map(normalizeRestaurant) };
-    setUsingMock(false);
-    return { data, source: 'api' };
+      ? { restaurants: json.map((r) => normalizeRestaurant(r)), refreshedAt: new Date().toISOString() }
+      : { ...json, restaurants: json.restaurants.map((r) => normalizeRestaurant(r, !demo)) };
+    setUsingMock(demo);
+    return { data, source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
   return { data: { restaurants: filterMock(zip, q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
-export async function getRestaurant(id: string): Promise<Sourced<Restaurant | undefined>> {
-  const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}`, isRestaurant);
+export async function getRestaurant(id: string, subscriptions: string[] = [], tipPct = 0.15, zip = ''): Promise<Sourced<Restaurant | undefined>> {
+  const params = new URLSearchParams({ tip: String(tipPct) });
+  if (zip) params.set('zip', zip);
+  if (subscriptions.length) params.set('subs', subscriptions.join(','));
+  const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}?${params}`, isRestaurant);
   if (json) {
-    setUsingMock(false);
-    return { data: normalizeRestaurant(json), source: 'api' };
+    const demo = (json as Restaurant & { dataMode?: string }).dataMode === 'demo';
+    setUsingMock(demo);
+    return { data: normalizeRestaurant(json, !demo), source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
   return { data: RESTAURANTS.find((r) => r.id === id), source: 'mock' };

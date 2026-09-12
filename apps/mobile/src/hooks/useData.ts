@@ -17,12 +17,13 @@ export function useRestaurants() {
   const [refreshedAt, setRefreshedAt] = useState(REFRESHED_AT);
   const [source, setSource] = useState<Source>('mock');
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!ready) return;
     let alive = true;
     setLoading(true);
-    getRestaurants(prefs.zip).then(({ data, source }) => {
+    getRestaurants(prefs.zip, '', prefs.subscriptions, prefs.tipPct).then(({ data, source }) => {
       if (!alive) return;
       setRaw(data.restaurants);
       setRefreshedAt(data.refreshedAt);
@@ -32,14 +33,14 @@ export function useRestaurants() {
     return () => {
       alive = false;
     };
-  }, [prefs.zip, ready]);
+  }, [prefs.zip, prefs.subscriptions, prefs.tipPct, ready, refreshKey]);
 
   const restaurants = useMemo(
-    () => raw.map((r) => applyPrefs(r, prefs.subscriptions)),
-    [raw, prefs.subscriptions],
+    () => raw.map((r) => applyPrefs(r, prefs.subscriptions, prefs.tipPct)),
+    [raw, prefs.subscriptions, prefs.tipPct],
   );
 
-  return { restaurants, refreshedAt, source, loading };
+  return { restaurants, refreshedAt, source, loading, refresh: () => setRefreshKey((n) => n + 1) };
 }
 
 /** One restaurant plus its 7-day history. `restaurant` is undefined while loading, null when missing. */
@@ -53,7 +54,7 @@ export function useStore(id: string) {
     let alive = true;
     setRaw(undefined);
     setRawHistory([]);
-    Promise.all([getRestaurant(id), getHistory(id)]).then(([r, h]) => {
+    Promise.all([getRestaurant(id, prefs.subscriptions, prefs.tipPct, prefs.zip), getHistory(id)]).then(([r, h]) => {
       if (!alive) return;
       setRaw(r.data ?? null);
       setRawHistory(h.data);
@@ -62,11 +63,11 @@ export function useStore(id: string) {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, prefs.subscriptions, prefs.tipPct]);
 
   const restaurant = useMemo(
-    () => (raw ? applyPrefs(raw, prefs.subscriptions) : raw),
-    [raw, prefs.subscriptions],
+    () => (raw ? applyPrefs(raw, prefs.subscriptions, prefs.tipPct) : raw),
+    [raw, prefs.subscriptions, prefs.tipPct],
   );
   const snapshots = useMemo(
     () => (raw && restaurant ? applyPrefsToSnapshots(rawHistory, raw, restaurant) : rawHistory),

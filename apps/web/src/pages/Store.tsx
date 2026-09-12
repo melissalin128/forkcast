@@ -89,7 +89,7 @@ export function Store() {
           <span>{r.cuisine.join(', ')}</span>
           <span className="num">{r.distanceMi} mi</span>
           <span className="num">{etaRange(best)}</span>
-          <span>open until {r.openUntil}</span>
+          <span>{r.openUntil === 'hours vary' ? 'hours vary by app' : `open until ${r.openUntil}`}</span>
         </p>
         <CompareStrip restaurant={r} />
         <p className="store__for">For {r.orderLabel}</p>

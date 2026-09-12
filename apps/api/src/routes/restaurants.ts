@@ -7,6 +7,7 @@ import { PLATFORM_SLUGS, type PlatformSlug, type Restaurant } from '../models/ty
 import { distanceFromZip } from '../services/geo';
 import { priceRestaurant, type PricingContext, type RestaurantOffers } from '../services/offers';
 import { notFound } from './errors';
+import { adapterMode } from '../adapters';
 
 export const restaurantsRouter = Router();
 
@@ -66,6 +67,37 @@ function card(r: Restaurant, priced: RestaurantOffers, zip?: string) {
   };
 }
 
+/**
+ * Public client contract used by both the React and Expo apps. Keep the
+ * richer API fields above for debugging/backwards compatibility, but always
+ * include the fields the delivery-app UI needs so live data never silently
+ * falls back to its bundled catalog.
+ */
+function clientCard(r: Restaurant, priced: RestaurantOffers, zip?: string, tipPct = 0.15) {
+  const base = card(r, priced, zip);
+  const menuPrices = Object.fromEntries(
+    priced.offers.map((offer) => [offer.platformSlug, offer.subtotal]),
+  );
+  const known = ['Grocery', 'Pizza', 'Burgers', 'Ramen', 'Indian', 'Mexican', 'Thai', 'Sushi', 'Chinese'];
+  const category = known.find((name) => r.cuisine.some((c) => c.toLowerCase() === name.toLowerCase())) ?? r.cuisine[0] ?? 'All';
+  return {
+    ...base,
+    category,
+    menu: [{ name: r.sampleItem.name, price: r.sampleItem.menuPrice, prices: menuPrices }],
+    order: [{ name: r.sampleItem.name, qty: 1 }],
+    orderLabel: r.sampleItem.name,
+    tipPct: Math.round(tipPct * 100),
+    openUntil: 'hours vary',
+    image: 'linear-gradient(135deg, #f6dcc6, #e9b48c)',
+  };
+}
+
+const refreshedAt = (rows: ReturnType<typeof clientCard>[]) =>
+  rows
+    .flatMap((row) => row.offers.map((offer) => offer.fetchedAt))
+    .sort()
+    .at(-1) ?? new Date().toISOString();
+
 type Card = ReturnType<typeof card>;
 
 const sorters: Record<z.infer<typeof listQuery>['sort'], (a: Card, b: Card) => number> = {
@@ -98,6 +130,13 @@ restaurantsRouter.get('/restaurants', async (req, res, next) => {
     results.sort(sorters[q.sort]);
     results = results.slice(0, q.limit);
 
+    const clientRows = await Promise.all(results.map(async (row) => {
+      const restaurant = await ctx.repo.getRestaurant(row.id);
+      if (!restaurant) return null;
+      return clientCard(restaurant, { offers: row.offers, unavailable: row.unavailable, best: row.offers[0] ?? null, worst: row.offers.at(-1) ?? null, savings: row.savings }, q.zip, q.tip ?? 0.15);
+    }));
+    const clientRestaurants = clientRows.filter((row): row is NonNullable<typeof row> => row !== null);
+
     res.json({
       zip: q.zip ?? null,
       sort: q.sort,
@@ -105,6 +144,36 @@ restaurantsRouter.get('/restaurants', async (req, res, next) => {
       activePromos: ctx.promos.length,
       count: results.length,
       results,
+      restaurants: clientRestaurants,
+      refreshedAt: refreshedAt(clientRestaurants),
+      dataMode: adapterMode() === 'mock' ? 'demo' : 'live',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/restaurants/:id/history
+restaurantsRouter.get('/restaurants/:id/history', async (req, res, next) => {
+  try {
+    const days = z.coerce.number().int().min(1).max(30).default(7).parse(req.query.days);
+    const repo = getRepo();
+    const restaurant = await repo.getRestaurant(req.params.id);
+    if (!restaurant) throw notFound('restaurant');
+    const now = new Date();
+    const since = new Date(now.getTime() - days * 24 * 3600 * 1000);
+    const snapshots = await repo.listSnapshots(restaurant.id, since, now);
+    res.json({
+      restaurantId: restaurant.id,
+      snapshots: snapshots.map((snapshot) => ({
+        restaurantId: snapshot.restaurantId,
+        platformSlug: snapshot.platformSlug,
+        total: snapshot.total,
+        deliveryFee: snapshot.deliveryFee,
+        etaMin: snapshot.etaMin,
+        promoApplied: snapshot.promoApplied,
+        capturedAt: new Date(snapshot.capturedAt).toISOString(),
+      })),
     });
   } catch (err) {
     next(err);
@@ -140,7 +209,8 @@ restaurantsRouter.get('/restaurants/:id', async (req, res, next) => {
       : null;
 
     res.json({
-      ...card(r, priced, q.zip),
+      ...clientCard(r, priced, q.zip, q.tip ?? 0.15),
+      dataMode: adapterMode() === 'mock' ? 'demo' : 'live',
       subscriptions: ctx.subscriptions,
       history,
       historyDays: q.days,

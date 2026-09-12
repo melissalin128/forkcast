@@ -109,24 +109,26 @@ function filterMock(zip: string, q: string): Restaurant[] {
   });
 }
 
-export async function getRestaurants(zip: string, q = ''): Promise<Sourced<RestaurantsResponse>> {
-  const json = await tryJson(`/api/restaurants?${query({ zip, q: q.trim() })}`, isRestaurantsResponse);
+export async function getRestaurants(zip: string, q = '', subscriptions: string[] = [], tipPct = 0.15): Promise<Sourced<RestaurantsResponse>> {
+  const json = await tryJson(`/api/restaurants?${query({ zip, q: q.trim(), subs: subscriptions.join(','), tip: String(tipPct) })}`, isRestaurantsResponse);
   if (json) {
+    const demo = !Array.isArray(json) && json.dataMode === 'demo';
     const data: RestaurantsResponse = Array.isArray(json)
       ? { restaurants: json, refreshedAt: new Date().toISOString() }
-      : json;
-    setUsingMock(false);
-    return { data, source: 'api' };
+      : { ...json, restaurants: json.restaurants.map((r) => demo ? { ...r, imageUrl: undefined } : r) };
+    setUsingMock(demo);
+    return { data, source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
   return { data: { restaurants: filterMock(zip, q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
-export async function getRestaurant(id: string): Promise<Sourced<Restaurant | undefined>> {
-  const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}`, isRestaurant);
+export async function getRestaurant(id: string, subscriptions: string[] = [], tipPct = 0.15, zip = ''): Promise<Sourced<Restaurant | undefined>> {
+  const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}?${query({ zip, subs: subscriptions.join(','), tip: String(tipPct) })}`, isRestaurant);
   if (json) {
-    setUsingMock(false);
-    return { data: json, source: 'api' };
+    const demo = (json as Restaurant & { dataMode?: string }).dataMode === 'demo';
+    setUsingMock(demo);
+    return { data: demo ? { ...json, imageUrl: undefined } : json, source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
   return { data: RESTAURANTS.find((r) => r.id === id), source: 'mock' };

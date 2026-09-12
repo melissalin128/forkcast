@@ -96,7 +96,7 @@ export default function Store() {
               <Text style={[num, styles.fg]}>{r.distanceMi} mi</Text>
               {' · '}
               <Text style={[num, styles.fg]}>{etaRange(best)}</Text>
-              {' · '}open until {r.openUntil}
+              {' · '}{r.openUntil === 'hours vary' ? 'hours vary by app' : `open until ${r.openUntil}`}
             </Text>
             <CompareStrip restaurant={r} />
             <Text style={styles.forLine} numberOfLines={1}>
