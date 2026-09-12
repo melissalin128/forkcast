@@ -22,16 +22,18 @@ Read from the repo-root `.env` (see `.env.example`), falling back to the cwd.
 | var           | default | notes |
 |---------------|---------|-------|
 | `MONGODB_URI` | unset   | When unset **or unreachable**, the API logs one warning and serves an in-memory copy of the seed (restaurants, promos, 7 days of hourly snapshots). Everything works; users just don't persist across restarts. |
-| `ADAPTER`     | `mock`  | `mock` = deterministic fee curves from `src/adapters/mock.ts`. `live` = the Playwright scrapers in `src/adapters/{doordash,ubereats,grubhub}.ts` (see "Live scraping"). `/api/restaurants` goes through the same offers service and 10-minute cache either way. |
+| `ADAPTER`     | `mock`  | `mock` = deterministic fee curves from `src/adapters/mock.ts`. `live` = the Playwright scrapers in `src/adapters/{doordash,ubereats,grubhub}.ts` (see "Live scraping"). `apify` = Apify actors collect instead (see "Collecting through Apify"). `/api/restaurants` goes through the same offers service and 10-minute cache in all three. |
+| `ADAPTER_<PLATFORM>` | unset | Per-platform override of `ADAPTER` (same values). `ADAPTER_GRUBHUB=live` scrapes Grubhub with the local Playwright adapter (it needs no Apify actor) while `ADAPTER=apify` keeps DoorDash and Uber Eats on actors. `GET /api/health` reports the resolved mode per platform. |
 | `PORT`        | `4000`  | |
-| `SCRAPER_*`   |         | Scraper knobs, listed under "Live scraping". |
+| `SCRAPER_*`   |         | Playwright scraper knobs, listed under "Live scraping". |
+| `APIFY_*`     |         | Apify token / actor ids, listed under "Collecting through Apify". |
 
 ## Endpoints
 
 All under `/api`. Money is in dollars, times in minutes, dates ISO-8601.
 
 ### `GET /api/health`
-`{ ok, adapter: "mock"|"live", store: "mongo"|"memory", time }`
+`{ ok, adapter: "mock"|"live"|"apify", store: "mongo"|"memory", time }`
 
 ### `GET /api/restaurants`
 Query params (all optional):
@@ -117,6 +119,289 @@ src/
   seed/data.ts     3 platforms, ~45 Pittsburgh restaurants, promos
   seed/snapshots.ts hourly snapshot generator
   seed.ts          `npm run seed` (Mongo, idempotent)
+```
+
+## Collecting through Apify
+
+`ADAPTER=apify` swaps the local browsers for [Apify](https://apify.com) actors: the crawling,
+proxy rotation and anti-bot handling happen on Apify's infrastructure and this app only consumes
+the resulting dataset. Same `PlatformAdapter` contract, same matcher, same `computeTotal`, so
+nothing downstream changes — and it is the answer to the 403s that DoorDash and Uber Eats return
+from any datacenter IP.
+
+Trade-offs versus `ADAPTER=live`: runs cost Apify credit and take tens of seconds to a few minutes,
+and you get whatever fields the actor's author chose to emit — often no service fee or tax, since
+those are checkout-only. Missing fee lines stay `0` rather than being invented, exactly as in the
+Playwright path.
+
+### Setup
+
+1. Create an account and copy the token from
+   [console.apify.com/settings/integrations](https://console.apify.com/settings/integrations).
+2. Pick an actor per platform on [apify.com/store](https://apify.com/store?search=doordash)
+   (also search `ubereats`, `grubhub`). The actor id is the `username/actor-name` from its URL.
+   Two things to check on its page before you commit to it:
+   - it can **search by address or location**, not only scrape store URLs you supply — otherwise it
+     can serve as a `_STORE_ACTOR` but cannot do discovery;
+   - its output includes **menu items with prices**, so one run prices a whole search
+     (see "Run accounting").
+3. Fill in the repo-root `.env`:
+
+```bash
+ADAPTER=apify
+APIFY_TOKEN=apify_api_...
+APIFY_DOORDASH_ACTOR=someone/doordash-scraper
+APIFY_UBEREATS_ACTOR=someone/ubereats-scraper
+APIFY_GRUBHUB_ACTOR=someone/grubhub-scraper
+```
+
+#### Uber Eats: `borderline/uber-eats-scraper-ppr`
+
+This is the actor the project uses, and its input templates are the **built-in defaults** for
+`ubereats` — setting `APIFY_UBEREATS_ACTOR` is enough:
+
+```bash
+APIFY_UBEREATS_ACTOR=borderline/uber-eats-scraper-ppr
+# equivalent to the defaults in src/adapters/apify/actors.ts:
+APIFY_UBEREATS_INPUT={"query":"{{query}}","address":"{{address}}","latitude":"{{lat}}","longitude":"{{lng}}","addressCountry":"US","locale":"en-US","diningMode":"DELIVERY","storeType":"RESTAURANTS","maxRows":"{{limit}}","getMenuCustomizations":false}
+APIFY_UBEREATS_STORE_INPUT={"urls":["{{storeUrl}}"],"locale":"en-US","diningMode":"DELIVERY","getMenuCustomizations":false}
+```
+
+It bills **$0.005 per restaurant**, and one row is one restaurant with its menu nested — so a
+search costs `APIFY_MAX_ITEMS` × half a cent (8 stores ≈ $0.04) no matter how long the menus are.
+Notes on the template:
+
+- coordinates override the address string on this actor, so `{{lat}}`/`{{lng}}` (the zip centroid
+  from `services/zipGeo.ts`) pin the delivery point better than "Pittsburgh, PA 15213" does. When
+  a zip has no geocode both keys drop out and `address` carries the search on its own.
+- `storeType: RESTAURANTS` keeps grocery, pharmacy and retail verticals out of the results.
+- `getMenuCustomizations` stays off: option trees multiply the run time and payload without
+  changing any price we read.
+- store lookups use URL mode (`urls`), but they rarely run — the search rows already carry menus.
+
+Platforms without an actor id fail with a message naming the exact var to set; the others still run.
+
+```bash
+npm run scrape:apify -- --zip 15213 --q ramen --platforms doordash,ubereats
+npm run scrape -- --adapter apify --zip 15213 --q pizza --json
+ADAPTER=apify npm run dev        # /api/restaurants and POST /api/scrape go through Apify
+```
+
+### Using it from the web app
+
+Prices are **collected by a scrape and served from storage** — `GET /api/restaurants` never starts
+an actor run. A run takes tens of seconds to minutes, and the web client gives up on a request after
+2.5 s and falls back to its sample data, so an on-demand run could not reach the UI anyway; it would
+just spend credit (one run per restaurant per page load). `config.apify.storedOnly` enforces that;
+set `APIFY_STORED_ONLY=0` if you really want the old on-demand behaviour.
+
+So the working order is:
+
+```bash
+ADAPTER=apify npm run dev                                   # terminal 1
+curl -X POST localhost:4000/api/scrape \
+  -H 'content-type: application/json' \
+  -d '{"zip":"15213","q":"pizza","platforms":["ubereats","doordash"],"limit":8}'   # terminal 2
+```
+
+then load the web app. **`npm run scrape:apify` does not work for this** unless `MONGODB_URI` is
+set: without Mongo the CLI and the server each hold their *own* in-memory store, so a CLI scrape
+fills a store the server never sees. Either set `MONGODB_URI`, or drive the scrape through
+`POST /api/scrape` on the running server.
+
+### Seeding the database with real prices
+
+`npm run scrape:seed` fills the store from real searches instead of the demo catalog: one scrape
+job per (zip, query) — sequentially, reusing the browsers and Apify caches — plus the platform
+metadata docs (names, brand colors), so a fresh database is fully usable afterwards. Defaults to
+eight common searches (pizza, boba, fast food, burgers, sushi, chinese, mexican, thai) near 15213.
+
+```bash
+npm run scrape:seed                                          # the defaults; needs MONGODB_URI
+npm run scrape:seed -- --zips 15213,15217 --queries pizza,boba --limit 5 --pause 10
+```
+
+Each query starts one Apify search run per apify-mode platform; the total is printed before
+anything runs. Ctrl-C finishes the current job and exits cleanly.
+
+A stored price stays servable for `APIFY_OFFER_MAX_AGE_MIN` (default 24 h) rather than the 10-minute
+cache the other adapters use, because re-collecting costs a run. Platforms with no stored price come
+back in `unavailable[]` and the ledger shows them as not priced, so a restaurant that only one
+platform returned still renders with its one real price:
+
+```
+Andaluzia Flavors          DoorDash  $19.80      Uber Eats  —      Grubhub  —
+Ottimo Pizza & Pasta       Uber Eats $23.68      DoorDash   —      Grubhub  —
+```
+
+That is the normal case across platforms here, not an error: the matcher only joins rows it can
+identify as the same physical restaurant, and the platforms rank and paginate their own search
+results differently, so the two actors often surface different stores for the same query.
+
+### Actor input templates
+
+Every actor takes a different input. The defaults in `src/adapters/apify/actors.ts` cover the
+common `{search, location, maxItems}` / `{startUrls}` shapes; when yours differs, open the actor in
+the Apify console, run it once by hand, switch the Input tab to **JSON**, and paste that JSON into
+`APIFY_<PLATFORM>_INPUT` with placeholders where the app should fill in:
+
+| template | placeholders |
+|----------|--------------|
+| `APIFY_<PLATFORM>_INPUT` (search) | `{{query}}` `{{zip}}` `{{address}}` `{{lat}}` `{{lng}}` `{{limit}}` |
+| `APIFY_<PLATFORM>_STORE_INPUT` (one store) | `{{storeId}}` `{{storeUrl}}` `{{zip}}` `{{address}}` `{{lat}}` `{{lng}}` `{{item}}` |
+
+Append `:uri` to percent-encode a placeholder that sits inside a URL — `{{query:uri}}` turns
+`chicken tikka` into `chicken%20tikka`, which is what actors taking `startUrls` need.
+
+```bash
+APIFY_UBEREATS_INPUT={"searchTerm":"{{query}}","deliveryAddress":"{{address}}","maxRows":"{{limit}}"}
+```
+
+Keep placeholders quoted so the template stays valid JSON — a string that is *exactly* one
+placeholder keeps the value's own type, so `"{{limit}}"` renders as the number `20`. Keys whose
+placeholder has no value (an unused `{{item}}`) are dropped before the run. `{{address}}` is the
+zip's geocoded label ("Pittsburgh, PA 15213") from `services/zipGeo.ts`, since most actors want a
+human address rather than a bare zip.
+
+#### DoorDash: `dz_omar/doordash-scraper`
+
+Also wired as the default for `doordash` — the actor id alone is enough. It takes **URLs, not a
+query**, so discovery is a search page and store lookups are store pages, and — crucially — it
+takes a real delivery **`address`**, so results, fees and ETAs are for the requested zip
+(`{{address}}` is the geocoded "Pittsburgh, PA 15213" label, verified to return Oakland stores):
+
+```bash
+APIFY_DOORDASH_ACTOR=dz_omar/doordash-scraper
+# equivalent to the defaults:
+APIFY_DOORDASH_INPUT={"startUrls":[{"url":"https://www.doordash.com/search/store/{{query:uri}}?event_type=search"}],"address":"{{address}}","maxResults":"{{limit}}","includeMenu":true,"fetchReviews":false}
+APIFY_DOORDASH_STORE_INPUT={"startUrls":[{"url":"{{storeUrl}}"}],"address":"{{address}}","includeMenu":true,"fetchReviews":false}
+```
+
+Billing is **pay-per-event: $0.006 per store record** on the free tier (cheaper on paid tiers).
+Reviews cost extra per row and nothing here reads them, so `fetchReviews` stays `false`.
+
+Each row is one store (`record_type: "store"`) with the menu nested on it —
+`menu_categories[].items[]` plus a `featured_items` carousel of the store's own dishes — so one
+search run prices every store it returns; `fetchOffer` needs no second run. Items carry both
+`price_cents` (list price) and `price_display` (with the store's "25% off"-style discount already
+applied); the profile pins `price_display` first because that is what a customer actually pays.
+The delivery fee is read from the tile string (`"$0 delivery fee, first order"`), and `tags`
+become the cuisines. No hooks needed — this actor is handled by aliases alone
+(`DZ_OMAR_DOORDASH` in `src/adapters/apify/profiles.ts`).
+
+### Adding a platform whose actor looks nothing like the others
+
+Output shape follows the **actor**, not the platform: swap the DoorDash actor and its field names
+change again, while two platforms scraped by the same author usually look alike. So parsing
+overrides are registered per actor id, in `src/adapters/apify/profiles.ts`, and resolved as
+`APIFY_<PLATFORM>_PROFILE` → a profile whose name matches the configured actor id → generic.
+
+Most actors need **no profile** — the alias vocabulary in `apify/fields.ts` already covers them.
+Run the actor once, look at what came out wrong, and reach for the cheapest fix that works:
+
+| Symptom | Fix |
+|---|---|
+| A field is empty, or picked up the wrong key | `fields` — add the actor's key names |
+| Every dish became its own restaurant; the dataset is wrapped or padded | `rows` — reshape before anything reads it |
+| A value needs real logic, not a key name | `listing` / `menu` / `fees` hooks |
+
+```ts
+export const SOMEONE_DOORDASH: ApifyProfile = {
+  name: 'someone/doordash-scraper',        // the actor id
+  fields: {
+    storeId: ['!', 'ddStoreId'],           // '!' replaces the defaults …
+    deliveryFee: ['deliveryFeeString'],    // … without it, tried before them
+    menuContainers: ['!', 'menuBook'],
+    itemName: ['!', 'itemTitle'],
+  },
+  rows: (rows) => rows.filter((r) => r.kind === 'store'),
+  menu: (row, ctx) => myCustomMenuReader(row),   // return undefined to fall through
+};
+```
+
+Then add it to `PROFILES`. `'!'` matters when a generic alias actively means the *wrong* thing on
+that actor — one real example: a DoorDash row where `name` is the chain ("Papa Johns") and
+`storeDisplayName` is the branch, or `rating` holds a review count rather than a score. Prepending
+would leave the generic name winning; replacing fixes it. The hooks all return `undefined` to
+decline, so a profile can special-case a few rows and let the generic reader handle the rest.
+`profiles.test.ts` works an example of each.
+
+Everything shared — money and cents handling, ETA, addresses, menu walking, flat-row joining —
+stays in the generic layer, so a profile is only ever an exception list, usually under ten lines.
+
+### Reading the output
+
+Actor output field names vary per actor and change between versions, so
+`src/adapters/apify/normalize.ts` resolves each field from a list of aliases (shallow keys first,
+then a bounded walk), which covers `title`/`name`/`storeName`, `delivery_fee`/`deliveryFee`/
+`fees.delivery`, menus under `menuItems` or `categories[].items[]`, prices as `16.5`, `"$16.50"` or
+`{amount: 1650, currencyCode: "USD"}`, and stores identified only by their URL. `normalize.test.ts`
+pins that against three deliberately different shapes.
+
+**Prices in cents.** Uber Eats reports menu prices as integer cents (`price: 1799` alongside
+`priceTagline: "$17.99"`), and actors pass that straight through — so a bare number is ambiguous.
+The formatted string wins whenever there is one. When there isn't, the scale is decided for the menu
+as a whole rather than per value: if any item has both forms their ratio settles it, otherwise a menu
+where every item is ≥ 100 and something is ≥ 1000 is treated as cents. `detectPriceScale` is the
+function, and `normalize.test.ts` pins both paths.
+
+**Catalog vocabulary.** Actors that pass Uber's own structure through nest items under
+`menu[].catalogItems[]` with `title`/`priceTagline`, put the rating in an object
+(`rating: {ratingValue: 4.5, ratingCount: "140+"}`) and put the delivery fee in a badge string
+(`fareBadge: " $0 delivery fee (new users)"`). All three are handled; the fixture in
+`fixtures/ubereats-catalog.json` is a real capture. Note that item-level promos ("Buy 1, get 1
+free" on one dish) are deliberately *not* read as order promos — only the store-level
+`promotions` / `offerText` fields are.
+
+**Flat datasets.** Some actors do not nest the menu inside the store; they emit one row per store
+*and* one row per menu item, tagged `recordType: "store" | "menuItem"` and joined by `storeId` /
+`storeUrl` (`solidcode/ubereats-full-menu-scraper` is one). `joinFlatRows` folds the item rows back
+into their store before anything else looks at them — without it every dish becomes its own
+restaurant. Rows with no `recordType` are classified by shape: a price plus a store key, minus the
+fields only a store has (address, cuisines, rating, delivery fee). Item rows whose store row never
+appeared (a `startUrls` run) synthesise one from their own `storeName` / `storeUrl`.
+
+That is also why `APIFY_MAX_ITEMS` is *not* passed to Apify as a row cap — it is the store count
+rendered into the input as `{{limit}}`. A row cap would truncate a flat dataset mid-menu. Set
+`APIFY_HARD_MAX_ITEMS` if you want one anyway as a spend backstop.
+
+When rows come back but none parse as a store, the run fails with the keys the actor actually sent:
+
+```
+doordash: someone/doordash-scraper returned 20 rows but none had a store name + id.
+First row keys: shopTitle, shopUrl, shopRating, …
+```
+
+— which is your cue to point `APIFY_<PLATFORM>_INPUT` at a different actor or adjust the template.
+
+### Run accounting
+
+A scrape job calls `searchRestaurants` once per platform, then `fetchOffer` once per matched
+restaurant. Since each actor run is billed, `ApifyAdapter` caches the search rows and prices from
+them whenever they carried a menu — so a typical search is **one run per platform**, not one per
+restaurant. Only stores whose search row had no menu trigger a single-store run through
+`APIFY_<PLATFORM>_STORE_ACTOR` (defaults to the search actor), and that result is cached too.
+
+| env | default | |
+|-----|---------|---|
+| `APIFY_TOKEN` | unset | Required for `ADAPTER=apify`. |
+| `APIFY_<PLATFORM>_ACTOR` | unset | `username/actor-name`. Platforms without one report an error and are skipped. |
+| `APIFY_<PLATFORM>_STORE_ACTOR` | search actor | Separate actor for single-store/menu runs. |
+| `APIFY_<PLATFORM>_INPUT` / `_STORE_INPUT` | see above | Input templates, as JSON. |
+| `APIFY_<PLATFORM>_PROFILE` | by actor id | Force a parsing profile by name; `generic` disables per-actor overrides. |
+| `APIFY_MAX_ITEMS` | `20` | Stores wanted per search run, rendered into the input as `{{limit}}`. |
+| `APIFY_HARD_MAX_ITEMS` | off | Row cap enforced by Apify. Off by default — it truncates flat datasets mid-menu. |
+| `APIFY_TIMEOUT_SEC` | `180` | Per-run timeout. Above Apify's 300 s sync cap the client starts the run and polls instead. |
+| `APIFY_ASYNC` | `0` | `1` forces the run + poll path at any timeout. |
+| `APIFY_MEMORY_MB` | actor default | Memory per run. |
+
+```
+src/adapters/apify.ts            the adapter (search -> listings, fetchOffer -> Offer, run cache)
+src/adapters/apify/client.ts     REST client: run-sync-get-dataset-items, or run + poll + fetch dataset
+src/adapters/apify/actors.ts     actor ids and input templates from env, placeholder rendering
+src/adapters/apify/fields.ts     every field the normalizer reads + the key names accepted for it
+src/adapters/apify/profiles.ts   per-actor overrides: field aliases and listing/menu/fees/rows hooks
+src/adapters/apify/normalize.ts  actor output (any shape) -> PlatformListing / menu / fees
 ```
 
 ## Live scraping

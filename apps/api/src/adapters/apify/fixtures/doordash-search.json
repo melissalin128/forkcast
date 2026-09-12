@@ -1,0 +1,512 @@
+[
+  {
+    "record_type": "store",
+    "store_id": "977564",
+    "name": "Little Nipper's Pizza II",
+    "description": "Pizzeria",
+    "business": {
+      "id": "133263",
+      "name": "Little Nipper's Pizza II",
+      "vertical_id": "0"
+    },
+    "tags": [
+      {
+        "id": "16",
+        "name": "Italian",
+        "priority": 99
+      },
+      {
+        "id": "22",
+        "name": "Salads",
+        "priority": 98
+      },
+      {
+        "id": "33",
+        "name": "Pizza",
+        "priority": 97
+      },
+      {
+        "id": "45",
+        "name": "Burgers",
+        "priority": 92
+      },
+      {
+        "id": "2381",
+        "name": "Calzones",
+        "priority": 96
+      },
+      {
+        "id": "2779",
+        "name": "Appetizers",
+        "priority": 94
+      }
+    ],
+    "rating": 4.5,
+    "num_ratings": "2025",
+    "num_ratings_display": "(2k+)",
+    "num_reviews": "52",
+    "num_reviews_display": "50+ public reviews",
+    "price_range": 2,
+    "price_range_display": "$$",
+    "currency": "USD",
+    "is_dashpass": false,
+    "delivery_fee_display": "$0 delivery fee, first order",
+    "delivery_fee_is_surging": false,
+    "pickup_fee_display": "No fees",
+    "is_open": true,
+    "asap_minutes": 30,
+    "asap_status": {
+      "is_available": true,
+      "unavailable_status": null,
+      "unavailable_reason": null,
+      "unavailable_reason_keys": null,
+      "display_reason": null
+    },
+    "asap_pickup_minutes": 19,
+    "offers": {
+      "delivery": true,
+      "pickup": true,
+      "group_order": true,
+      "scheduling": true,
+      "catering": false,
+      "cannabis": false,
+      "drone_delivery": false
+    },
+    "flags": {
+      "is_newly_added": false,
+      "is_convenience": false,
+      "fulfills_own_deliveries": true
+    },
+    "address": "216 N Craig St, Pittsburgh, PA 15213, USA",
+    "street": "216 North Craig Street",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "lat": 40.45039,
+    "lng": -79.95089,
+    "distance_from_consumer": "0.6 mi",
+    "header_image": "https://img.cdn4dd.com/30-824b-9049987097f2.JPG",
+    "url": "https://www.doordash.com/store/977564",
+    "_source": "doordash-scraper",
+    "_scrapedAt": "2026-09-12T16:55:02.352Z",
+    "featured_items": {
+      "collection_id": "recommended_items_for_you",
+      "collection_name": "Featured Items",
+      "collection_type": "mixed_grid_carousel",
+      "num_rows": null,
+      "num_columns": null,
+      "total_items": 25,
+      "items": [
+        {
+          "item_id": "16010274703",
+          "name": "Traditional Pie Pizza (14\")",
+          "price_display": "$11.47",
+          "price_cents": 1529,
+          "rating_count": 53,
+          "badges": [
+            {
+              "text": "25% off",
+              "type": "lunch_special_percent_off",
+              "placement": "descriptor"
+            }
+          ]
+        },
+        {
+          "item_id": "16010274694",
+          "name": "Pepperoni Stromboli",
+          "price_display": "2 for $17.29",
+          "price_cents": 1729,
+          "rating_count": 13,
+          "badges": [
+            {
+              "text": "Buy 1, get 1 free",
+              "type": "bogo_offer",
+              "placement": "descriptor"
+            }
+          ]
+        },
+        {
+          "item_id": "16010274701",
+          "name": "Traditional Pie Pizza (16\")",
+          "price_display": "$12.97",
+          "price_cents": 1729,
+          "rating_count": 50,
+          "badges": [
+            {
+              "text": "25% off",
+              "type": "lunch_special_percent_off",
+              "placement": "descriptor"
+            }
+          ]
+        }
+      ]
+    },
+    "menu_categories": [
+      {
+        "category_id": "popular-items",
+        "category_name": "Most Ordered",
+        "is_popular": true,
+        "collection_type": "item_list",
+        "collection_position": 0,
+        "visible_item_count": 10,
+        "total_items": 10,
+        "items": [
+          {
+            "item_id": "16010274703",
+            "name": "Traditional Pie Pizza (14\")",
+            "price_display": "$11.47",
+            "price_cents": 1529,
+            "rating_count": 53,
+            "badges": [
+              {
+                "text": "25% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "131016922"
+          },
+          {
+            "item_id": "16010274699",
+            "name": "Traditional Pie Pizza (18\")",
+            "price_display": "$14.54",
+            "price_cents": 1939,
+            "rating_count": 14,
+            "badges": [
+              {
+                "text": "25% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "131016922"
+          },
+          {
+            "item_id": "16010274701",
+            "name": "Traditional Pie Pizza (16\")",
+            "price_display": "$12.97",
+            "price_cents": 1729,
+            "rating_count": 50,
+            "badges": [
+              {
+                "text": "25% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "131016922"
+          }
+        ]
+      },
+      {
+        "category_id": "332766769",
+        "category_name": "Dressings",
+        "is_popular": false,
+        "collection_type": "item_list",
+        "collection_position": 1,
+        "visible_item_count": 5,
+        "total_items": 5,
+        "items": [
+          {
+            "item_id": "40108660099",
+            "name": "Marinara Sauce",
+            "price_display": "$1.61",
+            "price_cents": 161,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "332766769"
+          },
+          {
+            "item_id": "40108682439",
+            "name": "Gyro Sauce",
+            "price_display": "$1.61",
+            "price_cents": 161,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "332766769"
+          },
+          {
+            "item_id": "44244421726",
+            "name": "Cheese Sauce",
+            "price_display": "$1.61",
+            "price_cents": 161,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "332766769"
+          }
+        ]
+      },
+      {
+        "category_id": "131016913",
+        "category_name": "Starters and Appetizers",
+        "is_popular": false,
+        "collection_type": "item_list",
+        "collection_position": 2,
+        "visible_item_count": 12,
+        "total_items": 27,
+        "items": [
+          {
+            "item_id": "16008672970",
+            "name": "Cheezy Breadsticks",
+            "price_display": "$7.49",
+            "price_cents": 999,
+            "rating_count": 15,
+            "badges": [
+              {
+                "text": "25% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "131016913"
+          },
+          {
+            "item_id": "16008672959",
+            "name": "Steak Fries",
+            "price_display": "$4.94",
+            "price_cents": 659,
+            "rating_count": 8,
+            "badges": [
+              {
+                "text": "25% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "131016913"
+          },
+          {
+            "item_id": "16008672966",
+            "name": "Provolone Sticks",
+            "price_display": "$8.79",
+            "price_cents": 879,
+            "rating_count": 17,
+            "badges": [],
+            "category_id": "131016913"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "record_type": "store",
+    "store_id": "249067",
+    "name": "Pizza Parma",
+    "description": "Pizzeria",
+    "business": {
+      "id": "358159",
+      "name": "Pizza Parma",
+      "vertical_id": "0"
+    },
+    "tags": [
+      {
+        "id": "16",
+        "name": "Italian",
+        "priority": 5
+      },
+      {
+        "id": "22",
+        "name": "Salads",
+        "priority": 2
+      },
+      {
+        "id": "33",
+        "name": "Pizza",
+        "priority": 4
+      }
+    ],
+    "rating": 4.3,
+    "num_ratings": "4486",
+    "num_ratings_display": "(4k+)",
+    "num_reviews": "59",
+    "num_reviews_display": "50+ public reviews",
+    "price_range": 2,
+    "price_range_display": "$$",
+    "currency": "USD",
+    "is_dashpass": true,
+    "delivery_fee_display": "$0 delivery fee, first order",
+    "delivery_fee_is_surging": false,
+    "pickup_fee_display": "No fees",
+    "is_open": true,
+    "asap_minutes": 30,
+    "asap_status": {
+      "is_available": true,
+      "unavailable_status": null,
+      "unavailable_reason": null,
+      "unavailable_reason_keys": null,
+      "display_reason": null
+    },
+    "asap_pickup_minutes": 17,
+    "offers": {
+      "delivery": true,
+      "pickup": true,
+      "group_order": true,
+      "scheduling": true,
+      "catering": false,
+      "cannabis": false,
+      "drone_delivery": false
+    },
+    "flags": {
+      "is_newly_added": false,
+      "is_convenience": false,
+      "fulfills_own_deliveries": false
+    },
+    "address": "Pizza Parma, 217 S Highland Ave, Pittsburgh, PA 15206, USA",
+    "street": "217 South Highland Avenue",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "lat": 40.458411,
+    "lng": -79.924768,
+    "distance_from_consumer": "1.4 mi",
+    "header_image": "https://img.cdn4dd.com/a1-bef3-3b9c5a0e68bb.jpg",
+    "url": "https://www.doordash.com/store/249067",
+    "_source": "doordash-scraper",
+    "_scrapedAt": "2026-09-12T16:55:03.654Z",
+    "featured_items": {
+      "collection_id": "recommended_items_for_you",
+      "collection_name": "Featured Items",
+      "collection_type": "mixed_grid_carousel",
+      "num_rows": null,
+      "num_columns": null,
+      "total_items": 25,
+      "items": [
+        {
+          "item_id": "13227367201",
+          "name": "Medium 14\" ",
+          "price_display": "$23.99",
+          "price_cents": 2399,
+          "rating_count": 32,
+          "badges": [
+            {
+              "text": "#2 Most liked",
+              "type": "most_liked_2",
+              "placement": "descriptor"
+            }
+          ]
+        },
+        {
+          "item_id": "13227396182",
+          "name": "Large Cheese Pizza + 24” hoagie + 2 liter",
+          "price_display": "$73.98+",
+          "price_cents": 5599,
+          "rating_count": null,
+          "badges": []
+        },
+        {
+          "item_id": "13227367203",
+          "name": "X-Large 18\" ",
+          "price_display": "$32.99",
+          "price_cents": 3299,
+          "rating_count": 13,
+          "badges": []
+        }
+      ]
+    },
+    "menu_categories": [
+      {
+        "category_id": "popular-items",
+        "category_name": "Most Ordered",
+        "is_popular": true,
+        "collection_type": "item_list",
+        "collection_position": 0,
+        "visible_item_count": 10,
+        "total_items": 10,
+        "items": [
+          {
+            "item_id": "13227367200",
+            "name": "Small 10\"",
+            "price_display": "$11.99",
+            "price_cents": 1999,
+            "rating_count": 11,
+            "badges": [
+              {
+                "text": "40% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "117169831"
+          },
+          {
+            "item_id": "13227336586",
+            "name": "French Fries",
+            "price_display": "$7.19",
+            "price_cents": 1199,
+            "rating_count": 13,
+            "badges": [
+              {
+                "text": "40% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "117141270"
+          },
+          {
+            "item_id": "13227402014",
+            "name": "Chicken Alfredo",
+            "price_display": "$16.79",
+            "price_cents": 2799,
+            "rating_count": 8,
+            "badges": [
+              {
+                "text": "40% off",
+                "type": "lunch_special_percent_off",
+                "placement": "descriptor"
+              }
+            ],
+            "category_id": "117204938"
+          }
+        ]
+      },
+      {
+        "category_id": "117202350",
+        "category_name": "Family Style Meals",
+        "is_popular": false,
+        "collection_type": "item_list",
+        "collection_position": 1,
+        "visible_item_count": 1,
+        "total_items": 1,
+        "items": [
+          {
+            "item_id": "13227381394",
+            "name": "3 Large Pizzas",
+            "price_display": "$79.99",
+            "price_cents": 7999,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "117202350"
+          }
+        ]
+      },
+      {
+        "category_id": "117178830",
+        "category_name": "Family Bundles",
+        "is_popular": false,
+        "collection_type": "item_list",
+        "collection_position": 2,
+        "visible_item_count": 2,
+        "total_items": 2,
+        "items": [
+          {
+            "item_id": "13227396181",
+            "name": "Large cheese pizza + 12 wings",
+            "price_display": "$47.99",
+            "price_cents": 4799,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "117178830"
+          },
+          {
+            "item_id": "13227396182",
+            "name": "Large Cheese Pizza + 24” hoagie + 2 liter",
+            "price_display": "$73.98+",
+            "price_cents": 5599,
+            "rating_count": null,
+            "badges": [],
+            "category_id": "117178830"
+          }
+        ]
+      }
+    ]
+  }
+]

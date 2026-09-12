@@ -31,12 +31,13 @@ export async function connectDb(): Promise<Repository> {
 
 /**
  * With the mock adapters the memory store is seeded (restaurants, promos, 7 days of history).
- * With the live adapters it starts empty: the seed's platform ids are not real store ids, so
- * scraping them would only produce errors. `npm run scrape` fills it.
+ * With the live *or* Apify adapters it starts empty: the seed's platform ids are not real store
+ * ids, so pricing them would only produce errors — and on Apify it would spend credit running
+ * actors against ids that do not exist. `npm run scrape` / `npm run scrape:apify` fills it.
  */
 function memoryFallback(): Repository {
-  if (config.adapter === 'live') {
-    console.warn('[db] no MongoDB -> in-memory store, empty until you run `npm run scrape` (ADAPTER=live)');
+  if (config.adapter !== 'mock') {
+    console.warn(`[db] no MongoDB -> in-memory store, empty until you run \`npm run scrape\` (ADAPTER=${config.adapter})`);
     return MemoryRepository.empty();
   }
   console.warn('[db] no MongoDB -> using in-memory store seeded from src/seed/data.ts');

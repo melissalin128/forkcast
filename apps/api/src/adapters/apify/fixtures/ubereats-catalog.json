@@ -1,0 +1,145 @@
+{
+  "priceBucket": "$",
+  "parentChain": null,
+  "isChain": false,
+  "citySlug": "pittsburgh",
+  "slug": "ottimo-pizza-&-pasta-4635-centre-avenue",
+  "scrapedAt": "2026-09-12T16:10:10.768Z",
+  "workingHoursTagline": "Opens Sunday 10:00 AM\n",
+  "promotions": [],
+  "diningMode": "DELIVERY",
+  "searchAddress": "Tepper School of Business",
+  "analytics": {
+    "totalSections": 21,
+    "totalItems": 189,
+    "itemsWithPrice": 189,
+    "minPrice": 149,
+    "maxPrice": 5499,
+    "averagePrice": 1516.096296296296,
+    "priceCoverage": 1
+  },
+  "title": "Ottimo Pizza & Pasta (4635 Centre Avenue)",
+  "sanitizedTitle": "Ottimo Pizza &amp; Pasta (4635 Centre Avenue)",
+  "phoneNumber": "+14126888448",
+  "emails": [],
+  "cuisineList": ["Pizza", "American", "Italian"],
+  "location": {
+    "address": "4635 Centre Avenue, Pittsburgh, PA 15213",
+    "streetAddress": "4635 Centre Avenue",
+    "city": "Pittsburgh",
+    "country": "US",
+    "postalCode": "15213",
+    "region": "PA",
+    "latitude": 40.452409,
+    "longitude": -79.9505775,
+    "geo": {},
+    "locationType": "STANDALONE_VIRTUAL"
+  },
+  "currencyCode": "USD",
+  "rating": {
+    "ratingValue": 4.5,
+    "reviewCount": "140+",
+    "exactValue": 4.469879518072289,
+    "ratingCount": "140+"
+  },
+  "etaMinutes": { "min": 31, "max": 52 },
+  "storeAvailablityStatus": "AVAILABLE",
+  "isOpen": true,
+  "isOrderable": true,
+  "closedMessage": "",
+  "etaRange": "Delivered in 31 to 52 min",
+  "fareBadge": " $0 delivery fee (new users)",
+  "hours": [{ "dayRange": "Sunday - Thursday", "sectionHours": [{ "startTime": 600, "endTime": 30, "sectionTitle": "" }] }],
+  "categories": ["$", "Pizza", "American", "Italian"],
+  "categoriesLink": [{ "text": "Pizza" }, { "text": "American" }, { "text": "Italian" }],
+  "menu": [
+    {
+      "catalogSectionUUID": "556a657a-472a-5ab7-8c51-0d5ebe39b4a5",
+      "sectionUUID": "a4400141-9a0c-4e50-ac2e-85180b5ddc8b",
+      "catalogName": "Offers",
+      "catalogSubTitle": "",
+      "catalogSectionPosition": 0,
+      "catalogItems": [
+        {
+          "uuid": "121724f4-c027-412c-9089-b3f8764fe597",
+          "title": "16\" Large Traditional Cheese Pizza",
+          "titleBadge": "16\" Large Traditional Cheese Pizza",
+          "imageUrl": "https://tb-static.uber.com/prod/image-proc/processed_images/cdf94c1363b957a0afb14987e4789d2c/a19bb09692310dfd41e49a96c424b3a6.jpeg",
+          "itemDescription": "Twelve slices.",
+          "price": 1799,
+          "priceTagline": "$17.99",
+          "isSoldOut": false,
+          "isAvailable": true,
+          "hasCustomizations": true,
+          "endorsement": "#1 most liked",
+          "numAlcoholicItems": 0,
+          "sectionUuid": "a4400141-9a0c-4e50-ac2e-85180b5ddc8b",
+          "subsectionUuid": "556a657a-472a-5ab7-8c51-0d5ebe39b4a5",
+          "promo": "Buy 1, get 1 free",
+          "labelPrimary": "$17.99, 87% of customers liked this based on 543 reviews."
+        },
+        {
+          "uuid": "4c373874-ca7c-42aa-bf7e-4099caa3a546",
+          "title": "14\" Medium Traditional Cheese Pizza",
+          "itemDescription": "Eight slices.",
+          "price": 1499,
+          "priceTagline": "$14.99",
+          "isSoldOut": false,
+          "isAvailable": true,
+          "sectionUuid": "a4400141-9a0c-4e50-ac2e-85180b5ddc8b",
+          "subsectionUuid": "556a657a-472a-5ab7-8c51-0d5ebe39b4a5",
+          "promo": "Buy 1, get 1 free"
+        },
+        {
+          "uuid": "019e0129-f467-4b6e-a3e0-e1341bb5601c",
+          "title": "Party Special",
+          "itemDescription": "4 large 16\" plain pizzas.",
+          "price": 5037.200000000001,
+          "priceTagline": "$50.37",
+          "isSoldOut": false,
+          "isAvailable": true,
+          "promo": "30% off",
+          "labelPrimary": "$50.37, previous price was $71.96"
+        },
+        {
+          "uuid": "405926e9-0c0e-4dd6-9d98-4baca1962c32",
+          "title": "Greek Gourmet Pizza",
+          "itemDescription": "Gyro meat, tomatoes, red onions, black olives, and feta cheese over garlic sauce.",
+          "price": 1259.3000000000002,
+          "priceTagline": "$12.59",
+          "isSoldOut": false,
+          "isAvailable": true,
+          "promo": "30% off"
+        }
+      ]
+    },
+    {
+      "catalogSectionUUID": "bee68ee6-80ea-4b06-b1c3-ff5e41147fc9",
+      "sectionUUID": "a4400141-9a0c-4e50-ac2e-85180b5ddc8b",
+      "catalogName": "Appetizers and Finger Foods",
+      "catalogSubTitle": "",
+      "catalogSectionPosition": 2,
+      "catalogItems": [
+        {
+          "uuid": "99ff0266-33e9-428c-87e7-635b8a3392ab",
+          "title": "Cigar Rolls",
+          "itemDescription": "Six filo dough triangles stuffed with feta cheese.",
+          "price": 999,
+          "priceTagline": "$9.99",
+          "isSoldOut": false,
+          "isAvailable": true
+        },
+        {
+          "uuid": "9e3a1500-9c35-47fb-8a65-4d309583bb6e",
+          "title": "Garlic Bread",
+          "itemDescription": "Served with a side of marinara sauce.",
+          "price": 259,
+          "priceTagline": "$2.59",
+          "isSoldOut": false,
+          "isAvailable": true,
+          "endorsement": "Popular"
+        }
+      ]
+    }
+  ]
+}

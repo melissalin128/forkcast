@@ -11,7 +11,9 @@
     "seed": "tsx src/seed.ts",
     "scrape": "tsx src/scrape.ts",
     "scrape:watch": "tsx src/scrape.ts --every 30",
-    "test": "tsx --test \"src/**/*.test.ts\""
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "scrape:apify": "tsx src/scrape.ts --adapter apify",
+    "scrape:seed": "tsx src/seedScrape.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -4,12 +4,16 @@
  * Runs the live scrapers for one zip + query, joins the same restaurant across
  * platforms, stores offers + price snapshots through the Repository and prints
  * a comparison table. `--every 30` repeats every 30 minutes (`npm run scrape:watch`).
+ * `--adapter apify` collects through Apify actors instead of local Playwright
+ * (`npm run scrape:apify`); `--adapter mock` uses the deterministic mock.
+ * An `ADAPTER_<PLATFORM>` env var (e.g. ADAPTER_GRUBHUB=live) overrides the
+ * mode for that one platform, whatever --adapter says.
  * `--allow-mock` prices a platform with the mock adapter when its scraper fails.
  * `--json` prints the full result instead of the table.
  *
  * Exit code is non-zero only when every requested platform failed.
  */
-import { closeAdapters, createAdapters } from './adapters';
+import { closeAdapters, createAdapters, type AdapterMode } from './adapters';
 import { connectDb, disconnectDb } from './db';
 import { PLATFORM_SLUGS, type PlatformSlug } from './models/types';
 import { formatTable, runScrapeJob, type ScrapeResult } from './services/scrapeJob';
@@ -20,9 +24,12 @@ interface Args {
   platforms: PlatformSlug[];
   limit: number;
   every?: number;
+  adapter: AdapterMode;
   allowMock: boolean;
   json: boolean;
 }
+
+const ADAPTER_MODES: AdapterMode[] = ['live', 'apify', 'mock'];
 
 function parseArgs(argv: string[]): Args {
   const get = (name: string): string | undefined => {
@@ -42,12 +49,15 @@ function parseArgs(argv: string[]): Args {
   if (!q) throw new Error('--q is required (a dish or restaurant name, e.g. --q pizza)');
   if (platforms.length === 0) throw new Error(`--platforms must list some of ${PLATFORM_SLUGS.join(',')}`);
   const every = get('every');
+  const adapter = (get('adapter') ?? 'live').trim().toLowerCase();
+  if (!(ADAPTER_MODES as string[]).includes(adapter)) throw new Error(`--adapter must be one of ${ADAPTER_MODES.join(', ')} (got "${adapter}")`);
   return {
     zip,
     q,
     platforms,
     limit: Math.max(1, Number(get('limit') ?? 10) || 10),
     every: every ? Math.max(1, Number(every) || 30) : undefined,
+    adapter: adapter as AdapterMode,
     allowMock: has('allow-mock'),
     json: has('json'),
   };
@@ -55,7 +65,7 @@ function parseArgs(argv: string[]): Args {
 
 async function once(args: Args): Promise<ScrapeResult> {
   const repo = await connectDb();
-  const adapters = createAdapters('live');
+  const adapters = createAdapters(args.adapter);
   try {
     const result = await runScrapeJob({
       zip: args.zip,

@@ -3,7 +3,7 @@
  *   cached offer (<= 10 min) or adapter.fetchOffer -> saveOffer + appendSnapshot
  *   -> computeTotal(offer, subscriptions, activePromos)
  */
-import { getAdapters } from '../adapters';
+import { getAdapters, platformMode } from '../adapters';
 import { cartForRestaurant } from '../adapters/types';
 import { config } from '../config';
 import type { Offer, Platform, PlatformSlug, Promo, Restaurant } from '../models/types';
@@ -51,13 +51,25 @@ export interface RestaurantOffers {
   savings: number;
 }
 
-/** Returns a fresh-enough cached offer or fetches (and records) a new one. */
+/**
+ * Returns a fresh-enough stored offer or fetches (and records) a new one.
+ *
+ * On Apify the stored offer is served for much longer and nothing is fetched on
+ * demand: one actor run per restaurant per page load would take minutes and
+ * spend credit. Prices come from `POST /api/scrape`; platforms without a stored
+ * price surface as `unavailable` and the UI shows them as not priced.
+ */
 export async function getOffer(ctx: PricingContext, r: Restaurant, platform: PlatformSlug): Promise<Offer> {
   const now = ctx.now ?? new Date();
+  const apify = platformMode(platform) === 'apify';
+  const maxAge = apify ? config.apify.offerMaxAgeMs : config.offerCacheMs;
   const cached = (await ctx.repo.getLatestOffers(r.id)).find(
-    (o) => o.platformSlug === platform && now.getTime() - new Date(o.fetchedAt).getTime() < config.offerCacheMs,
+    (o) => o.platformSlug === platform && now.getTime() - new Date(o.fetchedAt).getTime() < maxAge,
   );
   if (cached) return cached;
+  if (apify && config.apify.storedOnly) {
+    throw new Error(`no stored ${platform} price for ${r.name} — run \`npm run scrape:apify\` or POST /api/scrape to collect one`);
+  }
 
   const storeId = r.platformIds[platform];
   if (!storeId) throw new Error(`${r.name} is not listed on ${platform}`);
