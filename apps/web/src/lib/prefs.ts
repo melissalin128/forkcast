@@ -1,4 +1,4 @@
-import { USER_SUBSCRIPTIONS, ZIP } from '../data/mock';
+import { ZIP } from '../data/mock';
 import type { Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
 
 /**
@@ -11,7 +11,8 @@ export interface Prefs {
   subscriptions: PlatformSlug[];
 }
 
-export const DEFAULT_PREFS: Prefs = { zip: ZIP, subscriptions: [...USER_SUBSCRIPTIONS] };
+/** No passes until the user turns one on in Account. */
+export const DEFAULT_PREFS: Prefs = { zip: ZIP, subscriptions: [] };
 
 const KEY = 'forkcast.prefs';
 
@@ -46,7 +47,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * Re-derive one offer for the passes this user actually holds. Server totals
- * were computed for the demo user's passes; if the user's set differs we add
+ * were computed for a fixed set of passes; if the user's set differs we add
  * or waive the delivery fee. Everything else (markup, service fee, promo) is
  * left untouched.
  */

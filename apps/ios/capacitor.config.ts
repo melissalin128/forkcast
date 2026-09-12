@@ -6,7 +6,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.forkcast.app',
   appName: 'Forkcast',
-  webDir: 'dist',
+  webDir: '../web/dist',
   server: {
     // Native builds talk to the API over https; set this to your deployed API
     // origin. While developing on a phone on the same Wi-Fi you can instead

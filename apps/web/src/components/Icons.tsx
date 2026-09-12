@@ -85,7 +85,7 @@ export const HomeIcon = ({ size = 22, stroke = 'currentColor', ...rest }: P) => 
   </svg>
 );
 
-export const PricesIcon = ({ size = 22, stroke = 'currentColor', ...rest }: P) => (
+export const SavingsIcon = ({ size = 22, stroke = 'currentColor', ...rest }: P) => (
   <svg {...base(size, stroke)} {...rest}>
     <path d="M3 20h18" />
     <path d="M4 15l5-5 4 4 7-8" />

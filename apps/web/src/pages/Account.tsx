@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { BottomTabs } from '../components/BottomTabs';
-import { PlatformDot } from '../components/PlatformDot';
 import { TopBar } from '../components/TopBar';
-import { PLATFORMS } from '../data/mock';
+import { COVERED_ZIPS, PLATFORMS } from '../data/mock';
 import { usePrefs } from '../hooks/usePrefs';
+import { useToast } from '../hooks/useToast';
 import { zipLabel } from '../lib/prefs';
 
-/** Zip + subscription toggles. Both feed every total in the app. */
+const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIPS[COVERED_ZIPS.length - 1]}`;
+
+/** Zip + pass toggles. Both feed every total in the app. */
 export function Account() {
   const { prefs, setZip, toggleSubscription } = usePrefs();
+  const toast = useToast();
   const [draft, setDraft] = useState(prefs.zip);
   const valid = /^\d{5}$/.test(draft);
 
@@ -24,11 +27,13 @@ export function Account() {
           className="zipform"
           onSubmit={(e) => {
             e.preventDefault();
-            if (valid) setZip(draft);
+            if (!valid || draft === prefs.zip) return;
+            setZip(draft);
+            toast('Prices updated');
           }}
         >
           <input
-            className="input mono"
+            className="input num"
             inputMode="numeric"
             pattern="[0-9]{5}"
             maxLength={5}
@@ -41,14 +46,14 @@ export function Account() {
           </button>
         </form>
         <p className="card__foot">
-          Currently <span className="mono">{prefs.zip}</span> · {zipLabel(prefs.zip)}. Demo prices cover{' '}
-          <span className="mono">15213</span>; other zips show what the API returns.
+          Currently <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}. We cover Pittsburgh zips {coverage}{' '}
+          right now.
         </p>
       </section>
 
       <section className="card card--gap" aria-labelledby="subs-title">
         <h3 id="subs-title" className="card__title">
-          Your subscriptions
+          Your passes
         </h3>
         <ul className="toggles">
           {PLATFORMS.map((p) => {
@@ -56,10 +61,7 @@ export function Account() {
             return (
               <li key={p.slug} className="toggle">
                 <span className="toggle__text">
-                  <span className="toggle__name">
-                    <PlatformDot slug={p.slug} />
-                    {p.subscriptionName}
-                  </span>
+                  <span className="toggle__name">{p.subscriptionName}</span>
                   <span className="toggle__perks">
                     {p.name} · {p.subscriptionPerks.join(', ')}
                   </span>
@@ -70,7 +72,10 @@ export function Account() {
                   aria-checked={on}
                   aria-label={`${p.subscriptionName} ${on ? 'on' : 'off'}`}
                   className={`switch${on ? ' switch--on' : ''}`}
-                  onClick={() => toggleSubscription(p.slug)}
+                  onClick={() => {
+                    toggleSubscription(p.slug);
+                    toast(`Prices updated for ${p.subscriptionName}`);
+                  }}
                 >
                   <span className="switch__knob" />
                 </button>
@@ -79,8 +84,7 @@ export function Account() {
           })}
         </ul>
         <p className="card__foot">
-          Every total in Forkcast is recomputed with your passes: the delivery fee is waived where you hold one and
-          added back where you do not.
+          All off unless you turn one on. Every total in Forkcast then drops the delivery fee on that app.
         </p>
       </section>
 

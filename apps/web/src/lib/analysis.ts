@@ -1,4 +1,4 @@
-import { NOW, PLATFORM_BY_SLUG, PLATFORMS } from '../data/mock';
+import { PLATFORM_BY_SLUG, PLATFORMS } from '../data/mock';
 import type { MenuItem, Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
 
 export const money = (n: number) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toFixed(2);
@@ -40,6 +40,16 @@ export function savingsTail(r: Restaurant): string {
   if (s < 0.05) return 'same price everywhere';
   return `save ${money(s)} vs ${platformName(w.platformSlug)}`;
 }
+
+/** "Tonkotsu ramen + gyoza": the representative order without any ", delivered" tail. */
+export function orderSummary(r: Restaurant): string {
+  const label = (r.orderLabel ?? '').replace(/,?\s*delivered\.?\s*$/i, '').trim();
+  if (label) return label;
+  return r.order.map((l) => (l.qty > 1 ? `${l.qty}× ${l.name}` : l.name)).join(' + ');
+}
+
+/** "24–34 min" */
+export const etaRange = (o: Offer) => `${o.etaMin}–${o.etaMax} min`;
 
 export const fees = (o: Offer) =>
   Math.round((o.serviceFee + o.deliveryFee + o.smallOrderFee + o.tax + o.tip) * 100) / 100;
@@ -85,12 +95,6 @@ export function windowLabel(dow: number, hour: number) {
   const end = hour + 2;
   const same = ampm(hour) === ampm(end);
   return `${DAY_LONG[dow]} ${clock(hour)}${same ? '' : ' ' + ampm(hour)}–${clock(end)} ${ampm(end)}`;
-}
-
-/** "Wednesday afternoon" */
-export function windowPlain(dow: number, hour: number) {
-  const part = hour < 11 ? 'morning' : hour < 14 ? 'lunchtime' : hour < 17 ? 'afternoon' : 'evening';
-  return `${DAY_LONG[dow]} ${part}`;
 }
 
 export interface Window {
@@ -160,18 +164,4 @@ export function bestTime(snapshots: PriceSnapshot[], slug: PlatformSlug): BestTi
     saving: gain,
     savingPct: now > 0 ? Math.round((gain / now) * 100) : 0,
   };
-}
-
-export function minutesAgo(iso: string, now = NOW) {
-  const m = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 60_000));
-  return m <= 1 ? 'just now' : `${m} min ago`;
-}
-
-export function endsIn(iso: string, now = NOW) {
-  const mins = Math.round((new Date(iso).getTime() - now.getTime()) / 60_000);
-  if (mins <= 0) return 'ended';
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h >= 24) return `ends in ${Math.round(h / 24)} d`;
-  return h > 0 ? `ends in ${h} h ${m} m` : `ends in ${m} m`;
 }

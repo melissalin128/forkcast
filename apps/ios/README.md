@@ -1,6 +1,11 @@
-# Forkcast on a phone
+# Forkcast native wrapper (Capacitor shell for iOS / Android)
 
-There are two ways to run Forkcast as a mobile app. Both use the same code.
+This folder wraps the `apps/web` build in a native shell for App Store or
+Play Store builds. The React Native app in `apps/mobile` is the primary
+mobile app and is easier to run on a phone; keep this folder only if you
+want a store build of the web bundle.
+
+There are two ways to run Forkcast as a mobile app from the web build.
 
 ## 1. Install it from the browser (no app store, works today)
 

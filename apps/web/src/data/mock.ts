@@ -17,10 +17,15 @@ import type {
  */
 export const NOW = new Date(2026, 8, 11, 19, 12, 0);
 export const ZIP = '15213';
+/** Zips the sample prices cover. Every seed restaurant is listed in all of them. */
+export const COVERED_ZIPS = ['15213', '15217', '15232'] as const;
 export const REFRESHED_AT = new Date(NOW.getTime() - 3 * 60_000).toISOString();
 
-/** Passes the demo user pays for (spec D3: subscriptions are an input). */
-export const USER_SUBSCRIPTIONS: PlatformSlug[] = ['doordash', 'ubereats'];
+/**
+ * Passes the sample totals were priced with. None: totals are what you pay
+ * without a subscription; `applyPrefs` waives the delivery fee where you hold one.
+ */
+export const USER_SUBSCRIPTIONS: PlatformSlug[] = [];
 
 export const PLATFORMS: Platform[] = [
   {

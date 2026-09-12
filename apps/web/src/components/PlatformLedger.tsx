@@ -1,13 +1,12 @@
 import { PLATFORM_BY_SLUG, PLATFORMS } from '../data/mock';
 import { usePrefs } from '../hooks/usePrefs';
-import { fees, minutesAgo, money } from '../lib/analysis';
+import { etaRange, fees, money } from '../lib/analysis';
 import type { Restaurant } from '../types';
-import { PlatformDot } from './PlatformDot';
 
 /**
- * The three-platform ledger for the representative order: Items / Fees /
- * Promo / Total / ETA per platform. Cheapest row is mint. Totals carry
- * `data-price` so the Prices tab can count them up.
+ * The three-platform ledger for the representative order: App / Food / Fees /
+ * Total per platform. Cheapest row is mint. Totals carry `data-price` so the
+ * Prices tab can count them up.
  */
 export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
   const { prefs } = usePrefs();
@@ -26,18 +25,16 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
       <div className="card__head">
         <h3 className="card__title">{r.orderLabel}</h3>
         <span className="card__meta">
-          to <span className="mono">{prefs.zip}</span> · tip {r.tipPct}% · checked {minutesAgo(offers[0]?.fetchedAt ?? new Date().toISOString())}
+          to <span className="num">{prefs.zip}</span> · tip {r.tipPct}% · Prices from today
         </span>
       </div>
 
       <div className="ledger__table">
         <div className="ledger__row ledger__row--head" aria-hidden="true">
           <span>App</span>
-          <span>Items</span>
+          <span>Food</span>
           <span>Fees</span>
-          <span>Promo</span>
           <span>Total</span>
-          <span>ETA</span>
         </div>
         {offers.map((o, i) => {
           const best = i === 0 && offers.length > 1;
@@ -46,30 +43,23 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
             <div key={o.platformSlug} className={`ledger__row${best ? ' ledger__row--best' : ''}`}>
               <span className="ledger__plat">
                 <span className="ledger__name">
-                  <PlatformDot slug={o.platformSlug} />
-                  {p.name}
+                  {p.name} <span className="ledger__eta">{etaRange(o)}</span>
                 </span>
-                {o.subscriptionApplied && <span className="ledger__pass">{p.subscriptionName}</span>}
+                {o.promoDiscount > 0 && <span className="ledger__note ledger__note--promo">includes {money(o.promoDiscount)} off</span>}
+                {o.subscriptionApplied && <span className="ledger__note">with {p.subscriptionName}</span>}
               </span>
-              <span className="mono">{money(o.subtotal)}</span>
-              <span className="mono">{money(fees(o))}</span>
-              <span className={`mono${o.promoDiscount > 0 ? ' ledger__promo' : ' ledger__dash'}`}>
-                {o.promoDiscount > 0 ? money(-o.promoDiscount) : '—'}
-              </span>
-              <span className="mono ledger__total" data-price={o.total}>
+              <span className="num">{money(o.subtotal)}</span>
+              <span className="num">{money(fees(o))}</span>
+              <span className="num ledger__total" data-price={o.total}>
                 {money(o.total)}
               </span>
-              <span className="mono ledger__eta">{o.etaMin}m</span>
             </div>
           );
         })}
         {missing.map((p) => (
           <div key={p.slug} className="ledger__row ledger__row--missing">
             <span className="ledger__plat">
-              <span className="ledger__name">
-                <PlatformDot slug={p.slug} />
-                {p.name}
-              </span>
+              <span className="ledger__name">{p.name}</span>
             </span>
             <span className="ledger__missingtext">not listed near {prefs.zip}</span>
           </div>
@@ -77,7 +67,7 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
       </div>
 
       <p className="card__foot">
-        Totals include food, fees, tax and a {r.tipPct}% tip. {passText}
+        Fees include delivery, service, tax and a {r.tipPct}% tip. {passText}
       </p>
     </section>
   );

@@ -7,24 +7,21 @@ import { ChevronDown, ChevronLeft, ClearIcon, ForkIcon, PinIcon, SearchIcon } fr
 interface SearchProps {
   value: string;
   onChange: (v: string) => void;
-  /** Called on Enter; Home uses it to jump to /search. */
-  onSubmit?: (v: string) => void;
   autoFocus?: boolean;
 }
 
 interface Props {
-  /** Deliver-to row + 48px search field (Home, Search). */
+  /** Deliver-to row + 48px search field (Home). */
   search?: SearchProps;
   /** Back chevron + title instead of the deliver row (Store). */
   back?: { title: string };
-  /** Plain title row (Prices, Account). */
+  /** Plain title row (Savings, Account). */
   title?: string;
 }
 
 const NAV = [
   { to: '/', label: 'Home', end: true },
-  { to: '/search', label: 'Search' },
-  { to: '/prices', label: 'Prices' },
+  { to: '/savings', label: 'Savings' },
   { to: '/account', label: 'Account' },
 ];
 
@@ -50,7 +47,7 @@ export function TopBar({ search, back, title }: Props) {
             <PinIcon stroke="var(--accent)" />
             <span className="deliver__label">Deliver to</span>
             <span className="deliver__where">
-              <span className="mono">{prefs.zip}</span> · {zipLabel(prefs.zip)}
+              <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}
             </span>
             <ChevronDown stroke="var(--muted)" />
           </Link>
@@ -76,8 +73,9 @@ export function TopBar({ search, back, title }: Props) {
           className="searchbar"
           role="search"
           onSubmit={(e) => {
+            // Results filter as you type; Enter only dismisses the keyboard.
             e.preventDefault();
-            search.onSubmit?.(search.value);
+            inputRef.current?.blur();
           }}
         >
           <SearchIcon stroke="var(--muted)" />

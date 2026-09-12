@@ -1,11 +1,11 @@
-import { mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
+import { COVERED_ZIPS, mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
 import type { PriceSnapshot, Restaurant, RestaurantsResponse } from '../types';
 
 /**
  * Thin client for apps/api. Every call first tries the real API (Vite proxies
- * `/api` -> http://localhost:4000 in dev) and falls back to the in-memory mock
- * when the request fails, times out, or returns something that is not JSON
- * (e.g. `vite preview` answering `/api/*` with index.html).
+ * `/api` -> http://localhost:4000 in dev) and falls back to the in-memory
+ * sample data when the request fails, times out, or returns something that is
+ * not JSON (e.g. `vite preview` answering `/api/*` with index.html).
  */
 
 export type Source = 'api' | 'mock';
@@ -15,6 +15,32 @@ export interface Sourced<T> {
 }
 
 const TIMEOUT_MS = 2500;
+
+// ---------------------------------------------------------------------------
+// Fallback flag. Flipped the first time any call serves sample data; the Home
+// page subscribes and shows a thin "sample prices" bar. Reset when the API
+// answers again.
+// ---------------------------------------------------------------------------
+
+let usingMock = false;
+const listeners = new Set<() => void>();
+
+function setUsingMock(next: boolean) {
+  if (usingMock === next) return;
+  usingMock = next;
+  listeners.forEach((fn) => fn());
+}
+
+/** For `useSyncExternalStore`: true once sample data has been served. */
+export const mockFallback = {
+  subscribe(fn: () => void) {
+    listeners.add(fn);
+    return () => {
+      listeners.delete(fn);
+    };
+  },
+  get: () => usingMock,
+};
 
 async function tryJson<T>(url: string, validate: (json: unknown) => json is T): Promise<T | null> {
   const ctrl = new AbortController();
@@ -54,9 +80,12 @@ function isSnapshotList(v: unknown): v is PriceSnapshot[] | { snapshots: PriceSn
   );
 }
 
+const covered = (zip: string) => zip === '' || (COVERED_ZIPS as readonly string[]).includes(zip);
+
 function filterMock(zip: string, q: string): Restaurant[] {
+  if (!covered(zip)) return [];
   const needle = q.trim().toLowerCase();
-  return RESTAURANTS.filter((r) => r.location.zip === zip || zip === '').filter((r) => {
+  return RESTAURANTS.filter((r) => {
     if (!needle) return true;
     const hay = [r.name, ...r.cuisine, ...r.dietaryTags, ...r.order.map((o) => o.name)]
       .join(' ')
@@ -73,19 +102,26 @@ export async function getRestaurants(zip: string, q = ''): Promise<Sourced<Resta
     const data: RestaurantsResponse = Array.isArray(json)
       ? { restaurants: json, refreshedAt: new Date().toISOString() }
       : json;
+    setUsingMock(false);
     return { data, source: 'api' };
   }
+  setUsingMock(true);
   return { data: { restaurants: filterMock(zip, q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
 export async function getRestaurant(id: string): Promise<Sourced<Restaurant | undefined>> {
   const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}`, isRestaurant);
-  if (json) return { data: json, source: 'api' };
+  if (json) {
+    setUsingMock(false);
+    return { data: json, source: 'api' };
+  }
+  setUsingMock(true);
   return { data: RESTAURANTS.find((r) => r.id === id), source: 'mock' };
 }
 
 export async function getHistory(id: string): Promise<Sourced<PriceSnapshot[]>> {
   const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}/history`, isSnapshotList);
   if (json) return { data: Array.isArray(json) ? json : json.snapshots, source: 'api' };
+  setUsingMock(true);
   return { data: mockHistory(id), source: 'mock' };
 }

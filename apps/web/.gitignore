@@ -1,5 +1,2 @@
 dist-artifact/
 
-# Capacitor native shells are generated with npx cap add
-ios/
-android/

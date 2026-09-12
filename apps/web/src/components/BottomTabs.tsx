@@ -1,14 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, PricesIcon, SearchIcon, UserIcon } from './Icons';
+import { HomeIcon, SavingsIcon, UserIcon } from './Icons';
 
 const TABS = [
   { to: '/', label: 'Home', Icon: HomeIcon, end: true },
-  { to: '/search', label: 'Search', Icon: SearchIcon, end: false },
-  { to: '/prices', label: 'Prices', Icon: PricesIcon, end: false },
+  { to: '/savings', label: 'Savings', Icon: SavingsIcon, end: false },
   { to: '/account', label: 'Account', Icon: UserIcon, end: false },
 ];
 
-/** Bottom tab bar, shown at ≤640px on every screen. */
+/** Bottom tab bar, shown at ≤640px on Home, Savings and Account. */
 export function BottomTabs() {
   return (
     <nav className="tabbar" aria-label="Primary">

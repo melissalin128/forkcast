@@ -1,9 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getHistory, getRestaurant, getRestaurants, type Source } from '../api/client';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { getHistory, getRestaurant, getRestaurants, mockFallback, type Source } from '../api/client';
 import { REFRESHED_AT } from '../data/mock';
 import { applyPrefs, applyPrefsToSnapshots } from '../lib/prefs';
 import type { PriceSnapshot, Restaurant } from '../types';
 import { usePrefs } from './usePrefs';
+
+/** True once the client has served sample data instead of the API. */
+export function useMockFallback(): boolean {
+  return useSyncExternalStore(mockFallback.subscribe, mockFallback.get, () => false);
+}
 
 /** Every restaurant near the user's zip, with their passes applied to every total. */
 export function useRestaurants() {

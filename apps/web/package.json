@@ -10,8 +10,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@capacitor/cli": "^8.5.2",
-    "@capacitor/core": "^8.5.2",
     "animejs": "^4.2.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
