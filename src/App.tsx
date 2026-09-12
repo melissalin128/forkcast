@@ -247,14 +247,13 @@ function DealRow({ card, saved, onToggleSave }: {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-type SortKey = 'total' | 'fee_dollar' | 'fee_pct' | 'fastest'
+type SortKey = 'total' | 'fee_dollar' | 'fastest'
 type TabKey = 'explore' | 'saved' | 'alerts'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'total', label: 'Total price' },
-  { key: 'fee_dollar', label: 'Delivery fee ($)' },
-  { key: 'fee_pct', label: 'Delivery fee (%)' },
-  { key: 'fastest', label: 'Fastest' },
+  { key: 'total', label: 'Total Price' },
+  { key: 'fee_dollar', label: 'Delivery Fee ($)' },
+  { key: 'fastest', label: 'Delivery Time' },
 ]
 
 export default function App() {
@@ -262,7 +261,6 @@ export default function App() {
   const [sortBy, setSortBy] = useState<SortKey>('total')
   const [activeTab, setActiveTab] = useState<TabKey>('explore')
   const [searchValue, setSearchValue] = useState('')
-  const [platformFilter, setPlatformFilter] = useState<'all' | 'doordash' | 'ubereats' | 'grubhub'>('all')
 
   const toggleSave = (id: number) => {
     setSavedCards(prev => {
@@ -273,12 +271,10 @@ export default function App() {
   }
 
   const sorted = [...DEAL_CARDS]
-    .filter(c => platformFilter === 'all' || c.platform === platformFilter)
     .filter(c => !searchValue || c.name.toLowerCase().includes(searchValue.toLowerCase()) || c.dish.toLowerCase().includes(searchValue.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === 'total') return a.newTotal - b.newTotal
       if (sortBy === 'fee_dollar') return a.deliveryFee - b.deliveryFee
-      if (sortBy === 'fee_pct') return (a.deliveryFee / a.originalTotal) - (b.deliveryFee / b.originalTotal)
       if (sortBy === 'fastest') return a.etaMinutes - b.etaMinutes
       return 0
     })
@@ -374,50 +370,26 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Platform filter pills */}
-              <div
-                className="flex gap-2 overflow-x-auto px-5 mb-4"
-                style={{ scrollbarWidth: 'none' }}
-              >
-                {([
-                  { key: 'all', label: 'All' },
-                  { key: 'doordash', label: 'DoorDash', color: '#E74C3C' },
-                  { key: 'ubereats', label: 'Uber Eats', color: '#06C167' },
-                  { key: 'grubhub', label: 'Grubhub', color: '#F4511E' },
-                ] as const).map(p => (
+              {/* Sort pills */}
+              <div className="flex gap-2 px-5 mb-4">
+                {SORT_OPTIONS.map(o => (
                   <button
-                    key={p.key}
-                    onClick={() => setPlatformFilter(p.key)}
+                    key={o.key}
+                    onClick={() => setSortBy(o.key)}
                     className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
                     style={{
-                      background: platformFilter === p.key ? '#17171C' : '#F6F6F4',
-                      color: platformFilter === p.key ? '#FFFFFF' : '#63636B',
+                      background: sortBy === o.key ? '#17171C' : '#F6F6F4',
+                      color: sortBy === o.key ? '#FFFFFF' : '#63636B',
                     }}
                   >
-                    {p.key !== 'all' && (
-                      <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: (p as any).color, verticalAlign: 'middle' }} />
-                    )}
-                    {p.label}
+                    {o.label}
                   </button>
                 ))}
               </div>
 
-              {/* Sort + count row */}
-              <div className="flex items-center justify-between px-5 mb-2">
+              {/* Count row */}
+              <div className="px-5 mb-2">
                 <span className="text-xs font-medium" style={{ color: '#63636B' }}>{sorted.length} deals</span>
-                <div className="flex items-center gap-1.5">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#63636B" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-                  <select
-                    value={sortBy}
-                    onChange={e => setSortBy(e.target.value as SortKey)}
-                    className="text-xs font-semibold outline-none bg-transparent cursor-pointer"
-                    style={{ color: '#17171C' }}
-                  >
-                    {SORT_OPTIONS.map(o => (
-                      <option key={o.key} value={o.key}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               {/* Deal rows */}
