@@ -18,7 +18,9 @@ export default function Savings() {
   const promoHits = restaurants
     .map((r) => ({ r, deals: activeDeals(r) }))
     .filter((x) => x.deals.length > 0)
-    .sort((a, b) => Math.max(...b.deals.map((d) => d.promoDiscount)) - Math.max(...a.deals.map((d) => d.promoDiscount)));
+    .sort((a, b) => Math.max(...b.deals.map((d) => d.promoDiscount)) - Math.max(...a.deals.map((d) => d.promoDiscount)))
+    // ponytail: these render in the FlatList header, which is not virtualised; ~400 places carry a promo, so show the top 10.
+    .slice(0, 10);
 
   const rows = useMemo(
     () =>

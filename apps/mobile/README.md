@@ -8,7 +8,7 @@ Native so it runs in **Expo Go** without Xcode or Android Studio.
   fee ledger, and the 7-day price chart drawn with `react-native-svg`
 - Zip and passes (DashPass, Uber One, Grubhub+) persist in AsyncStorage and
   re-derive every total exactly like the web app
-- Tries the API first and falls back to the bundled sample prices after 2.5 s
+- Tries the API first and falls back to the bundled dataset after 2.5 s
 
 ## Run it on your phone
 
@@ -26,8 +26,11 @@ Native so it runs in **Expo Go** without Xcode or Android Studio.
    Wi-Fi. If the QR code will not connect (some campus networks block LAN
    traffic), run `npx expo start --tunnel` instead.
 
-The app works with no API running: it shows the sample prices and a thin
-"Showing sample prices" bar on Home.
+The app works with no API running: it shows the 655 real restaurants bundled in
+`src/data/generated/` (photos and menu prices observed, fees and totals
+modelled; regenerate with `cd apps/api && npx tsx src/ingest/exportAppData.ts`)
+and a thin "Demo prices" bar on Home. `menus.json` is loaded with a dynamic
+`import()` from the store page only.
 
 ## Live prices from the API
 

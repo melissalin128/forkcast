@@ -35,6 +35,9 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // The full-menu chunk (generated/menus.json, ~3.8 MB) loads on the first
+        // Store visit instead of bloating the service-worker install.
+        globIgnores: ['**/node_modules/**/*', '**/menus-*.js'],
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {

@@ -13,7 +13,8 @@ interface Props {
 }
 
 /**
- * Restaurant photo. A light gray ground shows while the image loads; the
+ * Restaurant photo, shown whole (contain) over a blurred cover copy of itself
+ * that fills the letterbox. A light gray ground shows while the image loads; the
  * gradient art with a fork takes over when there is no URL or the load errors.
  */
 export function Photo({ src, fallback, alt = '', className = '', iconSize = 24 }: Props) {
@@ -30,6 +31,7 @@ export function Photo({ src, fallback, alt = '', className = '', iconSize = 24 }
 
   return (
     <div className={cls}>
+      <img className="photo__backdrop" src={src} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailedSrc(src)} />
     </div>
   );

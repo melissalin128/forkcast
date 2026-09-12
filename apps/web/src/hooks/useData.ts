@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { getHistory, getPromos, getRestaurant, getRestaurants, mockFallback, type PromosResponse, type Source } from '../api/client';
+import { getHistory, getMenu, getPromos, getRestaurant, getRestaurants, mockFallback, type MenuResponse, type PromosResponse, type Source } from '../api/client';
 import { REFRESHED_AT } from '../data/mock';
 import { applyPrefs, applyPrefsToSnapshots } from '../lib/prefs';
 import type { PriceSnapshot, Restaurant } from '../types';
@@ -74,6 +74,27 @@ export function useStore(id: string) {
   );
 
   return { restaurant, snapshots, source };
+}
+
+/** The restaurant's observed menu, grouped by category. Empty while loading. */
+export function useMenu(id: string) {
+  const [menu, setMenu] = useState<MenuResponse['categories']>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    getMenu(id).then(({ data }) => {
+      if (!alive) return;
+      setMenu(data.categories);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  return { menu, loading };
 }
 
 export function usePromos() {

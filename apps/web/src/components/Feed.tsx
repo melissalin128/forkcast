@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { Sort } from '../lib/filter';
 import type { Restaurant } from '../types';
 import { RestaurantRow } from './RestaurantRow';
@@ -10,8 +11,28 @@ interface Props {
   action?: { label: string; onClick: () => void };
 }
 
-/** Vertical list of RestaurantRows with loading skeletons and an empty state. */
+/** Rows mounted per step. All 655 at once blocks the main thread for ~300 ms on a laptop. */
+const PAGE = 24;
+
+/**
+ * Vertical list of RestaurantRows with loading skeletons and an empty state.
+ * Rows mount PAGE at a time as the end of the list nears the viewport; give the
+ * Feed a `key` per query so a new filter or sort starts again from the top.
+ */
 export function Feed({ restaurants, loading, sort, emptyText, action }: Props) {
+  const [limit, setLimit] = useState(PAGE);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const more = restaurants.length > limit;
+
+  // Re-observe after every step: a sentinel that is still in range fires again at once.
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !more) return;
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setLimit((n) => n + PAGE), { rootMargin: '1500px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [limit, more]);
+
   if (loading) {
     return (
       <div className="feed" aria-busy="true" aria-label="Loading prices">
@@ -50,10 +71,13 @@ export function Feed({ restaurants, loading, sort, emptyText, action }: Props) {
   }
 
   return (
-    <div className="feed">
-      {restaurants.map((r) => (
-        <RestaurantRow key={r.id} restaurant={r} sort={sort} />
-      ))}
-    </div>
+    <>
+      <div className="feed">
+        {restaurants.slice(0, limit).map((r) => (
+          <RestaurantRow key={r.id} restaurant={r} sort={sort} />
+        ))}
+      </div>
+      {more && <div ref={sentinel} aria-hidden="true" />}
+    </>
   );
 }

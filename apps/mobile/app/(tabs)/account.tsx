@@ -11,8 +11,6 @@ import { CATEGORIES } from '../../src/lib/filter';
 import { DIETARY_PREFS, zipLabel } from '../../src/lib/prefs';
 import { C, GUTTER, R, num } from '../../src/theme';
 
-const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIPS[COVERED_ZIPS.length - 1]}`;
-
 /** Zip + pass toggles. Both feed every total in the app. */
 export default function Account() {
   const { prefs, ready, setZip, setTipPct, toggleSubscription, toggleDietary, toggleCuisine } = usePrefs();
@@ -57,8 +55,8 @@ export default function Account() {
             <Btn label="Save" onPress={save} disabled={!valid || draft === prefs.zip} />
           </View>
           <Text style={styles.foot}>
-            Currently <Text style={num}>{prefs.zip}</Text> · {zipLabel(prefs.zip)}. We cover Pittsburgh zips {coverage} right
-            now.
+            Currently <Text style={num}>{prefs.zip}</Text> · {zipLabel(prefs.zip)}. Restaurants come from{' '}
+            <Text style={num}>{COVERED_ZIPS.length}</Text> Pittsburgh-area zips; distances are measured from 15213.
           </Text>
         </Card>
 
@@ -175,7 +173,8 @@ export default function Account() {
           <Text style={styles.cardTitle}>About</Text>
           <Text style={styles.foot}>
             Forkcast compares the delivered total for the same order on DoorDash, Uber Eats and Grubhub and links you out
-            to the cheapest one. We do not process payment. Prices in this demo are simulated.
+            to the cheapest one. We do not process payment. In this demo, restaurants and menu prices are real listings;
+            delivery fees and totals are modelled estimates, not live prices.
           </Text>
         </Card>
       </ScrollView>

@@ -1,4 +1,4 @@
-import { COVERED_ZIPS, mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
+import { mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
 import type { PlatformSlug, PriceSnapshot, Promo, Restaurant, RestaurantsResponse } from '../types';
 
 export interface PromosResponse {
@@ -16,7 +16,7 @@ export interface PromosResponse {
 /**
  * Thin client for apps/api. Every call first tries the real API (Vite proxies
  * `/api` -> http://localhost:4000 in dev) and falls back to the in-memory
- * sample data when the request fails, times out, or returns something that is
+ * bundled restaurant export (src/data/generated) when the request fails, times out, or returns something that is
  * not JSON (e.g. `vite preview` answering `/api/*` with index.html).
  */
 
@@ -107,10 +107,11 @@ function normalizeRestaurant(r: Restaurant, allowRemoteImage = true): Restaurant
   return { ...r, imageUrl: allowRemoteImage ? imageUrl : undefined, image };
 }
 
-const covered = (zip: string) => zip === '' || (COVERED_ZIPS as readonly string[]).includes(zip);
-
-function filterMock(zip: string, q: string): Restaurant[] {
-  if (!covered(zip)) return [];
+/**
+ * Bundled restaurants matching `q`. No zip gate: the export spans Pittsburgh
+ * and any zip (known, unknown or empty) gets the whole list, photos included.
+ */
+function filterMock(q: string): Restaurant[] {
   const needle = q.trim().toLowerCase();
   return RESTAURANTS.filter((r) => {
     if (!needle) return true;
@@ -136,7 +137,7 @@ export async function getRestaurants(zip: string, q = '', subscriptions: string[
     return { data, source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
-  return { data: { restaurants: filterMock(zip, q), refreshedAt: REFRESHED_AT }, source: 'mock' };
+  return { data: { restaurants: filterMock(q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
 export async function getRestaurant(id: string, subscriptions: string[] = [], tipPct = 0.15, zip = ''): Promise<Sourced<Restaurant | undefined>> {
@@ -158,6 +159,40 @@ export async function getHistory(id: string): Promise<Sourced<PriceSnapshot[]>> 
   if (json) return { data: Array.isArray(json) ? json : json.snapshots, source: 'api' };
   setUsingMock(true);
   return { data: mockHistory(id), source: 'mock' };
+}
+
+export interface MenuItemView {
+  name: string;
+  description: string | null;
+  basePrice: number;
+  platformPrices: Partial<Record<PlatformSlug, number>>;
+  observedPlatform: PlatformSlug | null;
+  dietaryTags: string[];
+  calories: number | null;
+  available: boolean;
+}
+
+export interface MenuResponse {
+  restaurantId: string;
+  count: number;
+  categories: Array<{ name: string; items: MenuItemView[] }>;
+}
+
+function isMenuResponse(v: unknown): v is MenuResponse {
+  return (
+    isObject(v) &&
+    typeof v.count === 'number' &&
+    Array.isArray(v.categories) &&
+    v.categories.every((c) => isObject(c) && typeof c.name === 'string' && Array.isArray(c.items))
+  );
+}
+
+/** The observed menu, grouped by category. Prices are dollars. No mock fallback: an empty menu is empty. */
+export async function getMenu(id: string, category?: string): Promise<Sourced<MenuResponse>> {
+  const params = category ? `?category=${encodeURIComponent(category)}` : '';
+  const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}/menu${params}`, isMenuResponse);
+  if (json) return { data: json, source: 'api' };
+  return { data: { restaurantId: id, count: 0, categories: [] }, source: 'mock' };
 }
 
 function isPromosResponse(v: unknown): v is PromosResponse {

@@ -88,7 +88,7 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
           For {orderSummary(r)}, delivered
         </Text>
 
-        <Text style={styles.line}>
+        <Text style={styles.line} numberOfLines={1}>
           {byTime ? (
             <>
               <Text style={styles.strong}>Fastest on {platformName(fastest.platformSlug)}</Text> · {etaRange(fastest)}
@@ -158,7 +158,9 @@ const styles = StyleSheet.create({
   },
   saveOn: { backgroundColor: C.accent, borderColor: C.accent },
   body: { paddingTop: 10, paddingHorizontal: 12, paddingBottom: 12 },
-  name: { fontSize: 16, fontWeight: '700', letterSpacing: -0.16, color: C.fg },
+  // One reserved line: only 5.2% of the 655 names overflow the ~317pt text box
+  // of a 375pt phone (SF Pro Bold 16), under the 15% bar for reserving two.
+  name: { fontSize: 16, lineHeight: 20, fontWeight: '700', letterSpacing: -0.16, color: C.fg },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   metaText: { fontSize: 13, color: C.muted, flexShrink: 1 },
   fg: { color: C.fg },

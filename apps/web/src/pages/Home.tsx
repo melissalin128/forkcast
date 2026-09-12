@@ -40,11 +40,6 @@ const DEBOUNCE_MS = 150;
 const BAR_KEY = 'forkcast.sampleBarDismissed';
 const ONBOARD_KEY = 'forkcast.onboarded';
 
-const coverageList = () => {
-  const z = [...COVERED_ZIPS];
-  return `${z.slice(0, -1).join(', ')} and ${z[z.length - 1]}`;
-};
-
 function readFlag(key: string): boolean {
   try {
     return sessionStorage.getItem(key) === '1' || localStorage.getItem(key) === '1';
@@ -182,7 +177,7 @@ export function Home() {
 
       {sample && !barDismissed && (
         <div className="bar" role="status">
-          <span>Demo prices are on. Totals are simulated and clearly separated from live platform data.</span>
+          <span>Demo prices. Restaurants and menu prices are real app listings; delivery fees, totals and price history are modelled, not live.</span>
           <button
             type="button"
             className="bar__close"
@@ -275,7 +270,7 @@ export function Home() {
         <Feed
           restaurants={[]}
           loading={false}
-          emptyText={`We only cover Pittsburgh zips ${coverageList()} right now.`}
+          emptyText={`We only cover ${COVERED_ZIPS.length} Pittsburgh zips right now.`}
           action={{
             label: `Use ${ZIP}`,
             onClick: () => {
@@ -286,6 +281,7 @@ export function Home() {
         />
       ) : (
         <Feed
+          key={`${category}|${q}|${active.join(',')}|${sort}`}
           restaurants={visible}
           loading={loading}
           sort={sort}

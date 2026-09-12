@@ -1,4 +1,4 @@
-import { COVERED_ZIPS, mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
+import { mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
 import type { PlatformSlug, PriceSnapshot, Promo, Restaurant, RestaurantsResponse } from '../types';
 
 export interface PromosResponse {
@@ -9,8 +9,9 @@ export interface PromosResponse {
 
 /**
  * Thin client for apps/api. Every call first tries the real API and falls
- * back to the in-memory sample data when the request fails, times out, or
- * returns something that is not JSON.
+ * back to the bundled dataset (src/data/generated: real restaurants, photos and
+ * menus; modelled totals) when the request fails, times out, or returns
+ * something that is not JSON.
  *
  * The base URL comes from `EXPO_PUBLIC_API_URL` (inlined at bundle time by
  * Expo). On a phone `localhost` is the phone itself, so point it at the
@@ -101,10 +102,8 @@ const query = (params: Record<string, string>) =>
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 
-const covered = (zip: string) => zip === '' || (COVERED_ZIPS as readonly string[]).includes(zip);
-
-function filterMock(zip: string, q: string): Restaurant[] {
-  if (!covered(zip)) return [];
+/** No zip gate: every zip, known or not, gets all bundled restaurants (distanceMi is from 15213). */
+function filterMock(q: string): Restaurant[] {
   const needle = q.trim().toLowerCase();
   return RESTAURANTS.filter((r) => {
     if (!needle) return true;
@@ -126,7 +125,7 @@ export async function getRestaurants(zip: string, q = '', subscriptions: string[
     return { data, source: demo ? 'mock' : 'api' };
   }
   setUsingMock(true);
-  return { data: { restaurants: filterMock(zip, q), refreshedAt: REFRESHED_AT }, source: 'mock' };
+  return { data: { restaurants: filterMock(q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
 export async function getRestaurant(id: string, subscriptions: string[] = [], tipPct = 0.15, zip = ''): Promise<Sourced<Restaurant | undefined>> {

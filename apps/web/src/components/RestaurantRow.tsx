@@ -64,7 +64,9 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
       </div>
 
       <div className="row__body">
-        <div className="row__name">{r.name}</div>
+        <div className="row__name" title={r.name}>
+          {r.name}
+        </div>
         <div className="row__meta">
           <StarIcon stroke="var(--fg)" />
           <span>

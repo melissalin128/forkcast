@@ -9,7 +9,7 @@ import { money, subscriptionWorth } from '../lib/analysis';
 import { CATEGORIES } from '../lib/filter';
 import { DIETARY_PREFS, zipLabel } from '../lib/prefs';
 
-const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIPS[COVERED_ZIPS.length - 1]}`;
+const coverage = `${COVERED_ZIPS.length} Pittsburgh zips`;
 const CUISINE_PICKS = CATEGORIES.filter((c) => c !== 'All' && c !== 'Grocery');
 
 /** Zip, passes, diet, HawtPix tastes, and a subscription worth-it check. */
@@ -56,7 +56,7 @@ export function Account() {
           </button>
         </form>
         <p className="card__foot">
-          Currently <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}. We cover Pittsburgh zips {coverage}{' '}
+          Currently <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}. We cover {coverage}{' '}
           right now.
         </p>
       </section>

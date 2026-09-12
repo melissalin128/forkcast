@@ -28,7 +28,7 @@ import {
 } from '../../src/lib/analysis';
 import { restaurantPhoto } from '../../src/lib/photos';
 import { C, GUTTER, R, num } from '../../src/theme';
-import type { Restaurant } from '../../src/types';
+import type { MenuItem, Restaurant } from '../../src/types';
 
 type Tab = 'menu' | 'prices';
 
@@ -196,8 +196,38 @@ export default function Store() {
 
 // ---------------------------------------------------------------------------
 
+interface FullMenu {
+  /** Every observed item; `items` is capped at the export's `cap`. */
+  total: number;
+  items: MenuItem[];
+}
+
+/**
+ * The full observed menu from generated/menus.json (3.8 MB). A dynamic import
+ * keeps it out of the Home bundle: on web Metro emits it as its own chunk,
+ * fetched when a store opens; native bundles inline it and resolve at once.
+ */
+function useFullMenu(id: string): FullMenu | undefined {
+  const [menu, setMenu] = useState<FullMenu>();
+  useEffect(() => {
+    let alive = true;
+    setMenu(undefined);
+    import('../../src/data/generated/menus.json')
+      .then((m) => {
+        if (alive) setMenu((m.default.menus as Record<string, FullMenu | undefined>)[id]);
+      })
+      // Chunk failed to load (offline): keep the three-item preview.
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+  return menu;
+}
+
 function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
-  const items = menuFor(r);
+  const full = useFullMenu(r.id);
+  const items = full?.items.length ? full.items : menuFor(r);
   const listed = PLATFORMS.filter((p) => r.offers.some((o) => o.platformSlug === p.slug));
   const cols = PLATFORMS;
   return (
@@ -235,7 +265,8 @@ function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
         );
       })}
       <Text style={[styles.foot, styles.menuFoot]}>
-        Menu prices before fees, tax and tip. Fees change the answer — see the Prices tab.
+        {full && full.total > items.length ? `Showing ${items.length} of ${full.total} items. ` : ''}
+        Menu prices as listed on each app, before fees, tax and tip. Fees change the answer — see the Prices tab.
       </Text>
     </View>
   );

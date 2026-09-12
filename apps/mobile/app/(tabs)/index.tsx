@@ -8,7 +8,7 @@ import { FilterBar } from '../../src/components/FilterBar';
 import { ClearIcon } from '../../src/components/Icons';
 import { SortSegment } from '../../src/components/SortSegment';
 import { TopBar } from '../../src/components/TopBar';
-import { COVERED_ZIPS, PLATFORM_BY_SLUG, ZIP } from '../../src/data/mock';
+import { PLATFORM_BY_SLUG, ZIP } from '../../src/data/mock';
 import { useMockFallback, usePromos, useRestaurants } from '../../src/hooks/useData';
 import { usePrefs } from '../../src/hooks/usePrefs';
 import { useToast } from '../../src/hooks/useToast';
@@ -34,11 +34,6 @@ const SORT_WORD: Record<Sort, string> = {
   cheapestFee: 'Lowest fee',
 };
 const DEBOUNCE_MS = 150;
-
-const coverageList = () => {
-  const z = [...COVERED_ZIPS];
-  return `${z.slice(0, -1).join(', ')} and ${z[z.length - 1]}`;
-};
 
 function freshness(iso: string): string {
   const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
@@ -119,7 +114,10 @@ export default function Home() {
     <View>
       {sample && !barDismissed && (
         <View accessibilityRole="alert" style={styles.bar}>
-          <Text style={styles.barText}>Demo prices are on. Totals are simulated and separated from live platform data.</Text>
+          <Text style={styles.barText}>
+            Demo prices. Restaurants and menu prices are real listings; delivery fees and totals are modelled estimates,
+            not live prices.
+          </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Dismiss"
@@ -156,6 +154,8 @@ export default function Home() {
                 </Text>
               </Pressable>
             ))}
+            {/* Odd count: an empty half keeps the last card the same width as the rest. */}
+            {picks.length % 2 === 1 && <View style={styles.forPad} />}
           </View>
         </View>
       )}
@@ -185,7 +185,7 @@ export default function Home() {
           header={header}
           restaurants={[]}
           loading={false}
-          emptyText={`We only cover Pittsburgh zips ${coverageList()} right now.`}
+          emptyText={`No prices for ${prefs.zip} yet.`}
           action={{
             label: `Use ${ZIP}`,
             onClick: () => {
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     borderRadius: R.card,
     gap: 2,
   },
+  forPad: { width: '48%', flexGrow: 1 },
   forName: { fontWeight: '700', fontSize: 13, color: C.fg },
   forMeta: { fontSize: 12, color: C.muted },
   sectionHead: {

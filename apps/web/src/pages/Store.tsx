@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CompareStrip } from '../components/CompareStrip';
 import { ExternalIcon, HeartIcon, StarIcon } from '../components/Icons';
@@ -25,7 +25,7 @@ import {
 } from '../lib/analysis';
 import { countUpPrices } from '../lib/motion';
 import { restaurantPhoto } from '../lib/photos';
-import type { Restaurant } from '../types';
+import type { MenuItem, Restaurant } from '../types';
 
 type Tab = 'menu' | 'prices';
 
@@ -181,8 +181,32 @@ export function Store() {
 
 // ---------------------------------------------------------------------------
 
+type FullMenu = { total: number; items: MenuItem[] };
+
+/** Full observed menu (capped per restaurant) from the bundled export. Loaded on demand so Home never pays for it. */
+function useFullMenu(id: string): FullMenu | null {
+  const [menu, setMenu] = useState<FullMenu | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setMenu(null);
+    import('../data/generated/menus.json')
+      .then((m) => {
+        const hit = (m.default.menus as unknown as Record<string, FullMenu | undefined>)[id];
+        if (alive && hit?.items.length) setMenu(hit);
+      })
+      .catch(() => {
+        /* chunk failed to load: keep the preview menu */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+  return menu;
+}
+
 function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
-  const items = menuFor(r);
+  const full = useFullMenu(r.id);
+  const items = full?.items ?? menuFor(r);
   const listed = PLATFORMS.filter((p) => r.offers.some((o) => o.platformSlug === p.slug));
   const cols = PLATFORMS;
   return (
@@ -212,6 +236,7 @@ function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
         );
       })}
       <p className="card__foot menu__foot">
+        {full && full.total > full.items.length && `Showing ${full.items.length} of ${full.total} items. `}
         Menu prices before fees, tax and tip. Fees change the answer — see the Prices tab.
       </p>
     </div>

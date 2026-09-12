@@ -29,14 +29,14 @@ export function CompareStrip({ restaurant: r, highlight = 'cheapest' }: Props) {
             </Text>
             {o ? (
               <>
-                <Text style={[styles.price, num, isTop && styles.ink]}>{money(o.total)}</Text>
+                <Text style={[styles.price, num, isTop && styles.ink]} numberOfLines={1}>{money(o.total)}</Text>
                 <Text style={styles.eta} numberOfLines={1}>
                   {etaRange(o)}
                 </Text>
               </>
             ) : (
               <>
-                <Text style={[styles.price, styles.priceNone]}>—</Text>
+                <Text style={[styles.price, styles.priceNone]} numberOfLines={1}>—</Text>
                 <Text style={styles.eta} numberOfLines={1}>
                   not listed
                 </Text>
