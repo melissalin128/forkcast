@@ -61,9 +61,14 @@ body {
   padding: 0;
   /* Guards against any sub-pixel overflow (rounding in flex/grid layouts,
      scrollbar-width quirks) turning into a real horizontal scrollbar or,
-     worse, an elastic side-to-side bounce on mobile Safari. Only vertical
-     scroll should ever be possible on this page. */
-  overflow-x: hidden;
+     worse, an elastic side-to-side bounce on mobile Safari. `clip`, not
+     `hidden` — `hidden` (or `auto`/`scroll`) on one axis forces the other
+     axis's computed overflow to `auto` too, which turns body into the
+     nearest scrolling ancestor and breaks every `position: sticky` element
+     on the page (its sticky top ends up measured against body's own box,
+     not the viewport). `clip` suppresses overflow without establishing a
+     scroll container, so it doesn't trigger that. */
+  overflow-x: clip;
   background: var(--page);
   color: var(--fg);
   font-family: var(--font);
