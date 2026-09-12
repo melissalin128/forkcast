@@ -429,10 +429,12 @@ ul {
 
 .seg {
   display: inline-flex;
+  flex-wrap: wrap;
   padding: 3px;
   background: var(--inset);
   border-radius: var(--r-pill);
   flex: none;
+  max-width: 100%;
 }
 
 .seg__btn {
@@ -460,6 +462,13 @@ ul {
   scrollbar-width: none;
 }
 
+.chips--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .chips::-webkit-scrollbar {
   display: none;
 }
@@ -480,6 +489,241 @@ ul {
   border-color: var(--accent);
   background: var(--accent-bg);
   color: var(--accent-ink);
+}
+
+.query {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 var(--gutter) 8px;
+}
+
+.query__text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  min-width: 0;
+}
+
+.query__clear {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  flex: none;
+}
+
+.onboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px var(--gutter) 0;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.onboard__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.onboard__sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.onboard__btn {
+  flex: none;
+  height: 36px;
+  padding: 0 12px;
+}
+
+.deals,
+.foryou {
+  padding: 4px 0 8px;
+}
+
+.deals__head,
+.foryou .deals__head {
+  padding: 4px var(--gutter) 8px;
+}
+
+.deals__title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.deals__sub {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.deals__row {
+  display: flex;
+  gap: 8px;
+  padding: 0 var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.deals__row::-webkit-scrollbar {
+  display: none;
+}
+
+.dealcard {
+  flex: none;
+  width: 168px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  display: grid;
+  gap: 2px;
+}
+
+.dealcard__plat {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dealcard__code {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.dealcard__desc,
+.dealcard__time {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.foryou__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 var(--gutter);
+}
+
+.foryou__card {
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.foryou__name {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.foryou__meta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.platdeals {
+  display: grid;
+}
+
+.platdeal__list {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.worth {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.worth__row {
+  display: grid;
+  gap: 2px;
+}
+
+.worth__name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.worth__math {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pref-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 10px 0 4px;
+}
+
+.row__photo-wrap,
+.cover-wrap {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--win-bg);
+  color: var(--win-ink);
+}
+
+.badge--you {
+  left: auto;
+  right: 44px;
+  background: var(--accent-bg);
+  color: var(--accent-ink);
+}
+
+.savebtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+.savebtn--on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.savebtn--cover {
+  top: 12px;
+  right: 12px;
 }
 
 .tip-options {

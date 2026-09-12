@@ -3,15 +3,22 @@ import { useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Photo } from '../../src/components/Photo';
 import { TopBar } from '../../src/components/TopBar';
-import { Notice } from '../../src/components/ui';
-import { useRestaurants } from '../../src/hooks/useData';
-import { bestOffer, money, platformName, saving, worstOffer } from '../../src/lib/analysis';
+import { Card, Notice } from '../../src/components/ui';
+import { PLATFORMS } from '../../src/data/mock';
+import { usePromos, useRestaurants } from '../../src/hooks/useData';
+import { activeDeals, bestOffer, money, platformName, saving, worstOffer } from '../../src/lib/analysis';
 import { restaurantPhoto } from '../../src/lib/photos';
 import { C, GUTTER, R, num } from '../../src/theme';
 
 /** Where picking the cheapest app matters most: the gap between cheapest and priciest, per restaurant. */
 export default function Savings() {
   const { restaurants, loading } = useRestaurants();
+  const { promos } = usePromos();
+  const livePromos = promos.filter((p) => new Date(p.endsAt).getTime() > Date.now());
+  const promoHits = restaurants
+    .map((r) => ({ r, deals: activeDeals(r) }))
+    .filter((x) => x.deals.length > 0)
+    .sort((a, b) => Math.max(...b.deals.map((d) => d.promoDiscount)) - Math.max(...a.deals.map((d) => d.promoDiscount)));
 
   const rows = useMemo(
     () =>
@@ -24,11 +31,60 @@ export default function Savings() {
   );
 
   const header = (
-    <View style={styles.sectionHead}>
-      <Text style={styles.sectionTitle}>Where you save the most</Text>
-      <Text style={styles.sectionSub}>
-        {loading ? 'Checking three apps…' : 'Cheapest app vs priciest app, same order · Prices from today'}
-      </Text>
+    <View>
+      <View style={styles.sectionHead}>
+        <Text style={styles.sectionTitle}>Deals by app</Text>
+        <Text style={styles.sectionSub}>Simulated demo promos. Already folded into Home totals.</Text>
+      </View>
+      {PLATFORMS.map((p) => {
+        const list = livePromos.filter((promo) => promo.platformSlug === p.slug);
+        return (
+          <Card key={p.slug} style={styles.platCard}>
+            <Text style={[styles.platName, { color: p.brandColor }]}>{p.name}</Text>
+            {list.length === 0 ? (
+              <Text style={styles.sectionSub}>No live demo promo on {p.name} right now.</Text>
+            ) : (
+              list.map((promo) => (
+                <Text key={promo.code} style={styles.promoLine}>
+                  {promo.code} · {promo.description ?? promo.label}
+                </Text>
+              ))
+            )}
+          </Card>
+        );
+      })}
+      {promoHits.length > 0 && (
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionTitle}>Promos already in a total</Text>
+          <Text style={styles.sectionSub}>Same representative order. Demo-labeled.</Text>
+        </View>
+      )}
+      {promoHits.map(({ r, deals }) => {
+        const top = [...deals].sort((a, b) => b.promoDiscount - a.promoDiscount)[0];
+        return (
+          <Pressable
+            key={`promo-${r.id}`}
+            onPress={() => router.push({ pathname: '/store/[id]', params: { id: r.id, tab: 'prices' } })}
+            style={styles.save}
+          >
+            <Photo source={restaurantPhoto(r)} fallback={r.image} iconSize={18} style={styles.thumb} />
+            <View style={styles.text}>
+              <Text style={styles.name} numberOfLines={1}>
+                {r.name}
+              </Text>
+              <Text style={styles.detail}>
+                {platformName(top.platformSlug)} · <Text style={styles.amt}>{money(top.promoDiscount)} off</Text>
+              </Text>
+            </View>
+          </Pressable>
+        );
+      })}
+      <View style={styles.sectionHead}>
+        <Text style={styles.sectionTitle}>Where you save the most</Text>
+        <Text style={styles.sectionSub}>
+          {loading ? 'Checking three apps…' : 'Cheapest app vs priciest app, same order · Prices from today'}
+        </Text>
+      </View>
     </View>
   );
 
@@ -71,6 +127,9 @@ const styles = StyleSheet.create({
   sectionHead: { paddingTop: 8, paddingHorizontal: GUTTER, paddingBottom: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.18, lineHeight: 22, color: C.fg },
   sectionSub: { fontSize: 12, color: C.muted, marginTop: 2 },
+  platCard: { marginHorizontal: GUTTER, marginBottom: 8 },
+  platName: { fontSize: 15, fontWeight: '700' },
+  promoLine: { fontSize: 13, color: C.fg, marginTop: 6 },
   list: { paddingBottom: 16, gap: 8 },
   save: {
     marginHorizontal: GUTTER,

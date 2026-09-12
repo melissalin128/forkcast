@@ -24,6 +24,14 @@ export function fastestOffer(r: Restaurant): Offer | undefined {
   return [...r.offers].sort((a, b) => a.etaMin - b.etaMin)[0];
 }
 
+export function cheapestFeeOffer(r: Restaurant): Offer | undefined {
+  return [...r.offers].sort((a, b) => a.deliveryFee - b.deliveryFee)[0];
+}
+
+export function activeDeals(r: Restaurant): Offer[] {
+  return r.offers.filter((o) => o.promoDiscount > 0 || !!o.promo);
+}
+
 /** Dollars between the cheapest and priciest listing (0 when only one app lists it). */
 export function saving(r: Restaurant): number {
   const b = bestOffer(r);
@@ -166,4 +174,35 @@ export function bestTime(snapshots: PriceSnapshot[], slug: PlatformSlug): BestTi
     saving: gain,
     savingPct: now > 0 ? Math.round((gain / now) * 100) : 0,
   };
+}
+
+const PASS_MONTHLY: Record<PlatformSlug, number> = {
+  doordash: 9.99,
+  ubereats: 9.99,
+  grubhub: 9.99,
+};
+
+export interface SubscriptionWorth {
+  platformSlug: PlatformSlug;
+  avgSave: number;
+  monthlyCost: number;
+  ordersToBreakEven: number;
+  sampleSize: number;
+  alreadyOn: boolean;
+}
+
+/** Demo math: a pass is worth it when waived delivery fees cover the monthly price. */
+export function subscriptionWorth(
+  restaurants: Restaurant[],
+  slug: PlatformSlug,
+  alreadyOn: boolean,
+): SubscriptionWorth {
+  const rows = restaurants
+    .map((r) => r.offers.find((o) => o.platformSlug === slug))
+    .filter((o): o is Offer => !!o);
+  const saves = rows.map((o) => (o.subscriptionApplied ? 0 : o.deliveryFee)).filter((n) => n > 0);
+  const avgSave = saves.length ? Math.round((saves.reduce((a, b) => a + b, 0) / saves.length) * 100) / 100 : 0;
+  const monthlyCost = PASS_MONTHLY[slug];
+  const ordersToBreakEven = avgSave > 0 ? Math.ceil(monthlyCost / avgSave) : Number.POSITIVE_INFINITY;
+  return { platformSlug: slug, avgSave, monthlyCost, ordersToBreakEven, sampleSize: saves.length, alreadyOn };
 }

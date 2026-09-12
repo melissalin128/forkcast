@@ -1,19 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { TopBar } from '../../src/components/TopBar';
 import { Btn, Card } from '../../src/components/ui';
 import { COVERED_ZIPS, PLATFORMS } from '../../src/data/mock';
+import { useRestaurants } from '../../src/hooks/useData';
 import { usePrefs } from '../../src/hooks/usePrefs';
 import { useToast } from '../../src/hooks/useToast';
-import { zipLabel } from '../../src/lib/prefs';
+import { money, subscriptionWorth } from '../../src/lib/analysis';
+import { CATEGORIES } from '../../src/lib/filter';
+import { DIETARY_PREFS, zipLabel } from '../../src/lib/prefs';
 import { C, GUTTER, R, num } from '../../src/theme';
 
 const coverage = `${[...COVERED_ZIPS].slice(0, -1).join(', ')} and ${COVERED_ZIPS[COVERED_ZIPS.length - 1]}`;
 
 /** Zip + pass toggles. Both feed every total in the app. */
 export default function Account() {
-  const { prefs, ready, setZip, setTipPct, toggleSubscription } = usePrefs();
+  const { prefs, ready, setZip, setTipPct, toggleSubscription, toggleDietary, toggleCuisine } = usePrefs();
+  const { restaurants } = useRestaurants();
   const toast = useToast();
+  const worth = useMemo(
+    () => PLATFORMS.map((p) => subscriptionWorth(restaurants, p.slug, prefs.subscriptions.includes(p.slug))),
+    [restaurants, prefs.subscriptions],
+  );
+  const cuisinePicks = CATEGORIES.filter((c) => c !== 'All' && c !== 'Grocery');
   const [draft, setDraft] = useState(prefs.zip);
   const valid = /^\d{5}$/.test(draft);
 
@@ -111,10 +120,62 @@ export default function Account() {
         </Card>
 
         <Card>
+          <Text style={styles.cardTitle}>Is a subscription worth it?</Text>
+          {worth.map((w) => {
+            const p = PLATFORMS.find((x) => x.slug === w.platformSlug)!;
+            return (
+              <View key={w.platformSlug} style={styles.worthRow}>
+                <Text style={styles.toggleName}>{p.subscriptionName}</Text>
+                <Text style={styles.footInline}>
+                  {w.alreadyOn
+                    ? 'On · delivery is $0 in these totals'
+                    : w.avgSave > 0
+                      ? `About ${money(w.avgSave)} off per order · worth it around ${w.ordersToBreakEven} orders/month vs ${money(w.monthlyCost)}`
+                      : 'Not enough fee savings on this catalog to tell'}
+                </Text>
+              </View>
+            );
+          })}
+          <Text style={styles.foot}>Demo math from waived delivery fees. Pass prices are typical list prices, not a live quote.</Text>
+        </Card>
+
+        <Card>
+          <Text style={styles.cardTitle}>HawtPix · your taste</Text>
+          <Text style={styles.foot}>Intra-personal only. Diet and favorite cuisines shape the For you row.</Text>
+          <Text style={styles.prefLabel}>Dietary defaults</Text>
+          <View style={styles.chipWrap}>
+            {DIETARY_PREFS.map((d) => {
+              const on = prefs.dietaryDefaults.includes(d.key);
+              return (
+                <Pressable key={d.key} onPress={() => toggleDietary(d.key)} style={[styles.chip, on && styles.chipOn]}>
+                  <Text style={[styles.chipText, on && styles.chipTextOn]}>{d.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.prefLabel}>Favorite cuisines</Text>
+          <View style={styles.chipWrap}>
+            {cuisinePicks.map((c) => {
+              const on = prefs.favoriteCuisines.includes(c);
+              return (
+                <Pressable key={c} onPress={() => toggleCuisine(c)} style={[styles.chip, on && styles.chipOn]}>
+                  <Text style={[styles.chipText, on && styles.chipTextOn]}>{c}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.foot}>
+            {prefs.savedRestaurantIds.length
+              ? `${prefs.savedRestaurantIds.length} saved place${prefs.savedRestaurantIds.length === 1 ? '' : 's'} from the feed.`
+              : 'Tap the heart on a restaurant card to save it.'}
+          </Text>
+        </Card>
+
+        <Card>
           <Text style={styles.cardTitle}>About</Text>
           <Text style={styles.foot}>
             Forkcast compares the delivered total for the same order on DoorDash, Uber Eats and Grubhub and links you out
-            to the cheapest one. We do not process payment.
+            to the cheapest one. We do not process payment. Prices in this demo are simulated.
           </Text>
         </Card>
       </ScrollView>
@@ -160,4 +221,20 @@ const styles = StyleSheet.create({
   toggleText: { gap: 2, flexShrink: 1 },
   toggleName: { fontWeight: '700', fontSize: 14, color: C.fg },
   togglePerks: { fontSize: 12, color: C.muted },
+  worthRow: { marginTop: 10, gap: 2 },
+  footInline: { fontSize: 12, color: C.muted, lineHeight: 18 },
+  prefLabel: { fontSize: 12, fontWeight: '700', color: C.muted, marginTop: 10, marginBottom: 6 },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: R.pill,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.card,
+    justifyContent: 'center',
+  },
+  chipOn: { borderColor: C.accent, backgroundColor: C.accentBg },
+  chipText: { fontSize: 13, fontWeight: '600', color: C.fg },
+  chipTextOn: { color: C.accentInk },
 });

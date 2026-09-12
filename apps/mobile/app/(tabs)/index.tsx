@@ -1,20 +1,24 @@
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CategoryStrip } from '../../src/components/CategoryStrip';
+import { DealsStrip } from '../../src/components/DealsStrip';
 import { Feed } from '../../src/components/Feed';
+import { FilterBar } from '../../src/components/FilterBar';
 import { ClearIcon } from '../../src/components/Icons';
 import { SortSegment } from '../../src/components/SortSegment';
 import { TopBar } from '../../src/components/TopBar';
 import { COVERED_ZIPS, PLATFORM_BY_SLUG, ZIP } from '../../src/data/mock';
-import { useMockFallback, useRestaurants } from '../../src/hooks/useData';
+import { useMockFallback, usePromos, useRestaurants } from '../../src/hooks/useData';
 import { usePrefs } from '../../src/hooks/usePrefs';
 import { useToast } from '../../src/hooks/useToast';
 import {
   CATEGORY_WORD,
-  FILTERS,
+  forYou,
   matchesCategory,
   matchesFilters,
   matchesQuery,
+  queryLabel,
   SORTS,
   sortBy,
   type Category,
@@ -23,7 +27,12 @@ import {
 } from '../../src/lib/filter';
 import { C, GUTTER, R } from '../../src/theme';
 
-const SORT_WORD: Record<Sort, string> = { cheapest: 'Cheapest', fastest: 'Fastest', rated: 'Top rated' };
+const SORT_WORD: Record<Sort, string> = {
+  cheapest: 'Cheapest',
+  fastest: 'Fastest',
+  rated: 'Top rated',
+  cheapestFee: 'Lowest fee',
+};
 const DEBOUNCE_MS = 150;
 
 const coverageList = () => {
@@ -39,13 +48,13 @@ function freshness(iso: string): string {
   return 'updated today';
 }
 
-/** Once dismissed the sample bar stays hidden until the app restarts (sessionStorage on the web). */
 let barDismissedThisSession = false;
 
 export default function Home() {
   const { prefs, setZip } = usePrefs();
   const toast = useToast();
   const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
+  const { promos } = usePromos();
   const sample = useMockFallback();
 
   const [input, setInput] = useState('');
@@ -55,26 +64,26 @@ export default function Home() {
   const [active, setActive] = useState<FilterKey[]>([]);
   const [barDismissed, setBarDismissed] = useState(barDismissedThisSession);
 
-  // Typing filters the feed after a short pause.
   useEffect(() => {
     const t = setTimeout(() => setQ(input), DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [input]);
 
   const hasQuery = q.trim() !== '';
-  const showChips = hasQuery || category !== 'All';
-  const filters = showChips ? active : [];
+  const hasCombo = hasQuery || category !== 'All' || active.length > 0;
 
   const visible = useMemo(
     () =>
       sortBy(
         restaurants.filter(
-          (r) => r.offers.length > 0 && matchesCategory(r, category) && matchesQuery(r, q) && matchesFilters(r, filters),
+          (r) => r.offers.length > 0 && matchesCategory(r, category) && matchesQuery(r, q) && matchesFilters(r, active),
         ),
         sort,
       ),
-    [restaurants, category, q, filters, sort],
+    [restaurants, category, q, active, sort],
   );
+
+  const picks = useMemo(() => (hasCombo ? [] : forYou(restaurants, prefs)), [hasCombo, restaurants, prefs]);
 
   const toggleFilter = (key: FilterKey) =>
     setActive((a) => (a.includes(key) ? a.filter((k) => k !== key) : [...a, key]));
@@ -90,6 +99,7 @@ export default function Home() {
   const heading =
     category === 'All' ? `${SORT_WORD[sort]} near you` : `${SORT_WORD[sort]} ${CATEGORY_WORD[category]} near you`;
   const count = `${visible.length} place${visible.length === 1 ? '' : 's'}`;
+  const combo = queryLabel(category, active, q);
   const passes = prefs.subscriptions.map((s) => PLATFORM_BY_SLUG[s].subscriptionName);
   const passLine =
     passes.length === 0
@@ -99,10 +109,8 @@ export default function Home() {
         : `Your ${passes.slice(0, -1).join(', ')} and ${passes[passes.length - 1]} are applied`;
 
   let emptyText: string;
-  if (hasQuery) {
-    emptyText = `Nothing matches “${q.trim()}”${category !== 'All' ? ` in ${category}` : ''}${filters.length ? ' with these filters' : ''}.`;
-  } else if (category !== 'All') {
-    emptyText = filters.length ? `Nothing in ${category} matches these filters.` : `Nothing in ${category} near you yet.`;
+  if (hasCombo) {
+    emptyText = `Nothing matches ${combo || 'these filters'}.`;
   } else {
     emptyText = 'Nothing near you yet.';
   }
@@ -127,27 +135,30 @@ export default function Home() {
       )}
 
       <CategoryStrip value={category} onChange={setCategory} />
-
-      {showChips && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityLabel="Filters">
-          {FILTERS.map((f) => {
-            const on = active.includes(f.key);
-            return (
-              <Pressable
-                key={f.key}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                onPress={() => toggleFilter(f.key)}
-                style={[styles.chip, on && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, on && styles.chipTextActive]}>{f.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      )}
+      <FilterBar category={category} query={q} active={active} onToggle={toggleFilter} onClear={clearAll} />
 
       <Text style={styles.trust}>Same order on DoorDash, Uber Eats and Grubhub</Text>
+
+      {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
+
+      {picks.length > 0 && (
+        <View style={styles.foryou}>
+          <Text style={styles.forTitle}>For you · HawtPix</Text>
+          <Text style={styles.forSub}>From your saved places, cuisines and diet — not the crowd</Text>
+          <View style={styles.forGrid}>
+            {picks.map((r) => (
+              <Pressable key={r.id} onPress={() => router.push(`/store/${r.id}`)} style={styles.forCard}>
+                <Text style={styles.forName} numberOfLines={1}>
+                  {r.name}
+                </Text>
+                <Text style={styles.forMeta} numberOfLines={1}>
+                  {r.cuisine[0]} · {r.dietaryTags[0] ?? 'your tastes'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={styles.sectionHead}>
         <View style={styles.sectionText}>
@@ -157,7 +168,7 @@ export default function Home() {
               ? 'Checking three apps…'
               : noCoverage
                 ? 'No prices for this zip'
-                : `${count}${hasQuery ? ` for “${q.trim()}”` : ''} · ${freshness(refreshedAt)}`}
+                : `${count}${combo ? ` · ${combo}` : ''} · ${freshness(refreshedAt)}`}
           </Text>
           {passLine && !loading && <Text style={styles.sectionPass}>{passLine}</Text>}
         </View>
@@ -192,7 +203,7 @@ export default function Home() {
           loading={loading}
           sort={sort}
           emptyText={emptyText}
-          action={hasQuery || showChips ? { label: hasQuery ? 'Clear search' : 'Clear filters', onClick: clearAll } : undefined}
+          action={hasCombo ? { label: 'Clear filters', onClick: clearAll } : undefined}
           refreshing={loading}
           onRefresh={refresh}
         />
@@ -215,20 +226,24 @@ const styles = StyleSheet.create({
     borderBottomColor: C.accentLine,
   },
   barText: { color: C.accentInk, fontSize: 12, fontWeight: '600', flexShrink: 1 },
-  chips: { flexDirection: 'row', gap: 8, paddingTop: 4, paddingHorizontal: GUTTER, paddingBottom: 6 },
-  chip: {
-    height: 34,
-    paddingHorizontal: 14,
-    borderRadius: R.pill,
+  trust: { paddingTop: 4, paddingHorizontal: GUTTER, paddingBottom: 6, fontSize: 12, color: C.muted },
+  foryou: { paddingHorizontal: GUTTER, paddingBottom: 8 },
+  forTitle: { fontSize: 15, fontWeight: '700', color: C.fg },
+  forSub: { fontSize: 12, color: C.muted, marginTop: 2, marginBottom: 8 },
+  forGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  forCard: {
+    width: '48%',
+    flexGrow: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.line,
-    backgroundColor: C.card,
-    justifyContent: 'center',
+    borderRadius: R.card,
+    gap: 2,
   },
-  chipActive: { borderColor: C.accent, backgroundColor: C.accentBg },
-  chipText: { fontSize: 13, fontWeight: '600', color: C.fg },
-  chipTextActive: { color: C.accentInk },
-  trust: { paddingTop: 4, paddingHorizontal: GUTTER, paddingBottom: 6, fontSize: 12, color: C.muted },
+  forName: { fontWeight: '700', fontSize: 13, color: C.fg },
+  forMeta: { fontSize: 12, color: C.muted },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'flex-end',

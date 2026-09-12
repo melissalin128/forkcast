@@ -99,3 +99,9 @@ export const UserIcon = ({ size = 22, stroke = 'currentColor', ...rest }: P) => 
     <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
   </svg>
 );
+
+export const HeartIcon = ({ size = 18, stroke = 'currentColor', filled = false, ...rest }: P & { filled?: boolean }) => (
+  <svg {...base(size, stroke)} fill={filled ? stroke : 'none'} {...rest}>
+    <path d="M12 20s-7-4.4-9.2-8.2C1 9.2 2.2 6 5.5 6c1.9 0 3.1 1.1 3.8 2.2C10.1 7.1 11.3 6 13.2 6c3.3 0 4.5 3.2 2.7 5.8C19 15.6 12 20 12 20z" />
+  </svg>
+);

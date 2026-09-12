@@ -6,15 +6,37 @@ import type { Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
  * only required input). Stored in localStorage; the API has no user endpoint
  * yet, so totals are re-derived client-side in `applyPrefs`.
  */
+export type DietaryPref = 'vegan' | 'vegetarian' | 'gluten-free' | 'halal' | 'kosher' | 'nut-free';
+
+export const DIETARY_PREFS: { key: DietaryPref; label: string }[] = [
+  { key: 'vegan', label: 'Vegan' },
+  { key: 'vegetarian', label: 'Vegetarian' },
+  { key: 'gluten-free', label: 'Gluten-free' },
+  { key: 'halal', label: 'Halal' },
+  { key: 'kosher', label: 'Kosher' },
+  { key: 'nut-free', label: 'Nut-free' },
+];
+
 export interface Prefs {
   zip: string;
   subscriptions: PlatformSlug[];
   /** Tip as a decimal fraction, e.g. 0.15. */
   tipPct: number;
+  /** HawtPix: dietary defaults used for For-you ranking and default chips. */
+  dietaryDefaults: DietaryPref[];
+  favoriteCuisines: string[];
+  savedRestaurantIds: string[];
 }
 
 /** No passes until the user turns one on in Account. */
-export const DEFAULT_PREFS: Prefs = { zip: ZIP, subscriptions: [], tipPct: 0.15 };
+export const DEFAULT_PREFS: Prefs = {
+  zip: ZIP,
+  subscriptions: [],
+  tipPct: 0.15,
+  dietaryDefaults: [],
+  favoriteCuisines: [],
+  savedRestaurantIds: [],
+};
 
 const KEY = 'forkcast.prefs';
 
@@ -30,7 +52,16 @@ export function loadPrefs(): Prefs {
       : DEFAULT_PREFS.subscriptions;
     const zip = typeof o.zip === 'string' && /^\d{5}$/.test(o.zip) ? o.zip : DEFAULT_PREFS.zip;
     const tipPct = typeof o.tipPct === 'number' && o.tipPct >= 0 && o.tipPct <= 0.3 ? o.tipPct : DEFAULT_PREFS.tipPct;
-    return { zip, subscriptions: subs, tipPct };
+    const dietaryDefaults = Array.isArray(o.dietaryDefaults)
+      ? o.dietaryDefaults.filter((d): d is DietaryPref => DIETARY_PREFS.some((x) => x.key === d))
+      : DEFAULT_PREFS.dietaryDefaults;
+    const favoriteCuisines = Array.isArray(o.favoriteCuisines)
+      ? o.favoriteCuisines.filter((c): c is string => typeof c === 'string')
+      : DEFAULT_PREFS.favoriteCuisines;
+    const savedRestaurantIds = Array.isArray(o.savedRestaurantIds)
+      ? o.savedRestaurantIds.filter((id): id is string => typeof id === 'string')
+      : DEFAULT_PREFS.savedRestaurantIds;
+    return { zip, subscriptions: subs, tipPct, dietaryDefaults, favoriteCuisines, savedRestaurantIds };
   } catch {
     return DEFAULT_PREFS;
   }

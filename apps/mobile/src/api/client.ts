@@ -1,5 +1,11 @@
 import { COVERED_ZIPS, mockHistory, REFRESHED_AT, RESTAURANTS } from '../data/mock';
-import type { PriceSnapshot, Restaurant, RestaurantsResponse } from '../types';
+import type { PlatformSlug, PriceSnapshot, Promo, Restaurant, RestaurantsResponse } from '../types';
+
+export interface PromosResponse {
+  now: string;
+  count: number;
+  promos: Array<Promo & { id?: string; description?: string | null; hoursLeft?: number }>;
+}
 
 /**
  * Thin client for apps/api. Every call first tries the real API and falls
@@ -139,4 +145,31 @@ export async function getHistory(id: string): Promise<Sourced<PriceSnapshot[]>> 
   if (json) return { data: Array.isArray(json) ? json : json.snapshots, source: 'api' };
   setUsingMock(true);
   return { data: mockHistory(id), source: 'mock' };
+}
+
+function isPromosResponse(v: unknown): v is PromosResponse {
+  return isObject(v) && Array.isArray(v.promos);
+}
+
+const DEMO_PROMOS: PromosResponse['promos'] = [
+  { platformSlug: 'doordash', code: 'WEEKNIGHT20', label: '20% off $25+', rule: { type: 'percent', value: 20, minSubtotal: 25 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 5 * 864e5).toISOString(), eligible: true, description: '20% off orders $25+', hoursLeft: 120 },
+  { platformSlug: 'doordash', code: 'DASHFREE', label: 'Free delivery $15+', rule: { type: 'freeDelivery', value: 0, minSubtotal: 15 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 3 * 864e5).toISOString(), eligible: true, description: 'Free delivery on orders $15+', hoursLeft: 72 },
+  { platformSlug: 'ubereats', code: 'EATS5', label: '$5 off $20+', rule: { type: 'flat', value: 5, minSubtotal: 20 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 4 * 864e5).toISOString(), eligible: true, description: '$5 off orders $20+', hoursLeft: 96 },
+  { platformSlug: 'ubereats', code: 'UBER25', label: '25% off $30+', rule: { type: 'percent', value: 25, minSubtotal: 30 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 2 * 864e5).toISOString(), eligible: true, description: '25% off orders $30+', hoursLeft: 48 },
+  { platformSlug: 'grubhub', code: 'GRUB10', label: '$10 off $35+', rule: { type: 'flat', value: 10, minSubtotal: 35 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 6 * 864e5).toISOString(), eligible: true, description: '$10 off orders $35+', hoursLeft: 144 },
+  { platformSlug: 'grubhub', code: 'FREEDELIV', label: 'Free delivery $12+', rule: { type: 'freeDelivery', value: 0, minSubtotal: 12 }, startsAt: new Date().toISOString(), endsAt: new Date(Date.now() + 36e5 * 36).toISOString(), eligible: true, description: 'Free delivery on orders $12+', hoursLeft: 36 },
+];
+
+export async function getPromos(platform?: PlatformSlug): Promise<Sourced<PromosResponse>> {
+  const path = platform ? `/api/promos?${query({ platform })}` : '/api/promos';
+  const json = await tryJson(path, isPromosResponse);
+  if (json) return { data: json, source: 'api' };
+  return {
+    data: {
+      now: new Date().toISOString(),
+      count: DEMO_PROMOS.length,
+      promos: platform ? DEMO_PROMOS.filter((p) => p.platformSlug === platform) : DEMO_PROMOS,
+    },
+    source: 'mock',
+  };
 }

@@ -8,6 +8,7 @@ import { distanceFromZip } from '../services/geo';
 import { priceRestaurant, type PricingContext, type RestaurantOffers } from '../services/offers';
 import { notFound } from './errors';
 import { adapterMode } from '../adapters';
+import { displayDietaryTags, inferCategory } from '../services/clientView';
 
 export const restaurantsRouter = Router();
 
@@ -50,7 +51,7 @@ function card(r: Restaurant, priced: RestaurantOffers, zip?: string) {
     name: r.name,
     address: r.address,
     cuisine: r.cuisine,
-    dietaryTags: r.dietaryTags,
+    dietaryTags: displayDietaryTags(r.dietaryTags),
     rating: r.rating,
     ratingCount: r.ratingCount,
     priceTier: r.priceTier,
@@ -78,8 +79,7 @@ function clientCard(r: Restaurant, priced: RestaurantOffers, zip?: string, tipPc
   const menuPrices = Object.fromEntries(
     priced.offers.map((offer) => [offer.platformSlug, offer.subtotal]),
   );
-  const known = ['Grocery', 'Pizza', 'Burgers', 'Ramen', 'Indian', 'Mexican', 'Thai', 'Sushi', 'Chinese'];
-  const category = known.find((name) => r.cuisine.some((c) => c.toLowerCase() === name.toLowerCase())) ?? r.cuisine[0] ?? 'All';
+  const category = inferCategory(r.cuisine);
   return {
     ...base,
     category,

@@ -36,7 +36,7 @@ export function SortSegment<T extends string>({ options, value, onChange, label 
 }
 
 const styles = StyleSheet.create({
-  seg: { flexDirection: 'row', padding: 3, backgroundColor: C.inset, borderRadius: R.pill },
+  seg: { flexDirection: 'row', flexWrap: 'wrap', padding: 3, backgroundColor: C.inset, borderRadius: R.pill, maxWidth: '100%' },
   btn: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: R.pill },
   btnActive: {
     backgroundColor: C.card,

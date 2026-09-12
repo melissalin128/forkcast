@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CompareStrip } from '../components/CompareStrip';
-import { ExternalIcon, StarIcon } from '../components/Icons';
+import { ExternalIcon, HeartIcon, StarIcon } from '../components/Icons';
 import { Photo } from '../components/Photo';
 import { PlatformLedger } from '../components/PlatformLedger';
 import { PriceHistory } from '../components/PriceHistory';
 import { TopBar } from '../components/TopBar';
 import { PLATFORMS } from '../data/mock';
 import { useStore } from '../hooks/useData';
+import { usePrefs } from '../hooks/usePrefs';
 import {
+  activeDeals,
   bestOffer,
   bestTime,
   cheapestMenuPlatform,
@@ -33,6 +35,7 @@ export function Store() {
   const [params, setParams] = useSearchParams();
   const tab: Tab = params.get('tab') === 'prices' ? 'prices' : 'menu';
   const { restaurant, snapshots } = useStore(id);
+  const { prefs, toggleSaved } = usePrefs();
   const pricesRef = useRef<HTMLDivElement>(null);
 
   const setTab = (t: Tab) => {
@@ -73,12 +76,25 @@ export function Store() {
 
   const r = restaurant;
   const bestName = platformName(best.platformSlug);
+  const saved = prefs.savedRestaurantIds.includes(r.id);
+  const deals = activeDeals(r);
 
   return (
     <div className="page page--store page--cta">
       <TopBar back={{ title: r.name }} />
 
-      <Photo className="cover" src={restaurantPhoto(r)} fallback={r.image} iconSize={40} />
+      <div className="cover-wrap">
+        <Photo className="cover" src={restaurantPhoto(r)} fallback={r.image} iconSize={40} />
+        <button
+          type="button"
+          className={`savebtn savebtn--cover${saved ? ' savebtn--on' : ''}`}
+          aria-pressed={saved}
+          aria-label={saved ? `Unsave ${r.name}` : `Save ${r.name}`}
+          onClick={() => toggleSaved(r.id)}
+        >
+          <HeartIcon size={18} stroke={saved ? '#fff' : 'currentColor'} filled={saved} />
+        </button>
+      </div>
 
       <header className="store">
         <h1 className="store__name">{r.name}</h1>
@@ -111,6 +127,22 @@ export function Store() {
         <MenuTab restaurant={r} />
       ) : (
         <div className="prices" ref={pricesRef} role="tabpanel">
+          {deals.length > 0 && (
+            <section className="card" aria-label="Deals right now">
+              <div className="card__head">
+                <h3 className="card__title">Deals right now</h3>
+                <span className="card__meta">Already in the totals below · simulated demo promos</span>
+              </div>
+              <ul className="platdeal__list">
+                {deals.map((o) => (
+                  <li key={o.platformSlug}>
+                    <strong>{platformName(o.platformSlug)}</strong> · {o.promo?.code ?? 'promo'} · {money(o.promoDiscount)}{' '}
+                    off
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <PlatformLedger restaurant={r} />
 
           <section className="card" aria-label="Price over the last 7 days">

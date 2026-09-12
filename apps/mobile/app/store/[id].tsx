@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompareStrip } from '../../src/components/CompareStrip';
-import { ExternalIcon, StarIcon } from '../../src/components/Icons';
+import { ExternalIcon, HeartIcon, StarIcon } from '../../src/components/Icons';
 import { Photo } from '../../src/components/Photo';
 import { PlatformLedger } from '../../src/components/PlatformLedger';
 import { PriceHistory } from '../../src/components/PriceHistory';
@@ -11,7 +11,9 @@ import { TopBar } from '../../src/components/TopBar';
 import { Card, Notice } from '../../src/components/ui';
 import { PLATFORMS } from '../../src/data/mock';
 import { useStore } from '../../src/hooks/useData';
+import { usePrefs } from '../../src/hooks/usePrefs';
 import {
+  activeDeals,
   bestOffer,
   bestTime,
   cheapestMenuPlatform,
@@ -37,6 +39,7 @@ export default function Store() {
   const wantsPrices = params.tab === 'prices';
   const [tab, setTab] = useState<Tab>(wantsPrices ? 'prices' : 'menu');
   const { restaurant, snapshots } = useStore(id);
+  const { prefs, toggleSaved } = usePrefs();
   const insets = useSafeAreaInsets();
   // `.cover`: 200px, 160px on narrow screens (web's `max-width: 480px` breakpoint).
   const { width } = useWindowDimensions();
@@ -76,6 +79,8 @@ export default function Store() {
 
   const r = restaurant;
   const bestName = platformName(best.platformSlug);
+  const saved = prefs.savedRestaurantIds.includes(r.id);
+  const deals = activeDeals(r);
   const ctaH = 52 + 20 + insets.bottom;
 
   return (
@@ -84,7 +89,18 @@ export default function Store() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: ctaH + 12 }} stickyHeaderIndices={[1]}>
         <View>
-          <Photo source={restaurantPhoto(r)} fallback={r.image} iconSize={40} style={[styles.cover, { height: coverH }]} />
+          <View>
+            <Photo source={restaurantPhoto(r)} fallback={r.image} iconSize={40} style={[styles.cover, { height: coverH }]} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: saved }}
+              accessibilityLabel={saved ? `Unsave ${r.name}` : `Save ${r.name}`}
+              onPress={() => toggleSaved(r.id)}
+              style={[styles.savebtn, saved && styles.saveOn]}
+            >
+              <HeartIcon size={18} stroke={saved ? C.white : C.fg} filled={saved} />
+            </Pressable>
+          </View>
 
           <View style={styles.store}>
             <Text style={styles.name}>{r.name}</Text>
@@ -126,6 +142,17 @@ export default function Store() {
           <MenuTab restaurant={r} />
         ) : (
           <View style={styles.prices}>
+            {deals.length > 0 && (
+              <Card>
+                <Text style={styles.cardTitle}>Deals right now</Text>
+                <Text style={styles.foot}>Already in the totals below · simulated demo promos</Text>
+                {deals.map((o) => (
+                  <Text key={o.platformSlug} style={styles.dealLine}>
+                    {platformName(o.platformSlug)} · {o.promo?.code ?? 'promo'} · {money(o.promoDiscount)} off
+                  </Text>
+                ))}
+              </Card>
+            )}
             <PlatformLedger restaurant={r} />
 
             <Card>
@@ -218,6 +245,21 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: C.page },
   link: { color: C.accentInk, fontWeight: '600' },
   cover: { width: '100%' },
+  savebtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: C.line,
+  },
+  saveOn: { backgroundColor: C.accent, borderColor: C.accent },
+  dealLine: { fontSize: 13, color: C.fg, marginTop: 6 },
   store: {
     paddingTop: 14,
     paddingHorizontal: GUTTER,

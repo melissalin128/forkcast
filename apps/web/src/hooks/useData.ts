@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { getHistory, getRestaurant, getRestaurants, mockFallback, type Source } from '../api/client';
+import { getHistory, getPromos, getRestaurant, getRestaurants, mockFallback, type PromosResponse, type Source } from '../api/client';
 import { REFRESHED_AT } from '../data/mock';
 import { applyPrefs, applyPrefsToSnapshots } from '../lib/prefs';
 import type { PriceSnapshot, Restaurant } from '../types';
@@ -74,4 +74,23 @@ export function useStore(id: string) {
   );
 
   return { restaurant, snapshots, source };
+}
+
+export function usePromos() {
+  const [promos, setPromos] = useState<PromosResponse['promos']>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    getPromos().then(({ data }) => {
+      if (!alive) return;
+      setPromos(data.promos);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return { promos, loading };
 }

@@ -1,18 +1,22 @@
 import { Link } from 'react-router-dom';
+import { usePrefs } from '../hooks/usePrefs';
 import {
+  activeDeals,
   bestOffer,
+  cheapestFeeOffer,
   etaRange,
   fastestOffer,
+  money,
   orderSummary,
   platformName,
   ratingCount,
   savingsTail,
 } from '../lib/analysis';
-import type { Sort } from '../lib/filter';
+import { hawtPixScore, type Sort } from '../lib/filter';
 import { restaurantPhoto } from '../lib/photos';
 import type { Restaurant } from '../types';
 import { CompareStrip } from './CompareStrip';
-import { StarIcon } from './Icons';
+import { HeartIcon, StarIcon } from './Icons';
 import { Photo } from './Photo';
 
 interface Props {
@@ -23,14 +27,41 @@ interface Props {
 
 /** Feed card: 16:9 photo, name + meta, the compare strip, what the price is for, one verdict line. */
 export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
+  const { prefs, toggleSaved } = usePrefs();
   const best = bestOffer(r);
   const fastest = fastestOffer(r);
-  if (!best || !fastest) return null;
+  const lowFee = cheapestFeeOffer(r);
+  if (!best || !fastest || !lowFee) return null;
   const byTime = sort === 'fastest';
+  const byFee = sort === 'cheapestFee';
+  const deals = activeDeals(r);
+  const saved = prefs.savedRestaurantIds.includes(r.id);
+  const forYou = hawtPixScore(r, prefs) > 0;
 
   return (
     <Link to={`/store/${r.id}`} className="row" data-card>
-      <Photo className="row__photo" src={restaurantPhoto(r)} fallback={r.image} />
+      <div className="row__photo-wrap">
+        <Photo className="row__photo" src={restaurantPhoto(r)} fallback={r.image} />
+        {deals.length > 0 && (
+          <span className="badge badge--deal">
+            {money(Math.max(...deals.map((d) => d.promoDiscount)))} off {platformName(deals[0].platformSlug)}
+          </span>
+        )}
+        {forYou && <span className="badge badge--you">For you</span>}
+        <button
+          type="button"
+          className={`savebtn${saved ? ' savebtn--on' : ''}`}
+          aria-pressed={saved}
+          aria-label={saved ? `Unsave ${r.name}` : `Save ${r.name}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSaved(r.id);
+          }}
+        >
+          <HeartIcon size={16} stroke={saved ? '#fff' : 'currentColor'} filled={saved} />
+        </button>
+      </div>
 
       <div className="row__body">
         <div className="row__name">{r.name}</div>
@@ -50,6 +81,10 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
           {byTime ? (
             <>
               <strong>Fastest on {platformName(fastest.platformSlug)}</strong> · {etaRange(fastest)}
+            </>
+          ) : byFee ? (
+            <>
+              <strong>Lowest fee on {platformName(lowFee.platformSlug)}</strong> · {money(lowFee.deliveryFee)} delivery
             </>
           ) : (
             <>
