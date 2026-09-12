@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Landing" },
+    { "file": "Browse.dc.html", "x": 1560, "y": 0, "w": 1440, "h": 1040, "title": "Browse (DoorDash-style feed + compare strip)" },
+    { "file": "Compare.dc.html", "x": 0, "y": 1080, "w": 1440, "h": 1000, "title": "Restaurant compare + price history" },
+    { "file": "Mobile.dc.html", "x": 1560, "y": 1180, "w": 390, "h": 844, "title": "Mobile browse" }
+  ],
+  "annotations": [
+    { "id": "direction", "x": 0, "y": -220, "w": 560, "text": "Direction: 'the price terminal'. Familiar DoorDash/Grubhub information architecture (address, category row, card grid, store page) with our twist on every card: the delivered total on DoorDash, Uber Eats and Grubhub, cheapest highlighted in mint. Dark warm base, tangerine for actions, mint for savings, mono for every number." },
+    { "id": "twist", "x": 1560, "y": -160, "w": 440, "text": "The twist lives in the comparison strip under each card and the platform ledger on the store page. Everything else is deliberately familiar." }
+  ],
+  "launch": { "view": "canvas" }
+}

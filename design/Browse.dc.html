@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+  <style>
+    body { margin: 0; background: #161412; color: #f5f2ec; font-family: Manrope, "Helvetica Neue", Arial, sans-serif; }
+    a { color: #f0873f; } a:hover { color: #f5a06a; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 1040px; background: #161412; font-family: Manrope, 'Helvetica Neue', Arial, sans-serif; color: #f5f2ec; display: flex; flex-direction: column;">
+
+  <div style="display: flex; align-items: center; gap: 24px; padding: 16px 40px; border-bottom: 1px solid #3a3631;">
+    <div style="display: flex; align-items: center; gap: 10px; width: 160px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0873f" stroke-width="2" stroke-linecap="round"><path d="M7 3v7a3 3 0 0 0 6 0V3"></path><path d="M10 13v8"></path><path d="M17 3v18"></path><path d="M17 3c-2 2-2 5-2 7h2"></path></svg>
+      <span style="font-family: Syne, Arial, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.02em;">Forkcast</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1px solid #3a3631; border-radius: 6px; font-size: 14px; font-weight: 500;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f0873f" stroke-width="2" stroke-linecap="round"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+      <span>Deliver to</span>
+      <span style="font-family: 'JetBrains Mono', monospace; color: #f5f2ec;">15213</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a39c92" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1; height: 44px; padding: 0 16px; background: #100f0d; border: 1px solid #3a3631; border-radius: 6px; color: #a39c92; font-size: 14px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a39c92" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <span>Search restaurants, dishes, cuisines</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1px solid #3a3631; border-radius: 6px; font-size: 13px; color: #a39c92;">
+      <span style="width: 6px; height: 6px; border-radius: 999px; background: #3fd39b; display: inline-block;"></span>
+      <span>DashPass · Uber One applied</span>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; padding: 18px 40px 0 40px;">
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #f0873f; color: #f0873f; font-size: 13px; font-weight: 600;">All</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Pizza</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Ramen</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Indian</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Mexican</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Thai</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Burgers</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Sushi</div>
+    <div style="display: flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Halal</div>
+    <div style="width: 1px; height: 24px; background: #3a3631; margin: 0 6px;"></div>
+    <div style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Under $20<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a39c92" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+    <div style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Under 30 min<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a39c92" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+    <div style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a3631; color: #f5f2ec; font-size: 13px; font-weight: 500;">Dietary<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a39c92" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 28px 40px 0 40px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h2 style="margin: 0; font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.02em;">Cheapest near you right now</h2>
+      <span style="font-size: 13px; color: #a39c92;">42 restaurants · prices refreshed 3 min ago · Friday 7:12 pm is a peak hour</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 24px; font-size: 13px; font-weight: 500; color: #a39c92;">
+      <span style="color: #f5f2ec; border-bottom: 2px solid #f0873f; padding-bottom: 6px;">Cheapest total</span>
+      <span style="padding-bottom: 6px;">Fastest</span>
+      <span style="padding-bottom: 6px;">Top rated</span>
+      <span style="padding-bottom: 6px;">Lowest delivery fee</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 20px 40px 0 40px;">
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #2a2420, #3a2d22);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Ramen Bar Oakland</span>
+            <span style="font-size: 13px; color: #a39c92;">Ramen · 4.7 (1.2k) · 0.6 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(63,211,155,0.12); color: #3fd39b; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">save $5.10</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">28 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$21.40</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>24 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$24.85</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>31 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$26.50</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #2d2220, #402a22);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Mad Mex Shadyside</span>
+            <span style="font-size: 13px; color: #a39c92;">Mexican · 4.5 (860) · 1.1 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(63,211,155,0.12); color: #3fd39b; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">save $3.20</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #f0873f; margin-left: 4px;">DashPass</span></span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">22 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$18.95</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>26 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$20.10</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>35 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$22.15</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #24261f, #2f3a22);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Sichuan Gourmet</span>
+            <span style="font-size: 13px; color: #a39c92;">Chinese · 4.6 (2.3k) · 0.9 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(240,135,63,0.14); color: #f0873f; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">promo −20%</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">29 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$23.60</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>33 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$27.05</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>25 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$28.90</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #2a2320, #3b2a26);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Pizza Milano</span>
+            <span style="font-size: 13px; color: #a39c92;">Pizza · 4.3 (540) · 0.4 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(63,211,155,0.12); color: #3fd39b; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">save $1.75</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">19 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$16.20</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>21 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$17.95</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>—</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">not listed</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #262420, #3a3222);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Prince of India</span>
+            <span style="font-size: 13px; color: #a39c92;">Indian · Halal · 4.8 (990) · 1.4 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(245,106,106,0.14); color: #f56a6a; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">+$4 peak</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #f0873f; margin-left: 4px;">Uber One</span></span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">38 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$27.30</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>34 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$29.10</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>41 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$30.45</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; background: #1f1c19; border: 1px solid #3a3631; border-radius: 12px; overflow: hidden;">
+      <div style="height: 150px; background: linear-gradient(135deg, #22261f, #2c3a2a);"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-family: Syne, Arial, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.01em;">Bangkok Balcony</span>
+            <span style="font-size: 13px; color: #a39c92;">Thai · Vegan options · 4.4 (710) · 0.8 mi</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(63,211,155,0.12); color: #3fd39b; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;">save $2.40</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #3a3631;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; color: #f5f2ec; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #ff3008; display: inline-block;"></span>DoorDash<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #f0873f; margin-left: 4px;">DashPass</span></span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span style="color: #a39c92;">27 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #3fd39b;">$19.80</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #f63440; display: inline-block;"></span>Grubhub</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>30 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$21.15</span></span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #a39c92;">
+            <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 999px; background: #06c167; display: inline-block;"></span>Uber Eats</span>
+            <span style="display: flex; align-items: center; gap: 12px;"><span>32 min</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">$22.20</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

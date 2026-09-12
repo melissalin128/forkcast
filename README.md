@@ -1,1 +1,25 @@
-# hackcmu2026
+# Forkcast
+
+A delivery app that looks like DoorDash or Grubhub, except every restaurant
+shows what the same order costs on **DoorDash, Uber Eats and Grubhub**, which
+one is cheapest right now, and when it will be cheapest. Built for HackCMU 2026.
+
+- `docs/PRODUCT_SPEC.md` — what we're building, decisions, data model, scraping plan
+- `docs/DESIGN_SYSTEM.md` — colors, type, motion, components
+- `design/` — design canvas artboards (landing, browse, compare, mobile)
+- `apps/web` — Vite + React front end (three.js hero, anime.js price reveals)
+- `apps/api` — Express + Mongoose API, platform adapters, seed data
+
+## Run it
+
+```bash
+npm install
+cp .env.example .env          # fill in MONGODB_URI
+npm run seed                  # loads restaurants + 7 days of price snapshots
+npm run dev:api               # http://localhost:4000
+npm run dev:web               # http://localhost:5173
+```
+
+With `ADAPTER=mock` the API serves seeded data and never touches the live
+platforms. Without a `MONGODB_URI` the API falls back to an in-memory copy of
+the seed so the front end still runs.
