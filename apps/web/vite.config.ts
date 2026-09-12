@@ -17,7 +17,6 @@ export default defineConfig({
     react(),
     !isStaticPreview && VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png'],
       manifest: {
         name: 'Forkcast',
         short_name: 'Forkcast',
@@ -28,10 +27,28 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        // Hosted on Cloudinary rather than shipped from public/ — these were
+        // stored via Git LFS, and Vercel's build served the raw LFS pointer
+        // text instead of the real icon bytes (same issue the restaurant
+        // photos had). Cloudinary is a plain https:// origin, which the Web
+        // App Manifest spec allows for icon `src` values.
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: 'https://res.cloudinary.com/kieg88kv/image/upload/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'https://res.cloudinary.com/kieg88kv/image/upload/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'https://res.cloudinary.com/kieg88kv/image/upload/icon-512-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
       },
       workbox: {
