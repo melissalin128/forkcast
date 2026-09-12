@@ -67,11 +67,11 @@ test('a successful feed run is normalized, upserted, and closed out with the rea
   const res = await ingestRun({ repo, apifyRunId: 'apify-1', cfg, client, now, log: () => undefined });
 
   assert.equal(res.ok, true);
-  assert.equal(res.resultsReturned, 5);
-  assert.equal(res.dealsExtracted, 7);
-  assert.equal(res.inserted, 7);
+  assert.equal(res.resultsReturned, 7);
+  assert.equal(res.dealsExtracted, 8);
+  assert.equal(res.inserted, 8);
   assert.equal(res.updated, 0);
-  assert.equal(res.parseFailures, 1, 'the id-less fixture store');
+  assert.equal(res.parseFailures, 1, 'the id-less fixture record');
   assert.equal(res.storesWithoutDeals, 1);
   assert.equal(res.actualCost, 0.198);
   assert.deepEqual(datasetCalls[0], ['ds-1', { limit: 36 }], 'never reads more than the configured cap');
@@ -79,11 +79,11 @@ test('a successful feed run is normalized, upserted, and closed out with the rea
   const stored = await repo.getScrapeRun(ledger.id);
   assert.equal(stored?.status, 'succeeded');
   assert.equal(stored?.actualCost, 0.198);
-  assert.equal(stored?.dealsExtracted, 7);
+  assert.equal(stored?.dealsExtracted, 8);
   assert.equal(stored?.finishedAt?.toISOString(), '2026-09-12T17:29:30.000Z');
 
   const deals = await repo.listDeals({ addressKey: '15232' });
-  assert.equal(deals.length, 7);
+  assert.equal(deals.length, 8);
   assert.ok(deals.every((d) => d.firstRunId === 'apify-1' && d.lastRunKind === 'feed'));
 });
 
@@ -92,8 +92,9 @@ test('a second feed run updates repeat sightings and retires what it no longer r
   await seedRunningLedger(repo);
   await ingestRun({ repo, apifyRunId: 'apify-1', cfg, client: fakeClient(run()).client, now, log: () => undefined });
 
-  // the later run only still sees Pizza Milano's free delivery
-  const shrunk = [fixture[0]].map((s) => ({ ...(s as Record<string, unknown>), tags: [{ id: 't1', name: 'Pizza' }], menu_categories: [] }));
+  // the later run only still sees Domino's $0 delivery fee: one surviving deal out of the eight
+  const dominos = fixture.find((s) => (s as { name?: string }).name === "Domino's") as Record<string, unknown>;
+  const shrunk = [{ ...dominos, menu_categories: [], featured_items: undefined }];
   await seedRunningLedger(repo, { apifyRunId: 'apify-2', startedAt: later });
   const res = await ingestRun({
     repo,
@@ -106,14 +107,14 @@ test('a second feed run updates repeat sightings and retires what it no longer r
 
   assert.equal(res.inserted, 0);
   assert.equal(res.updated, 1, 'the surviving deal is a repeat sighting, not a duplicate');
-  assert.equal(res.deactivated, 6);
+  assert.equal(res.deactivated, 7);
 
   const active = await repo.listDeals({ addressKey: '15232' });
-  assert.deepEqual(active.map((d) => d.headline), ['$0.00 delivery fee']);
+  assert.deepEqual(active.map((d) => d.headline), ['$0 delivery fee']);
   assert.equal(active[0].firstSeenAt.toISOString(), now.toISOString(), 'first sighting preserved');
   assert.equal(active[0].lastSeenAt.toISOString(), later.toISOString());
   assert.equal(active[0].lastRunId, 'apify-2');
-  assert.equal((await repo.listDeals({ activeOnly: false })).length, 7, 'nothing deleted');
+  assert.equal((await repo.listDeals({ activeOnly: false })).length, 8, 'nothing deleted');
 });
 
 test('a search run never retires the feed, only genuinely stale deals', async () => {
@@ -131,13 +132,13 @@ test('a search run never retires the feed, only genuinely stale deals', async ()
     log: () => undefined,
   });
   assert.equal(res.deactivated, 0, 'a search that found nothing must not wipe the feed');
-  assert.equal((await repo.listDeals()).length, 7);
+  assert.equal((await repo.listDeals()).length, 8);
 
   // once past the staleness window they do age out
   const muchLater = new Date(now.getTime() + 40 * 3600 * 1000);
   await seedRunningLedger(repo, { apifyRunId: 'apify-4', kind: 'search', query: 'ramen', startedAt: muchLater });
   const aged = await ingestRun({ repo, apifyRunId: 'apify-4', cfg, client: fakeClient(run({ id: 'apify-4' }), []).client, now: muchLater, log: () => undefined });
-  assert.equal(aged.deactivated, 7);
+  assert.equal(aged.deactivated, 8);
 });
 
 test('ingest is idempotent: a finished run is not read or billed twice', async () => {
@@ -149,11 +150,11 @@ test('ingest is idempotent: a finished run is not read or billed twice', async (
 
   assert.equal(again.skipped, 'already_ingested');
   assert.equal(datasetCalls.length, 1, 'the dataset was read once');
-  assert.equal((await repo.listDeals()).length, 7, 'no duplicate deals');
+  assert.equal((await repo.listDeals()).length, 8, 'no duplicate deals');
 
   const forced = await ingestRun({ repo, apifyRunId: 'apify-1', cfg, client, now, force: true, log: () => undefined });
   assert.equal(forced.skipped, undefined);
-  assert.equal(forced.updated, 7, 're-ingest updates in place');
+  assert.equal(forced.updated, 8, 're-ingest updates in place');
 });
 
 test('a run started by an Apify Schedule gets a ledger row from the webhook parameters', async () => {

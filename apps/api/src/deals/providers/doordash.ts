@@ -6,13 +6,26 @@
  * does not resolve reliably. `maxResults` is per URL, so the feed splits the
  * run's cap across its queries.
  *
- * Deal signal in the output, in descending order of confidence:
- *   - `delivery_fee_display`  "$0.00 delivery fee" -> a free-delivery deal.
- *     A non-zero fee is just a fee, not a deal, so nothing is emitted for it.
- *   - `tags[].name`           store-level badges, some of which are offers.
- *   - menu item `badges[].text` and a struck-through price in `price_display`.
+ * Where the deal signal actually is, confirmed against a real run (see
+ * __fixtures__/README.md):
  *
- * Everything that does not classify as an actual deal is dropped rather than
+ *   - menu and featured item `badges[]`. This is the real source. DoorDash
+ *     gives each badge a semantic `type` (`bogo_offer`,
+ *     `lunch_special_percent_off`, `affordable_meal_zero_delivery_fee_item`,
+ *     `fios_offer`) alongside display text like "Buy 1, get 1 free" or
+ *     "25% off". Popularity badges ("#1 Most liked") share the same array and
+ *     are not offers, so they are filtered out by type.
+ *   - `delivery_fee_display`, but only when it is a real store fee. Logged out,
+ *     DoorDash shows "$0 delivery fee, first order" on nearly every store: that
+ *     is a signup promo for the viewer, not a deal at this restaurant, and
+ *     emitting it would mark the whole feed free-delivery and tell the user
+ *     nothing. Those are skipped; a genuine "$0 delivery fee" is kept.
+ *   - `tags[].name`. In practice these are cuisine labels, not offers, but any
+ *     that do read as an offer are picked up.
+ *   - a struck-through price in `price_display`. Not present in the run we
+ *     captured, kept because it costs nothing and the field is documented.
+ *
+ * Anything that does not classify as an actual deal is dropped rather than
  * stored as `other`, so the feed stays deals-only.
  */
 import { haversineMiles } from '../../services/geo';
@@ -21,6 +34,16 @@ import { classifyDeal, parseMoney } from './common';
 import type { DealProvider, JobSpec, NormalizeContext, NormalizeFailure, NormalizeResult } from './types';
 
 const STORE_URL_BASE = 'https://www.doordash.com';
+
+/** Badge types that rank an item rather than discount it. */
+const NON_OFFER_BADGE_TYPES = /^most_liked/i;
+
+/**
+ * A delivery fee that is conditional on who is ordering rather than on the
+ * restaurant: "$0 delivery fee, first order". Same text on nearly every store,
+ * so it carries no information and must not become a deal.
+ */
+const VIEWER_CONDITIONAL_FEE = /\b(first order|new customer|with dashpass|dashpass exclusive)\b/i;
 
 /** Deal types worth storing. `other` means we could not read a deal out of the text. */
 const KEPT_TYPES: readonly DealType[] = [
@@ -105,40 +128,52 @@ function storeDeals(store: DoorDashStore, platformRestaurantId: string, restaura
     out.push({ ...base, headline: text, ...parsed, raw });
   };
 
-  // 1. delivery fee. Only $0 is a deal; an ordinary fee is not.
+  // 1. delivery fee, but only when it is the store's own and not the viewer's signup promo
   const feeText = str(store.delivery_fee_display);
-  if (feeText) {
+  if (feeText && !VIEWER_CONDITIONAL_FEE.test(feeText)) {
     const fee = parseMoney(feeText);
     if (fee === 0 || /free/i.test(feeText)) {
       add(feeText, classifyDeal(feeText, { deliveryFee: 0 }), { delivery_fee_display: feeText, is_dashpass: store.is_dashpass });
     }
   }
 
-  // 2. store-level tags that read as an offer
+  // 2. store-level tags that read as an offer (usually cuisine labels, which classify as "other" and are dropped)
   for (const tag of arr(store.tags)) {
     const name = str((tag as { name?: unknown })?.name);
     if (name) add(name, classifyDeal(name), tag);
   }
 
-  // 3. menu item badges and struck-through prices
-  for (const category of arr(store.menu_categories)) {
-    for (const item of arr((category as { items?: unknown })?.items)) {
-      const menuItem = item as DoorDashMenuItem;
-      const itemName = str(menuItem?.name);
-      const prices = itemPrices(menuItem);
-      if (prices && itemName) {
-        add(`${itemName}: ${str(menuItem.price_display)}`, classifyDeal(itemName, prices), menuItem);
-      }
-      for (const badge of arr(menuItem?.badges)) {
-        const text = str((badge as { text?: unknown })?.text);
-        if (!text) continue;
-        const headline = itemName ? `${text} on ${itemName}` : text;
-        const parsed = classifyDeal(text);
-        if (parsed.dealType !== 'other') add(headline, parsed, { item: itemName, badge });
-      }
+  // 3. item badges: the real source. One deal per distinct badge text per store,
+  //    with the items carrying it recorded so the raw payload still shows what is discounted.
+  const byText = new Map<string, { badge: unknown; items: string[] }>();
+  for (const item of menuItems(store)) {
+    const itemName = str(item?.name);
+    const prices = itemPrices(item);
+    if (prices && itemName) add(`${itemName}: ${str(item.price_display)}`, classifyDeal(itemName, prices), item);
+    for (const badge of arr(item?.badges)) {
+      const b = badge as { text?: unknown; type?: unknown };
+      const text = str(b?.text);
+      const type = str(b?.type);
+      if (!text || (type && NON_OFFER_BADGE_TYPES.test(type))) continue;
+      const entry = byText.get(text) ?? { badge, items: [] };
+      if (itemName && !entry.items.includes(itemName)) entry.items.push(itemName);
+      byText.set(text, entry);
     }
   }
+  for (const [text, entry] of byText) {
+    add(text, classifyDeal(text), { badge: entry.badge, items: entry.items.slice(0, 10), itemCount: entry.items.length });
+  }
 
+  return out;
+}
+
+/** Every item on the store record: menu categories plus the featured carousel. */
+function menuItems(store: DoorDashStore): DoorDashMenuItem[] {
+  const out: DoorDashMenuItem[] = [];
+  for (const category of arr(store.menu_categories)) {
+    for (const item of arr((category as { items?: unknown })?.items)) out.push(item as DoorDashMenuItem);
+  }
+  for (const item of arr((store.featured_items as { items?: unknown } | undefined)?.items)) out.push(item as DoorDashMenuItem);
   return out;
 }
 
@@ -193,6 +228,7 @@ interface DoorDashStore {
   is_dashpass?: unknown;
   tags?: unknown;
   menu_categories?: unknown;
+  featured_items?: unknown;
 }
 
 interface DoorDashMenuItem {

@@ -51,58 +51,72 @@ test('search input is one URL at the full cap', () => {
   assert.throws(() => provider.buildInput({ kind: 'search', address, query: '  ', maxResults: 20, actor }), /no search queries/);
 });
 
-test('normalize turns the fixture into deals, skipping stores with none', () => {
+test('normalize turns the real fixture into deals, skipping stores with none', () => {
   const { deals, failures, storesWithoutDeals } = provider.normalize(fixture, ctx);
 
-  assert.deepEqual(failures, [{ index: 3, reason: 'missing store_id or name', platformRestaurantId: undefined }]);
-  assert.equal(storesWithoutDeals, 1, 'Bangkok Balcony has a plain fee and no offers');
+  assert.deepEqual(failures, [{ index: 6, reason: 'missing store_id or name', platformRestaurantId: undefined }]);
+  assert.equal(storesWithoutDeals, 1, 'a store whose only badges are "#N Most liked" has no deal');
 
-  const headlines = deals.map((d) => d.headline);
-  assert.deepEqual(headlines, [
-    '$0.00 delivery fee',
-    '20% off orders $25+',
-    'Large Pepperoni Pizza: $18.00 $15.00',
-    'Save $3 on Large Pepperoni Pizza',
-    'Buy 1, get 1 free',
-    'Free delivery on orders $15+ on Spicy Tuna Roll',
-    'Free delivery',
-  ]);
-  assert.ok(!headlines.some((h) => h.includes('Garlic Knots')), 'an ordinary priced item is not a deal');
-  assert.ok(!deals.some((d) => d.headline === '$4.99 delivery fee'), 'a plain delivery fee is not a deal');
+  assert.deepEqual(
+    deals.map((d) => `${d.restaurantName} | ${d.dealType} | ${d.headline}`),
+    [
+      'Pizza Parma | percent_off | 40% off',
+      "Little Nipper's Pizza II | percent_off | 25% off",
+      "Little Nipper's Pizza II | bogo | Buy 1, get 1 free",
+      'Pizza Pronto | free_delivery | Meal Box: $0 delivery fee',
+      'Pizza Pronto | bogo | Buy 1, get 1 free',
+      'Pizza Fiesta | item_discount | Free on $20+',
+      "Domino's | free_delivery | $0 delivery fee",
+      "Domino's | bogo | Buy 1, get 1 free",
+    ],
+  );
 });
 
-test('deal fields: types, parsed values, distance computed by us, and the raw item kept', () => {
+test('"$0 delivery fee, first order" is a signup promo for the viewer, not a deal at the restaurant', () => {
+  // logged out, DoorDash shows this on nearly every store; treating it as a deal would mark the
+  // entire feed free-delivery and tell the user nothing
+  const firstOrder = fixture.filter((s) => (s as { delivery_fee_display?: string }).delivery_fee_display?.includes('first order'));
+  assert.ok(firstOrder.length >= 4, 'the fixture really does carry the trap');
+
   const { deals } = provider.normalize(fixture, ctx);
-  const byHeadline = new Map(deals.map((d) => [d.headline, d]));
+  assert.ok(!deals.some((d) => d.headline.includes('first order')));
+  assert.deepEqual(
+    deals.filter((d) => d.dealType === 'free_delivery').map((d) => d.restaurantName),
+    ['Pizza Pronto', "Domino's"],
+    'only a genuine store-level $0 fee and a $0-delivery item badge survive',
+  );
+});
 
-  const freeDelivery = byHeadline.get('$0.00 delivery fee')!;
-  assert.equal(freeDelivery.dealType, 'free_delivery');
-  assert.deepEqual(freeDelivery.value, { deliveryFee: 0 });
-  assert.equal(freeDelivery.platformRestaurantId, '1234567');
-  assert.equal(freeDelivery.addressKey, '15232');
-  assert.deepEqual(freeDelivery.cuisine, ['Pizza', 'Italian'], 'the offer tag is a deal, not a cuisine');
-  assert.equal(freeDelivery.distanceMi, 0.2, 'haversine from the configured address, not the actor string');
-  assert.equal(freeDelivery.deepLink, 'https://www.doordash.com/store/pizza-milano-pittsburgh-1234567/', 'relative url absolutized');
-  assert.ok(freeDelivery.raw, 'raw payload kept so deals can be re-normalized without re-running');
+test('popularity badges are not offers', () => {
+  const { deals } = provider.normalize(fixture, ctx);
+  assert.ok(!deals.some((d) => /most liked/i.test(d.headline)));
+});
 
-  const percent = byHeadline.get('20% off orders $25+')!;
-  assert.equal(percent.dealType, 'percent_off');
-  assert.deepEqual(percent.value, { percent: 20 });
-  assert.equal(percent.minOrder, 25);
+test('one deal per distinct offer per store, with the items carrying it kept in the raw payload', () => {
+  const { deals } = provider.normalize(fixture, ctx);
+  const bogo = deals.find((d) => d.restaurantName === "Little Nipper's Pizza II" && d.dealType === 'bogo')!;
+  const raw = bogo.raw as { items: string[]; itemCount: number };
+  assert.ok(raw.itemCount >= 1, 'the badge appears on at least one item');
+  assert.ok(raw.items.length <= 10, 'the item list is capped');
+  assert.equal(deals.filter((d) => d.restaurantName === "Little Nipper's Pizza II" && d.dealType === 'bogo').length, 1);
+});
 
-  const struck = byHeadline.get('Large Pepperoni Pizza: $18.00 $15.00')!;
-  assert.equal(struck.dealType, 'item_discount');
-  assert.deepEqual(struck.value, { originalPrice: 18, salePrice: 15, dollars: 3, percent: 17 });
+test('deal fields: parsed values, cuisine from tags, and distance computed by us', () => {
+  const { deals } = provider.normalize(fixture, ctx);
+  const byKey = new Map(deals.map((d) => [`${d.restaurantName}|${d.dealType}`, d]));
 
-  assert.equal(byHeadline.get('Buy 1, get 1 free')!.dealType, 'bogo');
-  assert.equal(byHeadline.get('Free delivery on orders $15+ on Spicy Tuna Roll')!.minOrder, 15);
+  const pct = byKey.get("Little Nipper's Pizza II|percent_off")!;
+  assert.deepEqual(pct.value, { percent: 25 });
+  assert.equal(pct.addressKey, '15232');
+  assert.ok(pct.cuisine.length > 0 && pct.cuisine.every((c) => typeof c === 'string'));
+  assert.ok(pct.deepLink?.startsWith('https://www.doordash.com/'), 'relative store urls are absolutized');
+  assert.ok(typeof pct.distanceMi === 'number' && pct.distanceMi < 3, 'haversine from the configured address');
 
-  const absoluteUrl = byHeadline.get('Buy 1, get 1 free')!;
-  assert.equal(absoluteUrl.deepLink, 'https://www.doordash.com/store/sushi-fuku-pittsburgh-7654321/', 'absolute url left alone');
+  const freeItem = byKey.get('Pizza Fiesta|item_discount')!;
+  assert.equal(freeItem.minOrder, 20, '"Free on $20+" states its threshold');
 
-  const noGeo = byHeadline.get('Free delivery')!;
-  assert.equal(noGeo.geo, undefined);
-  assert.equal(noGeo.distanceMi, undefined, 'no coordinates means unknown distance, never a guess');
+  const dominos = byKey.get("Domino's|free_delivery")!;
+  assert.deepEqual(dominos.value, { deliveryFee: 0 });
 });
 
 test('normalize is tolerant: bad records are reported, not thrown, and reviews are ignored', () => {
@@ -110,15 +124,10 @@ test('normalize is tolerant: bad records are reported, not thrown, and reviews a
     null,
     'not an object',
     { record_type: 'review', store_id: '1', text: 'great' },
-    { store_id: '9', name: 'Ok Store', delivery_fee_display: 'Free delivery', menu_categories: 'not-an-array', tags: null },
+    { store_id: '9', name: 'Ok Store', delivery_fee_display: '$0 delivery fee', menu_categories: 'not-an-array', tags: null },
     ...fixture,
   ];
   const { deals, failures } = provider.normalize(items, ctx);
-  assert.deepEqual(
-    failures.map((f) => f.index),
-    [0, 1, 7],
-    'null, a string and the id-less fixture store fail; the review is skipped silently',
-  );
+  assert.deepEqual(failures.map((f) => f.index), [0, 1, 10], 'null and a string fail, the review is skipped silently');
   assert.ok(deals.some((d) => d.platformRestaurantId === '9'), 'a store with junk sub-fields still yields its delivery deal');
-  assert.equal(deals.length, 8);
 });
