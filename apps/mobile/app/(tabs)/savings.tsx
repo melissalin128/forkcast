@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Photo } from '../../src/components/Photo';
 import { TopBar } from '../../src/components/TopBar';
 import { Notice } from '../../src/components/ui';
 import { useRestaurants } from '../../src/hooks/useData';
 import { bestOffer, money, platformName, saving, worstOffer } from '../../src/lib/analysis';
+import { restaurantPhoto } from '../../src/lib/photos';
 import { C, GUTTER, R, num } from '../../src/theme';
 
 /** Where picking the cheapest app matters most: the gap between cheapest and priciest, per restaurant. */
@@ -47,11 +49,16 @@ export default function Savings() {
             onPress={() => router.push({ pathname: '/store/[id]', params: { id: r.id, tab: 'prices' } })}
             style={({ pressed }) => [styles.save, pressed && styles.pressed]}
           >
-            <Text style={styles.name}>{r.name}</Text>
-            <Text style={styles.detail}>
-              {platformName(best.platformSlug)} <Text style={[num, styles.fg]}>{money(best.total)}</Text> ·{' '}
-              <Text style={styles.amt}>save {money(save)}</Text> vs {platformName(worst.platformSlug)}
-            </Text>
+            <Photo source={restaurantPhoto(r)} fallback={r.image} iconSize={18} style={styles.thumb} />
+            <View style={styles.text}>
+              <Text style={styles.name} numberOfLines={1}>
+                {r.name}
+              </Text>
+              <Text style={styles.detail}>
+                {platformName(best.platformSlug)} <Text style={[num, styles.fg]}>{money(best.total)}</Text> ·{' '}
+                <Text style={styles.amt}> save {money(save)} </Text> vs {platformName(worst.platformSlug)}
+              </Text>
+            </View>
           </Pressable>
         )}
       />
@@ -67,17 +74,24 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 16, gap: 8 },
   save: {
     marginHorizontal: GUTTER,
-    gap: 3,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 10,
+    paddingRight: 14,
+    paddingBottom: 10,
+    paddingLeft: 10,
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: R.card,
   },
   pressed: { backgroundColor: '#fcfbf9' },
+  thumb: { width: 48, height: 48, borderRadius: 24 },
+  text: { flex: 1, minWidth: 0, gap: 3 },
   name: { fontWeight: '700', fontSize: 15, color: C.fg },
-  detail: { fontSize: 13, color: C.muted, lineHeight: 19 },
+  detail: { fontSize: 13, color: C.muted, lineHeight: 21 },
   fg: { color: C.fg },
-  amt: { color: C.winInk, fontWeight: '700' },
+  // The saving, in win ink on a mint pill.
+  amt: { color: C.winInk, fontWeight: '700', backgroundColor: C.winBg, borderRadius: R.pill, overflow: 'hidden' },
 });

@@ -12,8 +12,8 @@ interface Props {
 
 /**
  * The product: three fixed columns (DoorDash, Uber Eats, Grubhub) with the
- * delivered total for the same order. The winning column is mint; "—" when
- * the platform does not list the place.
+ * delivered total for the same order. Platform names sit in their brand
+ * color; the winning column is mint; "—" when the platform does not list the place.
  */
 export function CompareStrip({ restaurant: r, highlight = 'cheapest' }: Props) {
   const top = highlight === 'fastest' ? fastestOffer(r) : bestOffer(r);
@@ -24,7 +24,7 @@ export function CompareStrip({ restaurant: r, highlight = 'cheapest' }: Props) {
         const isTop = !!o && !!top && o.platformSlug === top.platformSlug && r.offers.length > 1;
         return (
           <View key={p.slug} style={[styles.col, isTop && styles.colBest]}>
-            <Text style={[styles.plat, isTop && styles.ink]} numberOfLines={1}>
+            <Text style={[styles.plat, o && { color: p.brandColor }]} numberOfLines={1}>
               {p.name}
             </Text>
             {o ? (
@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   colBest: { backgroundColor: C.winBg, borderColor: C.win },
+  // Muted until the platform lists the place; then its brand color (set inline).
   plat: { fontSize: 11, fontWeight: '600', color: C.muted },
   ink: { color: C.winInk },
   price: { marginTop: 3, fontSize: 16, lineHeight: 19, color: C.fg },

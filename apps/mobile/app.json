@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#f7f6f3",
+    "backgroundColor": "#f4f1ec",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.forkcast.mobile"
@@ -15,7 +15,7 @@
     "android": {
       "package": "app.forkcast.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#f7f6f3",
+        "backgroundColor": "#f4f1ec",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

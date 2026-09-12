@@ -10,12 +10,14 @@ import { useMockFallback, useRestaurants } from '../../src/hooks/useData';
 import { usePrefs } from '../../src/hooks/usePrefs';
 import { useToast } from '../../src/hooks/useToast';
 import {
+  CATEGORY_WORD,
   FILTERS,
   matchesCategory,
   matchesFilters,
   matchesQuery,
   SORTS,
   sortBy,
+  type Category,
   type FilterKey,
   type Sort,
 } from '../../src/lib/filter';
@@ -40,7 +42,7 @@ export default function Home() {
 
   const [input, setInput] = useState('');
   const [q, setQ] = useState('');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState<Category>('All');
   const [sort, setSort] = useState<Sort>('cheapest');
   const [active, setActive] = useState<FilterKey[]>([]);
   const [barDismissed, setBarDismissed] = useState(barDismissedThisSession);
@@ -77,7 +79,8 @@ export default function Home() {
   };
 
   const noCoverage = !loading && restaurants.length === 0;
-  const heading = category === 'All' ? `${SORT_WORD[sort]} near you` : `${SORT_WORD[sort]} ${category} near you`;
+  const heading =
+    category === 'All' ? `${SORT_WORD[sort]} near you` : `${SORT_WORD[sort]} ${CATEGORY_WORD[category]} near you`;
   const count = `${visible.length} place${visible.length === 1 ? '' : 's'}`;
   const passes = prefs.subscriptions.map((s) => PLATFORM_BY_SLUG[s].subscriptionName);
   const passLine =

@@ -1,13 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompareStrip } from '../../src/components/CompareStrip';
-import { categoryIcon, ExternalIcon, StarIcon } from '../../src/components/Icons';
+import { ExternalIcon, StarIcon } from '../../src/components/Icons';
+import { Photo } from '../../src/components/Photo';
 import { PlatformLedger } from '../../src/components/PlatformLedger';
 import { PriceHistory } from '../../src/components/PriceHistory';
 import { TopBar } from '../../src/components/TopBar';
-import { Card, Gradient, Notice } from '../../src/components/ui';
+import { Card, Notice } from '../../src/components/ui';
 import { PLATFORMS } from '../../src/data/mock';
 import { useStore } from '../../src/hooks/useData';
 import {
@@ -23,6 +24,7 @@ import {
   savingsTail,
   windowLabel,
 } from '../../src/lib/analysis';
+import { restaurantPhoto } from '../../src/lib/photos';
 import { C, GUTTER, R, num } from '../../src/theme';
 import type { Restaurant } from '../../src/types';
 
@@ -36,6 +38,9 @@ export default function Store() {
   const [tab, setTab] = useState<Tab>(wantsPrices ? 'prices' : 'menu');
   const { restaurant, snapshots } = useStore(id);
   const insets = useSafeAreaInsets();
+  // `.cover`: 200px, 160px on narrow screens (web's `max-width: 480px` breakpoint).
+  const { width } = useWindowDimensions();
+  const coverH = width <= 480 ? 160 : 200;
 
   // Follow the URL when something else changes it (Savings opens the Prices tab).
   useEffect(() => {
@@ -70,7 +75,6 @@ export default function Store() {
   }
 
   const r = restaurant;
-  const Icon = categoryIcon(r.category);
   const bestName = platformName(best.platformSlug);
   const ctaH = 52 + 20 + insets.bottom;
 
@@ -80,10 +84,7 @@ export default function Store() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: ctaH + 12 }} stickyHeaderIndices={[1]}>
         <View>
-          <View style={styles.cover}>
-            <Gradient css={r.image} />
-            <Icon size={40} stroke="rgba(255,255,255,0.9)" strokeWidth={1.5} />
-          </View>
+          <Photo source={restaurantPhoto(r)} fallback={r.image} iconSize={40} style={[styles.cover, { height: coverH }]} />
 
           <View style={styles.store}>
             <Text style={styles.name}>{r.name}</Text>
@@ -216,7 +217,7 @@ function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: C.page },
   link: { color: C.accentInk, fontWeight: '600' },
-  cover: { width: '100%', height: 120, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cover: { width: '100%' },
   store: {
     paddingTop: 14,
     paddingHorizontal: GUTTER,

@@ -2,7 +2,7 @@ import type { TextStyle } from 'react-native';
 
 /** Same tokens as apps/web/src/styles.css `:root`. */
 export const C = {
-  page: '#f7f6f3',
+  page: '#f4f1ec',
   ground: '#ecebe7',
   card: '#ffffff',
   inset: '#f1efea',

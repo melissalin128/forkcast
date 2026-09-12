@@ -30,17 +30,16 @@ export function Feed({ restaurants, loading, sort, emptyText, action, header }: 
         accessibilityLabel="Loading prices"
         renderItem={() => (
           <View style={styles.skRow}>
-            <View style={styles.skHead}>
-              <View style={[styles.sk, styles.skThumb]} />
-              <View style={{ flex: 1 }}>
-                <View style={[styles.sk, styles.skTitle]} />
-                <View style={[styles.sk, styles.skMeta]} />
+            <View style={[styles.sk, styles.skPhoto]} />
+            <View style={styles.skBody}>
+              <View style={[styles.sk, styles.skTitle]} />
+              <View style={[styles.sk, styles.skMeta]} />
+              <View style={styles.skStrip}>
+                <View style={[styles.sk, styles.skCol]} />
+                <View style={[styles.sk, styles.skCol]} />
+                <View style={[styles.sk, styles.skCol]} />
               </View>
-            </View>
-            <View style={styles.skStrip}>
-              <View style={[styles.sk, styles.skCol]} />
-              <View style={[styles.sk, styles.skCol]} />
-              <View style={[styles.sk, styles.skCol]} />
+              <View style={[styles.sk, styles.skLine]} />
             </View>
           </View>
         )}
@@ -79,15 +78,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: R.card,
-    padding: 12,
+    overflow: 'hidden',
   },
-  skHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  skBody: { paddingTop: 10, paddingHorizontal: 12, paddingBottom: 12 },
   sk: { backgroundColor: C.inset, borderRadius: 6 },
-  skThumb: { width: 56, height: 56, borderRadius: 10 },
+  skPhoto: { width: '100%', aspectRatio: 16 / 9, borderRadius: 0 },
   skTitle: { height: 16, width: '55%' },
   skMeta: { height: 12, width: '40%', marginTop: 8 },
   skStrip: { flexDirection: 'row', gap: 6, marginTop: 10 },
   skCol: { flex: 1, height: 52, borderRadius: 8 },
+  skLine: { height: 12, width: '70%', marginTop: 10 },
   empty: { paddingVertical: 40, paddingHorizontal: 16, alignItems: 'center', gap: 14 },
   emptyText: { color: C.muted, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   item: { marginHorizontal: GUTTER },

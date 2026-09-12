@@ -93,7 +93,9 @@ export interface Restaurant {
   openUntil: string;
   location: { zip: string; geo?: { lat: number; lng: number } };
   platformIds: Partial<Record<PlatformSlug, string>>;
-  /** Placeholder art for the card image area (CSS gradient). */
+  /** Photo of the place, as scraped from the platform listing. Missing = no photo. */
+  imageUrl?: string;
+  /** Placeholder art for the card image area (CSS gradient), used only when there is no photo. */
   image: string;
   /** The representative cart used to expose the fee breakdown. */
   order: OrderLine[];
