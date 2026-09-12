@@ -8,7 +8,7 @@ Instead of making users repeat the same search across DoorDash, Uber Eats, and G
 
 ## Demo
 
-https://hackcmu2026.vercel.app/
+https://forkcast-hackcmu.vercel.app/
 
 ## The problem
 
