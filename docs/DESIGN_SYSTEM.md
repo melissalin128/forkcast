@@ -1,6 +1,27 @@
 # Forkcast — Design System
 
+## Principle zero: one number, then optional detail
+
+Our users are not tech-savvy and are not here to read a spreadsheet. Every
+screen leads with a single plain-language answer and hides the evidence
+behind one tap.
+
+- **Browse card** shows exactly three things: the restaurant, the cheapest
+  platform with its delivered total, and one sentence like "$5 less than
+  DoorDash". The other platforms' prices are not on the card.
+- **Restaurant page** leads with "Cheapest right now: Grubhub, $21.40" and
+  one big "Order on Grubhub" button. The per-platform fee breakdown and the
+  price-history chart live in a collapsed "See how we got this" section.
+- **At most 5 category chips** visible, the rest behind "More". One filter
+  button opens a sheet; no filter chips row.
+- **Sort** is a single dropdown defaulting to "Cheapest", not four tabs.
+- **No jargon.** "Fees" not "service + small-order fee". "Best time to
+  order" not "price window". Never show a percentage without a dollar
+  amount next to it.
+- **One accent action per screen.** Everything else is quiet.
+
 ## Direction: "the price terminal"
+
 
 Delivery apps are bright, rounded, and photo-heavy because they want you to
 browse and crave. We want the opposite feeling: a **calm, dark instrument

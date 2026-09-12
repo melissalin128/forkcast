@@ -28,6 +28,7 @@ it deliberately, not by accident.
 | D4 | **Promos are first-class and time-bounded.** Every offer carries an optional `promo` with a code, discount rule, and expiry. Totals show pre- and post-promo. | "Dynamically able to adjust for promo deals." Promos are the most volatile part of the price and the biggest reason one app wins on a given night. |
 | D5 | **Price history is the moat.** Every fetch writes a `PriceSnapshot`. The restaurant page shows a 7-day sparkline per platform and a "best hour to order" callout. | This is the thing DoorDash will never build. It is also what makes the app worth reopening. |
 | D8 | **Three platforms: DoorDash, Uber Eats, Grubhub.** Postmates dropped (Uber-owned, prices track Uber Eats). | Three scrapers is the most the team can keep working during a hackathon. |
+| D9 | **Simple first.** One number per card, one button per page, detail behind a tap. | Users are not tech-savvy. See `DESIGN_SYSTEM.md` principle zero. |
 | D6 | **Zip code is the only required input.** Address is optional and only affects delivery ETA precision. | Lowest-friction entry. Zip is enough to know which platforms serve you and roughly what delivery fees look like. |
 | D7 | **Sort and filter set is fixed for v1** (below). No free-text "natural language" filters. | Combined filters like "Italian, under $20 total, in 30 min" are expressible with the fixed set. |
 
