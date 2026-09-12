@@ -49,6 +49,22 @@ export interface Restaurant {
   imageUrl?: string;
 }
 
+/** One observed menu row (prices in dollars — see `dollars()` in repo/mongo.ts). */
+export interface MenuItem {
+  id: string;
+  restaurantId: string;
+  name: string;
+  description?: string;
+  category: string;
+  basePrice: number;
+  platformPrices: Partial<Record<PlatformSlug, number>>;
+  /** Platform this price was observed on. Absent on the older synthetic rows. */
+  observedPlatform?: PlatformSlug;
+  dietaryTags: DietaryTag[];
+  calories?: number;
+  available: boolean;
+}
+
 export type PromoRuleType = 'percent' | 'flat' | 'freeDelivery';
 
 export interface PromoRule {
@@ -108,6 +124,8 @@ export interface PriceSnapshot {
   etaMin: number;
   promoApplied: boolean;
   capturedAt: Date;
+  /** Provenance, as on the PriceSnapshot schema. Absent means modelled (the schema default). */
+  source?: 'modelled' | 'doordash-drive' | 'uber-direct' | 'apify-doordash' | 'apify-ubereats';
 }
 
 export interface UserHistoryEntry {

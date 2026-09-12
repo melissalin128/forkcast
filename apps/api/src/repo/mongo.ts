@@ -4,6 +4,7 @@
  */
 import { Types } from 'mongoose';
 import {
+  MenuItemModel,
   OfferModel,
   PlatformModel,
   PriceSnapshotModel,
@@ -11,6 +12,7 @@ import {
   RestaurantModel,
   UserModel,
   type DietaryTag,
+  type MenuItem,
   type Offer,
   type Platform,
   type PlatformSlug,
@@ -29,6 +31,24 @@ const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDoc = Record<string, any>;
 
+/**
+ * Scraped money (menuItems prices, restaurants.sampleItem.menuPrice) is a MIXED
+ * column: ingest/apifyPlatforms.ts parseMoney() only divided a raw value by 100
+ * when it was an integer > 1000, so $1.00-$10.00 items are still raw integer
+ * cents (738), fractional raw cents from Uber Eats were never divided (1567.3
+ * for a lasagna), and the rest are already dollars (11.95, 22). Measured over
+ * all 133,611 stored menu prices: 0 integers > 1000, integers in [100,1000] are
+ * a flat $1-$10 cents distribution, and non-integers >= 400 are all cents (next
+ * real value below is a $356 catering tray). Output range after repair: $1-$356.
+ * ponytail: read-time repair fitted to the frozen scrape; ~6 fractional-cents
+ * rows under 400 (e.g. "Kimchi Salad" 337.5) overlap real catering prices and
+ * pass through. The durable fix is a guarded backfill, then this is identity.
+ */
+export const dollars = (n: unknown): number => {
+  const v = typeof n === 'number' && Number.isFinite(n) ? n : 0;
+  return v >= (Number.isInteger(v) ? 100 : 400) ? Math.round(v) / 100 : v;
+};
+
 const toRestaurant = (d: AnyDoc): Restaurant => ({
   id: oid(d._id),
   slug: d.slug,
@@ -43,8 +63,28 @@ const toRestaurant = (d: AnyDoc): Restaurant => ({
   platformIds: Object.fromEntries(
     Object.entries(d.platformIds ?? {}).filter(([, v]) => typeof v === 'string' && v.length > 0),
   ) as Partial<Record<PlatformSlug, string>>,
-  sampleItem: { name: d.sampleItem?.name, menuPrice: d.sampleItem?.menuPrice },
+  // Same mixed units as menuItems: 13 rows hold cents (Kung Fu Tea 819), which
+  // cartForRestaurant() would otherwise price as an $819 subtotal.
+  sampleItem: { name: d.sampleItem?.name, menuPrice: dollars(d.sampleItem?.menuPrice) },
   imageUrl: d.imageUrl ?? undefined,
+});
+
+const toMenuItem = (d: AnyDoc): MenuItem => ({
+  id: oid(d._id),
+  restaurantId: oid(d.restaurantId),
+  name: d.name,
+  description: d.description ?? undefined,
+  category: d.category || 'Menu',
+  basePrice: dollars(d.basePrice),
+  platformPrices: Object.fromEntries(
+    Object.entries(d.platformPrices ?? {})
+      .filter(([, v]) => typeof v === 'number')
+      .map(([k, v]) => [k, dollars(v)]),
+  ) as Partial<Record<PlatformSlug, number>>,
+  observedPlatform: d.observedPlatform ?? undefined,
+  dietaryTags: (d.dietaryTags ?? []) as DietaryTag[],
+  calories: typeof d.calories === 'number' ? d.calories : undefined,
+  available: d.available !== false,
 });
 
 const toPlatform = (d: AnyDoc): Platform => ({
@@ -98,6 +138,7 @@ const toSnapshot = (d: AnyDoc): PriceSnapshot => ({
   etaMin: d.etaMin,
   promoApplied: !!d.promoApplied,
   capturedAt: new Date(d.capturedAt),
+  source: d.source ?? 'modelled',
 });
 
 const toUser = (d: AnyDoc): User => ({
@@ -152,6 +193,14 @@ export class MongoRepository implements Repository {
     return toRestaurant(doc as AnyDoc);
   }
 
+  async listMenuItems(restaurantId: string, opts: { limit?: number; category?: string } = {}): Promise<MenuItem[]> {
+    if (!isObjectId(restaurantId)) return [];
+    const q: AnyDoc = { restaurantId };
+    if (opts.category) q.category = { $regex: `^${escapeRegex(opts.category)}$`, $options: 'i' };
+    const docs = await MenuItemModel.find(q).sort({ category: 1, name: 1 }).limit(opts.limit ?? 500).lean();
+    return docs.map(toMenuItem);
+  }
+
   async listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]> {
     const q: AnyDoc = { startsAt: { $lte: now }, endsAt: { $gte: now } };
     if (platformSlug) q.platformSlug = platformSlug;
@@ -191,7 +240,12 @@ export class MongoRepository implements Repository {
     if (!isObjectId(restaurantId)) return [];
     const capturedAt: AnyDoc = { $gte: since };
     if (until) capturedAt.$lte = until;
-    const docs = await PriceSnapshotModel.find({ restaurantId, capturedAt }).sort({ capturedAt: 1 }).lean();
+    // Partner-API rows carry a fee, not a checkout total (see ingest/liveQuotes.ts),
+    // so they are dropped. What remains still mixes mock-adapter 'modelled' rows
+    // with one-off apify-* rows; each keeps its `source` so callers can tell.
+    // $nin also keeps rows written before `source` existed.
+    const source = { $nin: ['doordash-drive', 'uber-direct'] };
+    const docs = await PriceSnapshotModel.find({ restaurantId, capturedAt, source }).sort({ capturedAt: 1 }).lean();
     return docs.map(toSnapshot);
   }
 

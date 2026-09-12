@@ -24,4 +24,5 @@ logs/
 
 # Forkcast
 !.env.example
+.cursor/mcp.json
 design/forkcast-design.html

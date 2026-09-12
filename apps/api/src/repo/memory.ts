@@ -4,7 +4,7 @@
  * the mock adapter curves, so every endpoint has data.
  */
 import { randomUUID } from 'node:crypto';
-import type { Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
+import type { MenuItem, Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
 import { platforms as seedPlatforms, promos as seedPromos, restaurants as seedRestaurants } from '../seed/data';
 import { generateSnapshots } from '../seed/snapshots';
 import { matchesFilter, type NewRestaurant, type NewUser, type Repository, type RestaurantFilter } from './types';
@@ -66,6 +66,29 @@ export class MemoryRepository implements Repository {
     };
     this.restaurants.set(input.slug, merged);
     return merged;
+  }
+
+  /**
+   * The seed has no menu collection, so the fallback serves the one dish the
+   * rest of this repo already treats as the menu: the restaurant's sampleItem
+   * (see clientCard() in routes/restaurants.ts).
+   */
+  async listMenuItems(restaurantId: string, opts: { limit?: number; category?: string } = {}): Promise<MenuItem[]> {
+    const r = await this.getRestaurant(restaurantId);
+    if (!r || (opts.limit ?? 500) < 1) return [];
+    if (opts.category && opts.category.toLowerCase() !== 'popular') return [];
+    return [
+      {
+        id: `${r.id}:sample`,
+        restaurantId: r.id,
+        name: r.sampleItem.name,
+        category: 'Popular',
+        basePrice: r.sampleItem.menuPrice,
+        platformPrices: {},
+        dietaryTags: r.dietaryTags,
+        available: true,
+      },
+    ];
   }
 
   async listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]> {

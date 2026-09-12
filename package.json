@@ -12,7 +12,8 @@
     "dev:api": "npm --prefix apps/api run dev",
     "build:apps": "npm --prefix apps/web run build && npm --prefix apps/api run build",
     "test:api": "npm --prefix apps/api test",
-    "seed": "npm --prefix apps/api run seed"
+    "seed": "npm --prefix apps/api run seed",
+    "ingest": "npm --prefix apps/api run ingest --"
   },
   "dependencies": {
     "animejs": "^4.2.2",

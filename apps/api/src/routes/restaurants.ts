@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getRepo } from '../db';
 import { computeBestWindow, dayName } from '../pricing/bestWindow';
 import { normalizeSubscription } from '../pricing/computeTotal';
-import { PLATFORM_SLUGS, type PlatformSlug, type Restaurant } from '../models/types';
+import { PLATFORM_SLUGS, type MenuItem, type PlatformSlug, type Restaurant } from '../models/types';
 import { distanceFromZip } from '../services/geo';
 import { priceRestaurant, type PricingContext, type RestaurantOffers } from '../services/offers';
 import { notFound } from './errors';
@@ -74,7 +74,7 @@ function card(r: Restaurant, priced: RestaurantOffers, zip?: string) {
  * include the fields the delivery-app UI needs so live data never silently
  * falls back to its bundled catalog.
  */
-function clientCard(r: Restaurant, priced: RestaurantOffers, zip?: string, tipPct = 0.15) {
+export function clientCard(r: Restaurant, priced: RestaurantOffers, zip?: string, tipPct = 0.15) {
   const base = card(r, priced, zip);
   const menuPrices = Object.fromEntries(
     priced.offers.map((offer) => [offer.platformSlug, offer.subtotal]),
@@ -173,7 +173,53 @@ restaurantsRouter.get('/restaurants/:id/history', async (req, res, next) => {
         etaMin: snapshot.etaMin,
         promoApplied: snapshot.promoApplied,
         capturedAt: new Date(snapshot.capturedAt).toISOString(),
+        source: snapshot.source ?? 'modelled',
       })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+function menuItem(item: MenuItem) {
+  return {
+    name: item.name,
+    description: item.description ?? null,
+    basePrice: item.basePrice,
+    platformPrices: item.platformPrices,
+    observedPlatform: item.observedPlatform ?? null,
+    dietaryTags: item.dietaryTags,
+    calories: item.calories ?? null,
+    available: item.available,
+  };
+}
+
+const menuQuery = z.object({
+  category: z.string().trim().max(120).optional(),
+  limit: z.coerce.number().int().min(1).max(1000).default(500),
+});
+
+// GET /api/restaurants/:id/menu — the observed menu, grouped by category.
+// Prices are dollars; see dollars() in repo/mongo.ts for the stored units.
+restaurantsRouter.get('/restaurants/:id/menu', async (req, res, next) => {
+  try {
+    const q = menuQuery.parse(req.query);
+    const repo = getRepo();
+    const restaurant = await repo.getRestaurant(req.params.id);
+    if (!restaurant) throw notFound('restaurant');
+
+    const items = await repo.listMenuItems(restaurant.id, { limit: q.limit, category: q.category });
+    const byCategory = new Map<string, ReturnType<typeof menuItem>[]>();
+    for (const item of items) {
+      const list = byCategory.get(item.category) ?? [];
+      list.push(menuItem(item));
+      byCategory.set(item.category, list);
+    }
+
+    res.json({
+      restaurantId: restaurant.id,
+      count: items.length,
+      categories: [...byCategory].map(([name, rows]) => ({ name, items: rows })),
     });
   } catch (err) {
     next(err);

@@ -11,6 +11,20 @@ const PriceSnapshotSchema = new Schema(
     etaMin: { type: Number, required: true },
     promoApplied: { type: Boolean, default: false },
     capturedAt: { type: Date, required: true },
+    /**
+     * Where this row came from. 'modelled' is NOT an observed price: it is the
+     * default, so both src/ingest/snapshots.ts and the mock-adapter pricing path
+     * (services/offers.ts -> repo.appendSnapshot) write it. apify-* rows come
+     * from src/ingest/apifyPlatforms.ts; the partner-API values from
+     * src/ingest/liveQuotes.ts carry a logistics fee, not a checkout total.
+     * Never mix these in the UI without saying which is which.
+     */
+    source: {
+      type: String,
+      enum: ['modelled', 'doordash-drive', 'uber-direct', 'apify-doordash', 'apify-ubereats'],
+      default: 'modelled',
+      index: true,
+    },
   },
   { collection: 'priceSnapshots', versionKey: false },
 );

@@ -23,4 +23,6 @@ export const config = {
   offerCacheMs: 10 * 60 * 1000,
   /** Default tip used in every total (spec section 7 recommendation). */
   defaultTipPct: 0.15,
+  /** Apify API token for `npm run ingest -- --only apify`. */
+  apifyToken: process.env.APIFY_TOKEN?.trim() || undefined,
 };

@@ -1,4 +1,4 @@
-import type { Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
+import type { MenuItem, Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
 
 export interface RestaurantFilter {
   zip?: string;
@@ -32,6 +32,9 @@ export interface Repository {
    * platform never drops the ids found on another); other fields are replaced.
    */
   upsertRestaurant(input: NewRestaurant): Promise<Restaurant>;
+
+  /** Observed menu rows for a restaurant, sorted by category then name. */
+  listMenuItems(restaurantId: string, opts?: { limit?: number; category?: string }): Promise<MenuItem[]>;
 
   /** Promos whose window contains `now`, optionally for one platform. */
   listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]>;
