@@ -45,34 +45,40 @@ export function FilterBar({ category, query, active, onToggle, onClearFilters, o
 
   return (
     <div className="filters">
-      <div className="chips" role="group" aria-label="Filters">
-        <button
-          type="button"
-          className={`chip chip--filters${active.length ? ' chip--active' : ''}`}
-          aria-haspopup="dialog"
-          onClick={(e) => {
-            setOpen(true);
-            chipPop(e.currentTarget);
-          }}
-        >
-          <SlidersIcon size={14} />
-          Filters{active.length > 0 ? ` · ${active.length}` : ''}
-        </button>
-
-        {activeChips.map((f) => (
+      <div className="filters__row">
+        <div className="chips" role="group" aria-label="Filters">
           <button
-            key={f.key}
             type="button"
-            className="chip chip--active"
-            aria-pressed="true"
+            className={`chip chip--filters${active.length ? ' chip--active' : ''}`}
+            aria-haspopup="dialog"
             onClick={(e) => {
-              onToggle(f.key);
+              setOpen(true);
               chipPop(e.currentTarget);
             }}
           >
-            {f.label} ✕
+            <SlidersIcon size={14} />
+            Filters{active.length > 0 ? ` · ${active.length}` : ''}
           </button>
-        ))}
+
+          {activeChips.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className="chip chip--active"
+              aria-pressed="true"
+              onClick={(e) => {
+                onToggle(f.key);
+                chipPop(e.currentTarget);
+              }}
+            >
+              {f.label} ✕
+            </button>
+          ))}
+        </div>
+
+        {/* Fills the space next to a short chip row on wide screens instead of
+            leaving it blank — same text that used to sit alone on its own line. */}
+        <p className="filters__trust">Same order on DoorDash, Uber Eats and Grubhub</p>
       </div>
 
       {label && (

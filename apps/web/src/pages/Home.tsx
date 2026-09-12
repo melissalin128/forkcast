@@ -232,8 +232,6 @@ export function Home() {
         resultCount={visible.length}
       />
 
-      <p className="trust">Same order on DoorDash, Uber Eats and Grubhub</p>
-
       {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
 
       {picks.length > 0 && (

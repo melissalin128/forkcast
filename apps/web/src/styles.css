@@ -452,11 +452,24 @@ ul {
 
 /* -------------------------------------------------------------- trust line */
 
-.trust {
-  padding: 10px var(--gutter) 2px;
+/* Chips on the left, trust line on the right of the same row — fills the
+   blank space a short chip row would otherwise leave on wide screens. Wraps
+   to its own line under the chips when there isn't room, so narrow/mobile
+   layouts look exactly as before. */
+.filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.filters__trust {
+  padding: 10px var(--gutter) 2px 0;
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 /* ---------------------------------------------------------- section head */
