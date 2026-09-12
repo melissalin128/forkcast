@@ -190,7 +190,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 0.6,
     openUntil: '10 pm',
-    image: 'linear-gradient(135deg, #f6dcc6, #e9b48c)',
+    image: '#E8927C',
     order: [
       { name: 'Tonkotsu ramen', qty: 1 },
       { name: 'Pork gyoza (6)', qty: 1 },
@@ -223,7 +223,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 1.1,
     openUntil: '11 pm',
-    image: 'linear-gradient(135deg, #f7d9b8, #e8a86d)',
+    image: '#7FA99B',
     order: [
       { name: 'Big Azz Burrito', qty: 1 },
       { name: 'Chips & queso', qty: 1 },
@@ -255,7 +255,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 0.9,
     openUntil: '9:30 pm',
-    image: 'linear-gradient(135deg, #f3dad0, #e59a86)',
+    image: '#E8B34D',
     order: [
       { name: 'Mapo tofu', qty: 1 },
       { name: 'Dan dan noodles', qty: 1 },
@@ -287,7 +287,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 1,
     distanceMi: 0.4,
     openUntil: '2 am',
-    image: 'linear-gradient(135deg, #f7d6c0, #e2956d)',
+    image: '#A98F7C',
     order: [
       { name: 'Large cheese pizza', qty: 1 },
       { name: 'Garlic knots', qty: 1 },
@@ -318,7 +318,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 1.4,
     openUntil: '10 pm',
-    image: 'linear-gradient(135deg, #f8e0bf, #e6b06a)',
+    image: '#C97B8B',
     order: [
       { name: 'Chicken tikka masala', qty: 1 },
       { name: 'Garlic naan', qty: 2 },
@@ -350,7 +350,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 0.8,
     openUntil: '10 pm',
-    image: 'linear-gradient(135deg, #e6efd6, #b9cf8f)',
+    image: '#E8927C',
     order: [
       { name: 'Pad see ew', qty: 1 },
       { name: 'Thai iced tea', qty: 1 },
@@ -382,7 +382,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 2.1,
     openUntil: '11 pm',
-    image: 'linear-gradient(135deg, #f3d5c9, #d98f74)',
+    image: '#7FA99B',
     order: [
       { name: 'Piggy burger', qty: 1 },
       { name: 'Truffle fries', qty: 1 },
@@ -413,7 +413,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 0.5,
     openUntil: '9 pm',
-    image: 'linear-gradient(135deg, #dfe8ee, #a9bfd0)',
+    image: '#E8B34D',
     order: [
       { name: 'Salmon poke bowl', qty: 1 },
       { name: 'Miso soup', qty: 1 },
@@ -445,7 +445,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 1,
     distanceMi: 1.9,
     openUntil: '9 pm',
-    image: 'linear-gradient(135deg, #f5e2c8, #d9b47e)',
+    image: '#A98F7C',
     order: [{ name: 'Chicken shawarma platter', qty: 1 }],
     orderLabel: 'Shawarma platter, delivered',
     menu: [
@@ -473,7 +473,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 1,
     distanceMi: 0.7,
     openUntil: '10 pm',
-    image: 'linear-gradient(135deg, #eeead6, #cfc48a)',
+    image: '#C97B8B',
     order: [
       { name: 'Khao soi', qty: 1 },
       { name: 'Crispy spring rolls', qty: 1 },
@@ -505,7 +505,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 1.6,
     openUntil: '11 pm',
-    image: 'linear-gradient(135deg, #dcecdc, #9ec79a)',
+    image: '#E8927C',
     order: [
       { name: 'Milk, 1 gal', qty: 1 },
       { name: 'Eggs, dozen', qty: 1 },
@@ -540,7 +540,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 3,
     distanceMi: 2.3,
     openUntil: '10 pm',
-    image: 'linear-gradient(135deg, #e3ead3, #a8bf84)',
+    image: '#7FA99B',
     order: [
       { name: 'Oat milk, 64 oz', qty: 1 },
       { name: 'Avocados', qty: 3 },
@@ -572,7 +572,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 1,
     distanceMi: 0.3,
     openUntil: '3 am',
-    image: 'linear-gradient(135deg, #f5dcc4, #d9a06e)',
+    image: '#E8B34D',
     order: [
       { name: 'Pitts-burger & cheese', qty: 1 },
       { name: 'Cheese fries', qty: 1 },
@@ -604,7 +604,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 1,
     distanceMi: 0.5,
     openUntil: '3 pm',
-    image: 'linear-gradient(135deg, #f9e6c7, #e6b978)',
+    image: '#A98F7C',
     order: [
       { name: 'Strawberry hotcakes', qty: 1 },
       { name: 'Home fries', qty: 1 },
@@ -635,7 +635,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 1.0,
     openUntil: '12 am',
-    image: 'linear-gradient(135deg, #f7d9c4, #dd8f5e)',
+    image: '#C97B8B',
     order: [
       { name: 'Hot chicken sliders (2)', qty: 1 },
       { name: 'Fries', qty: 1 },
@@ -667,7 +667,7 @@ const SEEDS: RestaurantSeed[] = [
     priceTier: 2,
     distanceMi: 1.2,
     openUntil: '6 pm',
-    image: 'linear-gradient(135deg, #f3dfd6, #c9987f)',
+    image: '#E8927C',
     order: [
       { name: 'Burnt almond torte slice', qty: 2 },
       { name: 'Latte', qty: 1 },

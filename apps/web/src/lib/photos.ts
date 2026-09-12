@@ -1,10 +1,14 @@
 import type { Restaurant } from '../types';
 
 /**
- * Stock photos live in `public/img/<slug>.jpg`. Resolving against the build
- * base keeps them working for both the normal build and `vite build --base ./`.
+ * Stock photos are hosted on Cloudinary (uploaded from what used to be
+ * `public/img/<slug>.jpg`) so they survive deployment without relying on
+ * Git LFS being pulled by the host. The cloud name isn't a secret — it's
+ * part of every image's public URL — so it's fine to hardcode here.
  */
-export const photoUrl = (slug: string) => `${import.meta.env.BASE_URL}img/${slug}.jpg`;
+const CLOUDINARY_CLOUD_NAME = 'kieg88kv';
+export const photoUrl = (slug: string) =>
+  `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${slug}.jpg`;
 
 /**
  * One photo per home-screen category. Used when a listing comes in without a

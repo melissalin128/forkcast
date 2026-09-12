@@ -204,8 +204,8 @@ export function Home() {
           <div>
             <h3 className="onboard__title">Delivering to {prefs.zip}</h3>
             <p className="onboard__sub">
-              Add your zip, passes, and HawtPix tastes in Account. Combined filters like Italian · under $20 · 30 min
-              live on this feed.
+              Add your zip, passes, and taste preferences in Account. Combined filters like Italian · under $20 · 30
+              min live on this feed.
             </p>
           </div>
           <button
@@ -224,9 +224,15 @@ export function Home() {
       )}
 
       <CategoryStrip value={category} onChange={setCategory} />
-      <FilterBar category={category} query={q} active={active} onToggle={toggleFilter} onClear={clearAll} />
-
-      <p className="trust">Same order on DoorDash, Uber Eats and Grubhub</p>
+      <FilterBar
+        category={category}
+        query={q}
+        active={active}
+        onToggle={toggleFilter}
+        onClearFilters={() => setActive([])}
+        onClear={clearAll}
+        resultCount={visible.length}
+      />
 
       {!hasCombo && (
         <LiveDealsStrip deals={liveDeals} refreshedAt={dealsRefreshedAt} totalActive={dealsTotal} />
