@@ -1,1 +1,10 @@
-{}
+{
+  "description": "Seamlessly connect to GitHub repositories, enabling contributors to manage projects, collaborate effectively, and streamline their workflow.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
