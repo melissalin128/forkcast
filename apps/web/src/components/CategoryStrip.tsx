@@ -1,35 +1,60 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties, type ComponentType } from 'react';
 import { CATEGORIES, type Category } from '../lib/filter';
 import { chipPop, prefersReducedMotion } from '../lib/motion';
+import {
+  type P as IconProps,
+  ForkIcon,
+  PizzaIcon,
+  BurgerIcon,
+  TakeoutIcon,
+  TacoIcon,
+  SushiIcon,
+  CurryPotIcon,
+  NoodleBowlIcon,
+  PastaIcon,
+  DrumstickIcon,
+  SandwichIcon,
+  PancakesIcon,
+  SaladIcon,
+  CupcakeIcon,
+  CoffeeCupIcon,
+  SproutIcon,
+  CrescentIcon,
+  CartIcon,
+} from './Icons';
 
 interface Props {
   value: string;
   onChange: (cat: Category) => void;
 }
 
-/** One emoji and one hover/selected tint per category — a single source so
- * adding or renaming a category can't leave one of the two out of sync. The
- * tint stays invisible until a tile is hovered or selected, when it blooms
- * into the bubble behind the icon. */
-const ART: Record<Category, { emoji: string; tint: string }> = {
-  All: { emoji: '🍽️', tint: '#ECEBE6' },
-  Pizza: { emoji: '🍕', tint: '#FDE8D8' },
-  Burgers: { emoji: '🍔', tint: '#FDF0D5' },
-  Chinese: { emoji: '🥡', tint: '#FBE1E1' },
-  Mexican: { emoji: '🌮', tint: '#FFF0D6' },
-  Sushi: { emoji: '🍣', tint: '#FFE3E3' },
-  Indian: { emoji: '🍛', tint: '#FBE9D0' },
-  Thai: { emoji: '🍜', tint: '#E6F3E4' },
-  Italian: { emoji: '🍝', tint: '#FBE3DC' },
-  Chicken: { emoji: '🍗', tint: '#FDEEDB' },
-  Sandwiches: { emoji: '🥪', tint: '#F6ECD9' },
-  Breakfast: { emoji: '🥞', tint: '#FFF3D1' },
-  Healthy: { emoji: '🥗', tint: '#E3F5E8' },
-  Desserts: { emoji: '🍰', tint: '#FCE4EF' },
-  Coffee: { emoji: '☕', tint: '#EFE4D8' },
-  Vegan: { emoji: '🥑', tint: '#E8F4DD' },
-  Halal: { emoji: '🥙', tint: '#E4F0E6' },
-  Grocery: { emoji: '🛒', tint: '#E6F0FB' },
+/** One line icon, one hover/selected bubble tint, and one saturated icon
+ * color per category — a single source so adding or renaming a category
+ * can't leave one of the three out of sync. `tint` fills the bubble behind
+ * the icon on hover/select; `fg` is the icon's own fully-saturated color,
+ * also revealed on hover/select (see .cat__icon in styles.css for the
+ * muted-at-rest blend). Line icons replace emoji so the row renders
+ * identically across every OS instead of at the mercy of each platform's
+ * own emoji art. */
+const ART: Record<Category, { Icon: ComponentType<IconProps>; tint: string; fg: string }> = {
+  All: { Icon: ForkIcon, tint: '#ECEBE6', fg: 'var(--hof)' },
+  Pizza: { Icon: PizzaIcon, tint: '#FDE8D8', fg: '#E07A3F' },
+  Burgers: { Icon: BurgerIcon, tint: '#FDF0D5', fg: '#D99A2B' },
+  Chinese: { Icon: TakeoutIcon, tint: '#FBE1E1', fg: '#D14B4B' },
+  Mexican: { Icon: TacoIcon, tint: '#FFF0D6', fg: '#E0A62E' },
+  Sushi: { Icon: SushiIcon, tint: '#FFE3E3', fg: '#E0616B' },
+  Indian: { Icon: CurryPotIcon, tint: '#FBE9D0', fg: '#D97F3D' },
+  Thai: { Icon: NoodleBowlIcon, tint: '#E6F3E4', fg: '#4E9B5E' },
+  Italian: { Icon: PastaIcon, tint: '#FBE3DC', fg: '#D8654A' },
+  Chicken: { Icon: DrumstickIcon, tint: '#FDEEDB', fg: '#C97E3A' },
+  Sandwiches: { Icon: SandwichIcon, tint: '#F6ECD9', fg: '#B98A4A' },
+  Breakfast: { Icon: PancakesIcon, tint: '#FFF3D1', fg: '#E0B23A' },
+  Healthy: { Icon: SaladIcon, tint: '#E3F5E8', fg: '#4CA36B' },
+  Desserts: { Icon: CupcakeIcon, tint: '#FCE4EF', fg: '#D9678F' },
+  Coffee: { Icon: CoffeeCupIcon, tint: '#EFE4D8', fg: '#8B5E3C' },
+  Vegan: { Icon: SproutIcon, tint: '#E8F4DD', fg: '#5CA24A' },
+  Halal: { Icon: CrescentIcon, tint: '#E4F0E6', fg: '#3F9E6D' },
+  Grocery: { Icon: CartIcon, tint: '#E6F0FB', fg: '#3E7FC1' },
 };
 
 /**
@@ -62,12 +87,13 @@ export function CategoryStrip({ value, onChange }: Props) {
         {CATEGORIES.map((cat) => {
           const active = value === cat;
           const art = ART[cat];
+          const Icon = art.Icon;
           return (
             <button
               key={cat}
               type="button"
               className={`cat${active ? ' cat--active' : ''}`}
-              style={{ '--cat-tint': art.tint } as CSSProperties}
+              style={{ '--cat-tint': art.tint, '--cat-fg': art.fg } as CSSProperties}
               aria-pressed={active}
               onClick={(e) => {
                 onChange(cat);
@@ -75,9 +101,7 @@ export function CategoryStrip({ value, onChange }: Props) {
               }}
             >
               <span className="cat__bubble">
-                <span className="cat__emoji" aria-hidden="true">
-                  {art.emoji}
-                </span>
+                <Icon className="cat__icon" size={26} />
               </span>
               <span className="cat__label">{cat}</span>
             </button>

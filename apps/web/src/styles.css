@@ -411,21 +411,22 @@ ul {
   background: var(--cat-tint);
 }
 
-.cat__emoji {
+/* Line icon in the category's own color, at 45% strength until hover/select
+   reveals it in full — the same "hint of color at rest" balance the emoji
+   version was tuned to, just driven by `color` instead of `filter: grayscale`
+   since these are currentColor SVGs, not platform emoji glyphs. */
+.cat__icon {
   display: inline-block;
-  font-size: 30px;
-  line-height: 1;
-  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-  filter: grayscale(45%);
-  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 120ms;
+  color: color-mix(in srgb, var(--cat-fg) 45%, var(--muted));
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), color 120ms;
 }
 
-.cat:hover .cat__emoji {
+.cat:hover .cat__icon {
   transform: scale(1.22) rotate(4deg);
 }
 
-.cat--active .cat__emoji {
-  filter: none;
+.cat--active .cat__icon {
+  color: var(--cat-fg);
 }
 
 .cat__label {
