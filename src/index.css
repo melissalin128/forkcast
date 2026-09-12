@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'Instrument Sans', sans-serif;
+
+  --color-ink: #17171C;
+  --color-slate: #63636B;
+  --color-line: #E8E8EC;
+  --color-wash: #F6F6F4;
+  --color-highlighter: #FFE45C;
+  --color-green: #0F5C3F;
+  --color-green-hover: #0a4a32;
+  --color-doordash: #E74C3C;
+  --color-ubereats: #06C167;
+  --color-grubhub: #F4511E;
+
+  --radius-sm: 10px;
+  --radius-card: 16px;
+  --radius-lg: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Instrument Sans', sans-serif;
+  color: #17171C;
+  background: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Hide scrollbars by default */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8E8EC;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #63636B;
+}
+
+.font-display {
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+.shadow-search {
+  box-shadow: 0 4px 24px rgba(23, 23, 28, 0.10), 0 1px 4px rgba(23, 23, 28, 0.06);
+}
+
+.shadow-card {
+  box-shadow: 0 8px 40px rgba(23, 23, 28, 0.10), 0 2px 8px rgba(23, 23, 28, 0.06);
+}
+
+.transition-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.transition-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 48px rgba(23, 23, 28, 0.13), 0 4px 12px rgba(23, 23, 28, 0.07);
+}

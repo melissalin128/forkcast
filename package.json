@@ -1,12 +1,32 @@
 {
-  "name": "forkcast",
+  "name": "figma-make-app",
   "private": true,
-  "workspaces": ["apps/*"],
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
-    "dev:web": "npm run dev -w apps/web",
-    "dev:api": "npm run dev -w apps/api",
-    "build": "npm run build --workspaces --if-present",
-    "seed": "npm run seed -w apps/api"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "oxfmt",
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "npm --prefix apps/api run dev",
+    "build:apps": "npm --prefix apps/web run build && npm --prefix apps/api run build",
+    "test:api": "npm --prefix apps/api test",
+    "seed": "npm --prefix apps/api run seed"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "oxfmt": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.5"
   }
 }
