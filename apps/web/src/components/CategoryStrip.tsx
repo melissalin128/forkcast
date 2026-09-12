@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { CATEGORIES, type Category } from '../lib/filter';
 import { chipPop, prefersReducedMotion } from '../lib/motion';
 
@@ -7,29 +7,57 @@ interface Props {
   onChange: (cat: Category) => void;
 }
 
-/** Illustrated tile per category: a large emoji on a soft tint, the way delivery apps draw their category row. */
-const ART: Record<Category, { emoji: string; tint: string }> = {
-  All: { emoji: '🍽️', tint: '#ebe6de' },
-  Pizza: { emoji: '🍕', tint: '#fde8d8' },
-  Burgers: { emoji: '🍔', tint: '#fdf0d5' },
-  Chinese: { emoji: '🥡', tint: '#fbe1e1' },
-  Mexican: { emoji: '🌮', tint: '#fff0d6' },
-  Sushi: { emoji: '🍣', tint: '#ffe3e3' },
-  Indian: { emoji: '🍛', tint: '#fbe9d0' },
-  Thai: { emoji: '🍜', tint: '#e6f3e4' },
-  Italian: { emoji: '🍝', tint: '#fbe3dc' },
-  Chicken: { emoji: '🍗', tint: '#fdeedb' },
-  Sandwiches: { emoji: '🥪', tint: '#f6ecd9' },
-  Breakfast: { emoji: '🥞', tint: '#fff3d1' },
-  Healthy: { emoji: '🥗', tint: '#e3f5e8' },
-  Desserts: { emoji: '🍰', tint: '#fce4ef' },
-  Coffee: { emoji: '☕', tint: '#efe4d8' },
-  Vegan: { emoji: '🥑', tint: '#e8f4dd' },
-  Halal: { emoji: '🥙', tint: '#e4f0e6' },
-  Grocery: { emoji: '🛒', tint: '#e6f0fb' },
+const EMOJI: Record<Category, string> = {
+  All: '🍽️',
+  Pizza: '🍕',
+  Burgers: '🍔',
+  Chinese: '🥡',
+  Mexican: '🌮',
+  Sushi: '🍣',
+  Indian: '🍛',
+  Thai: '🍜',
+  Italian: '🍝',
+  Chicken: '🍗',
+  Sandwiches: '🥪',
+  Breakfast: '🥞',
+  Healthy: '🥗',
+  Desserts: '🍰',
+  Coffee: '☕',
+  Vegan: '🥑',
+  Halal: '🥙',
+  Grocery: '🛒',
 };
 
-/** Round category tiles in a horizontal strip; the active one gets the accent ring. */
+/** A soft tint per category, invisible until a tile is hovered or selected — the
+ * bubble it pops into behind the icon. Quiet at rest, colorful the moment you engage. */
+const TINT: Record<Category, string> = {
+  All: '#ECEBE6',
+  Pizza: '#FDE8D8',
+  Burgers: '#FDF0D5',
+  Chinese: '#FBE1E1',
+  Mexican: '#FFF0D6',
+  Sushi: '#FFE3E3',
+  Indian: '#FBE9D0',
+  Thai: '#E6F3E4',
+  Italian: '#FBE3DC',
+  Chicken: '#FDEEDB',
+  Sandwiches: '#F6ECD9',
+  Breakfast: '#FFF3D1',
+  Healthy: '#E3F5E8',
+  Desserts: '#FCE4EF',
+  Coffee: '#EFE4D8',
+  Vegan: '#E8F4DD',
+  Halal: '#E4F0E6',
+  Grocery: '#E6F0FB',
+};
+
+/**
+ * The cuisine row, given its own bit of personality: hovering a tile makes it fan
+ * open (flex-grow via CSS in styles.css) while its neighbors ease aside, and a
+ * soft per-cuisine color bubble blooms in behind the icon. Quiet and Airbnb-plain
+ * at rest; playful the moment you actually touch it. Selection uses the same
+ * bubble language so "active" reads as a natural extension of "hovered."
+ */
 export function CategoryStrip({ value, onChange }: Props) {
   const stripRef = useRef<HTMLDivElement>(null);
 
@@ -52,21 +80,21 @@ export function CategoryStrip({ value, onChange }: Props) {
       <div className="cats" role="group" aria-label="Category" ref={stripRef}>
         {CATEGORIES.map((cat) => {
           const active = value === cat;
-          const art = ART[cat];
           return (
             <button
               key={cat}
               type="button"
               className={`cat${active ? ' cat--active' : ''}`}
+              style={{ '--cat-tint': TINT[cat] } as CSSProperties}
               aria-pressed={active}
               onClick={(e) => {
                 onChange(cat);
                 chipPop(e.currentTarget.firstElementChild ?? e.currentTarget);
               }}
             >
-              <span className="cat__circle" style={{ background: art.tint }}>
+              <span className="cat__bubble">
                 <span className="cat__emoji" aria-hidden="true">
-                  {art.emoji}
+                  {EMOJI[cat]}
                 </span>
               </span>
               <span className="cat__label">{cat}</span>

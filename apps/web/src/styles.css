@@ -1,34 +1,48 @@
-/* Forkcast — light, utilitarian delivery-app shell. Mobile-first at 390px,
-   a centred 640px column above that. One typeface (Manrope); prices are
-   600 weight with tabular figures. */
+/* Forkcast — Airbnb-inspired shell. White ground, soft rounded cards that lift
+   gently on hover, one coral accent reserved for primary actions and the
+   saved-heart, charcoal for every selected/active UI state, and a quiet teal
+   reserved only for "this is the cheapest" — never mixed with UI state color.
+   Inter throughout. Mobile-first at 390px, a centred 1180px column above. */
 
 :root {
-  --page: #f4f1ec;
+  /* Airbnb's own palette: Rausch (coral), Babu (teal), Hof (charcoal). */
+  --rausch: #ff385c;
+  --rausch-dark: #d70466;
+  --rausch-bg: #ffe8ec;
+
+  --babu: #00a699;
+  --babu-dark: #00807a;
+  --babu-bg: #e0f5f3;
+
+  --hof: #222222;
+  --fg: #222222;
+  --muted: #717171;
+
+  --page: #ffffff;
   --card: #ffffff;
-  --inset: #f1efea;
-  --line: #e8e5df;
-  --fg: #1b1917;
-  --muted: #6f6a62;
-  --accent: #f0873f;
-  --accent-ink: #c9601a;
-  --accent-bg: #fdf0e6;
-  --win: #3fd39b;
-  --win-ink: #1a8f63;
-  --win-bg: #e6f8f0;
-  --warn: #e5484d;
-  --warn-bg: #fdecec;
-  --ground: #ecebe7;
+  --inset: #f7f7f7;
+  --line: #dddddd;
+  --line-soft: #ebebeb;
+  --ground: #f7f7f7;
 
-  --font: Manrope, 'Helvetica Neue', Arial, sans-serif;
+  --warn: #c13515;
+  --warn-bg: #fdece7;
 
-  --r-card: 12px;
+  --font: Inter, 'Helvetica Neue', Arial, sans-serif;
+
+  --r-card: 16px;
   --r-pill: 999px;
-  --r-ctl: 8px;
-  --col: 640px;
-  --gutter: 16px;
+  --r-ctl: 10px;
+  --col: 100%;
+  --gutter: 20px;
   --safe-b: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: calc(56px + var(--safe-b));
-  --top-h: 48px;
+  --tabbar-h: calc(58px + var(--safe-b));
+  --top-h: 56px;
+
+  --sh-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --sh-hover: 0 8px 24px rgba(0, 0, 0, 0.14);
+  --sh-pill: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --sh-modal: 0 16px 48px rgba(0, 0, 0, 0.24);
 
   color-scheme: light;
 }
@@ -84,14 +98,13 @@ ul {
   padding: 0;
 }
 
-/* Prices and other figures: same face, tabular digits so columns line up. */
 .num {
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .win {
-  color: var(--win-ink);
+  color: var(--babu-dark);
 }
 
 .muted {
@@ -115,7 +128,6 @@ ul {
   padding-bottom: calc(var(--tabbar-h) + 16px);
 }
 
-/* Store: no tab bar, only the sticky CTA. */
 .page--store {
   padding-bottom: calc(var(--safe-b) + 16px);
 }
@@ -131,7 +143,7 @@ ul {
   top: 0;
   z-index: 20;
   background: var(--card);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .top__row {
@@ -142,31 +154,11 @@ ul {
   padding: 0 var(--gutter);
 }
 
-.deliver {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.deliver__label {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.deliver__where {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .top__back {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   margin-left: -6px;
-  border-radius: var(--r-pill);
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -179,7 +171,7 @@ ul {
 
 .top__title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -187,77 +179,118 @@ ul {
 }
 
 .top__title--page {
-  font-size: 17px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .top__nav {
   display: none;
-  gap: 4px;
-  margin-right: 8px;
+  gap: 2px;
 }
 
 .top__nav a {
-  padding: 6px 10px;
+  padding: 8px 14px;
   border-radius: var(--r-pill);
   font-weight: 600;
   color: var(--muted);
 }
 
 .top__nav a.is-active {
-  color: var(--fg);
+  color: var(--hof);
   background: var(--inset);
+  font-weight: 700;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.01em;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--hof);
   flex: none;
 }
 
-.searchbar {
-  margin: 0 var(--gutter) 10px;
-  height: 48px;
+/* Airbnb's signature segmented search pill: a "where" tap-target and a "what"
+   input, one hairline apart, inside a single rounded, shadowed capsule. */
+.searchpill {
+  margin: 0 var(--gutter) 12px;
+  height: 52px;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  box-shadow: var(--sh-pill);
+  transition: box-shadow 150ms;
+}
+
+.searchpill:hover,
+.searchpill:focus-within {
+  box-shadow: var(--sh-hover);
+}
+
+.searchpill__seg {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
-  background: var(--inset);
-  border: 1px solid transparent;
-  border-radius: var(--r-card);
+  min-width: 0;
 }
 
-.searchbar:focus-within {
-  border-color: var(--accent);
-  background: var(--card);
+.searchpill__seg--where {
+  flex: none;
+  max-width: 46%;
+  padding: 0 8px 0 18px;
+  color: var(--hof);
 }
 
-.searchbar input {
+.searchpill__where {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchpill__divider {
+  width: 1px;
+  margin: 10px 0;
+  background: var(--line);
+  flex: none;
+}
+
+.searchpill__seg--what {
+  flex: 1;
+  padding: 0 18px 0 14px;
+  min-width: 0;
+}
+
+.searchpill__seg--what input {
   flex: 1;
   min-width: 0;
   height: 100%;
   border: 0;
   background: transparent;
   outline: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
 }
 
-.searchbar input::placeholder {
+.searchpill__seg--what input::placeholder {
   color: var(--muted);
   font-weight: 500;
 }
 
-.searchbar input::-webkit-search-cancel-button {
+.searchpill__seg--what input::-webkit-search-cancel-button {
   display: none;
 }
 
-.searchbar__clear {
+.searchpill__clear {
   color: var(--muted);
   display: inline-flex;
+  flex: none;
 }
 
 /* ------------------------------------------------------- sample-price bar */
@@ -267,12 +300,12 @@ ul {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px var(--gutter);
-  background: var(--accent-bg);
-  color: var(--accent-ink);
+  padding: 9px var(--gutter);
+  background: var(--inset);
+  color: var(--muted);
   font-size: 12px;
   font-weight: 600;
-  border-bottom: 1px solid #f7d9bf;
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .bar__close {
@@ -288,9 +321,9 @@ ul {
 
 .cats-wrap {
   position: relative;
+  border-bottom: 1px solid var(--line-soft);
 }
 
-/* Soft fade on the right so the row reads as scrollable. */
 .cats-wrap::after {
   content: '';
   position: absolute;
@@ -298,14 +331,14 @@ ul {
   right: 0;
   bottom: 0;
   width: 32px;
-  background: linear-gradient(to right, rgba(244, 241, 236, 0), var(--page));
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), var(--page));
   pointer-events: none;
 }
 
 .cats {
   display: flex;
   gap: 8px;
-  padding: 12px var(--gutter) 6px;
+  padding: 16px var(--gutter) 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -314,53 +347,108 @@ ul {
   display: none;
 }
 
+/* Quiet by default — icon and label both gray. Selected turns charcoal and
+   gets a bottom underline, Airbnb's actual category-tab treatment. */
+/* flex-grow lets the tiles stretch evenly to fill the full row on wide screens; the
+   min-width keeps them from shrinking below a usable size, at which point the row
+   scrolls horizontally instead (mobile). */
 .cat {
-  flex: none;
-  width: 64px;
+  flex: 1 1 88px;
+  min-width: 88px;
+  max-width: 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: var(--fg);
+  padding-bottom: 12px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  opacity: 0.75;
+  transition: flex-grow 340ms cubic-bezier(0.34, 1.1, 0.4, 1), opacity 120ms, border-color 120ms, color 120ms;
 }
 
-/* Tint is set per category inline. */
-.cat__circle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.cat:hover {
+  opacity: 1;
+}
+
+/* The accordion: hovering anywhere in the row eases every tile back a little,
+   then the one actually under the cursor fans out wider than the rest. Desktop
+   only — touch has no hover to get stuck in. */
+@media (hover: hover) {
+  .cats:hover .cat {
+    flex-grow: 0.6;
+  }
+
+  .cats .cat:hover {
+    flex-grow: 3.4;
+  }
+}
+
+/* Quiet ring at rest; blooms into the category's own tint the moment you engage. */
+.cat__bubble {
+  width: 52px;
+  height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: box-shadow 120ms;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 200ms ease, transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cat:hover .cat__bubble {
+  background: var(--cat-tint);
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.cat--active .cat__bubble {
+  background: var(--cat-tint);
 }
 
 .cat__emoji {
-  font-size: 26px;
+  display: inline-block;
+  font-size: 30px;
   line-height: 1;
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  filter: grayscale(65%);
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 120ms;
+}
+
+.cat:hover .cat__emoji {
+  transform: scale(1.22) rotate(4deg);
+}
+
+.cat--active .cat__emoji {
+  filter: none;
 }
 
 .cat__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
   white-space: nowrap;
+  transition: transform 200ms ease;
 }
 
-.cat--active .cat__circle {
-  box-shadow: 0 0 0 2px var(--page), 0 0 0 4px var(--accent);
+.cat:hover .cat__label {
+  transform: translateY(1px);
+}
+
+.cat--active {
+  color: var(--hof);
+  border-bottom-color: var(--hof);
+  opacity: 1;
 }
 
 .cat--active .cat__label {
-  color: var(--fg);
+  font-weight: 800;
 }
 
 /* -------------------------------------------------------------- trust line */
 
 .trust {
-  padding: 4px var(--gutter) 6px;
+  padding: 10px var(--gutter) 2px;
   font-size: 12px;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -372,7 +460,7 @@ ul {
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 8px var(--gutter) 10px;
+  padding: 14px var(--gutter) 12px;
 }
 
 .section-head > div {
@@ -382,7 +470,7 @@ ul {
 .section-head__actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .refresh {
@@ -390,13 +478,13 @@ ul {
   padding: 0 10px;
   border-radius: var(--r-pill);
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .refresh:hover {
   background: var(--inset);
-  color: var(--fg);
+  color: var(--hof);
 }
 
 .refresh:disabled {
@@ -404,24 +492,25 @@ ul {
 }
 
 .section-head__title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .section-head__sub {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--muted);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .section-head__pass {
   display: block;
   font-size: 12px;
-  color: var(--accent-ink);
-  font-weight: 600;
+  color: var(--babu-dark);
+  font-weight: 700;
   margin-top: 2px;
 }
 
@@ -438,18 +527,17 @@ ul {
 }
 
 .seg__btn {
-  padding: 5px 10px;
+  padding: 7px 14px;
   border-radius: var(--r-pill);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
 }
 
 .seg__btn--active {
-  background: var(--card);
-  color: var(--fg);
-  box-shadow: 0 1px 2px rgba(27, 25, 23, 0.1);
+  background: var(--hof);
+  color: #fff;
 }
 
 /* ------------------------------------------------------------------ chips */
@@ -457,7 +545,7 @@ ul {
 .chips {
   display: flex;
   gap: 8px;
-  padding: 4px var(--gutter) 6px;
+  padding: 14px var(--gutter) 4px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -474,21 +562,38 @@ ul {
 }
 
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: none;
-  height: 34px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 16px;
   border-radius: var(--r-pill);
   border: 1px solid var(--line);
   background: var(--card);
   font-size: 13px;
   font-weight: 600;
-  color: var(--fg);
+  color: var(--hof);
+  transition: border-color 120ms, background 120ms, transform 100ms;
+}
+
+.chip:hover {
+  border-color: var(--hof);
+}
+
+.chip:active {
+  transform: scale(0.97);
 }
 
 .chip--active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent-ink);
+  border-color: var(--hof);
+  background: var(--hof);
+  color: #fff;
+}
+
+/* The one always-visible entry point into the filter modal. */
+.chip--filters {
+  font-weight: 700;
 }
 
 .query {
@@ -496,13 +601,13 @@ ul {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 var(--gutter) 8px;
+  padding: 0 var(--gutter) 10px;
 }
 
 .query__text {
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent-ink);
+  color: var(--hof);
   min-width: 0;
 }
 
@@ -511,6 +616,126 @@ ul {
   font-weight: 700;
   color: var(--muted);
   flex: none;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ modal */
+/* Filter modal, Airbnb's filter-sheet pattern: centered card, dim veil,
+   sticky header/footer, scrollable grouped body. */
+
+.modal-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@media (min-width: 641px) {
+  .modal-veil {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: 16px 16px 0 0;
+  box-shadow: var(--sh-modal);
+  overflow: hidden;
+}
+
+@media (min-width: 641px) {
+  .modal {
+    border-radius: 16px;
+    max-height: 80vh;
+  }
+}
+
+.modal__head {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.modal__close {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal__close:hover {
+  background: var(--inset);
+}
+
+.modal__title {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px var(--gutter) 8px;
+}
+
+.modal__group {
+  padding-bottom: 20px;
+}
+
+.modal__group--rule {
+  margin-top: 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.modal__group-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.modal__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px var(--gutter) calc(14px + var(--safe-b));
+  border-top: 1px solid var(--line-soft);
+}
+
+.modal__clear {
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  color: var(--hof);
+}
+
+.modal__clear:disabled {
+  color: var(--muted);
+  text-decoration: none;
+  cursor: default;
 }
 
 .onboard {
@@ -518,20 +743,19 @@ ul {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 12px var(--gutter) 0;
-  padding: 12px 14px;
-  background: var(--card);
-  border: 1px solid var(--line);
+  margin: 14px var(--gutter) 0;
+  padding: 14px 16px;
+  background: var(--inset);
   border-radius: var(--r-card);
 }
 
 .onboard__title {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .onboard__sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   margin-top: 4px;
   line-height: 1.45;
@@ -539,8 +763,8 @@ ul {
 
 .onboard__btn {
   flex: none;
-  height: 36px;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0 14px;
 }
 
 .deals,
@@ -550,25 +774,25 @@ ul {
 
 .deals__head,
 .foryou .deals__head {
-  padding: 4px var(--gutter) 8px;
+  padding: 4px var(--gutter) 10px;
 }
 
 .deals__title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 .deals__sub {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   margin-top: 2px;
 }
 
 .deals__row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   padding: 0 var(--gutter);
   overflow-x: auto;
   scrollbar-width: none;
@@ -580,23 +804,27 @@ ul {
 
 .dealcard {
   flex: none;
-  width: 168px;
-  padding: 10px 12px;
+  width: 172px;
+  padding: 12px 14px;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
   display: grid;
   gap: 2px;
 }
 
 .dealcard__plat {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--rausch);
 }
 
 .dealcard__code {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
@@ -609,22 +837,29 @@ ul {
 .foryou__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
   padding: 0 var(--gutter);
 }
 
 .foryou__card {
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
   display: grid;
   gap: 2px;
   min-width: 0;
+  transition: box-shadow 150ms, transform 150ms;
+}
+
+.foryou__card:hover {
+  box-shadow: var(--sh-hover);
+  transform: translateY(-2px);
 }
 
 .foryou__name {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 13px;
 }
 
@@ -659,7 +894,7 @@ ul {
 }
 
 .worth__name {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 14px;
 }
 
@@ -671,7 +906,9 @@ ul {
 
 .pref-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin: 10px 0 4px;
 }
@@ -681,101 +918,146 @@ ul {
   position: relative;
 }
 
+/* Small, quiet, white — Airbnb's own badges are never loud colors. Coral text
+   marks a limited-time deal; the base tag stays neutral otherwise. */
 .badge {
   position: absolute;
-  left: 8px;
-  top: 8px;
-  padding: 3px 8px;
+  left: 10px;
+  top: 10px;
+  padding: 5px 10px;
   border-radius: var(--r-pill);
   font-size: 11px;
-  font-weight: 700;
-  background: var(--win-bg);
-  color: var(--win-ink);
+  font-weight: 800;
+  background: #fff;
+  color: var(--rausch);
+  box-shadow: var(--sh-pill);
 }
 
 .badge--you {
   left: auto;
-  right: 44px;
-  background: var(--accent-bg);
-  color: var(--accent-ink);
+  right: 46px;
+  color: var(--hof);
 }
 
 .savebtn {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--fg);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--hof);
+  box-shadow: var(--sh-pill);
+  transition: transform 100ms;
+}
+
+.savebtn:active {
+  transform: scale(0.9);
 }
 
 .savebtn--on {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+  color: var(--rausch);
 }
 
 .savebtn--cover {
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
 }
 
 .tip-options {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  gap: 8px;
   margin-top: 10px;
 }
 
 .tip-option {
-  height: 38px;
+  height: 40px;
   border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--inset);
+  border-radius: var(--r-ctl);
+  background: var(--card);
   color: var(--muted);
   font-weight: 700;
+  transition: border-color 120ms, background 120ms;
 }
 
 .tip-option--active {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent-ink);
+  border-color: var(--hof);
+  background: var(--hof);
+  color: #fff;
 }
 
 /* ------------------------------------------------------------------- feed */
 
 .feed {
   display: grid;
-  gap: 12px;
-  padding: 0 var(--gutter) 8px;
+  gap: 24px;
+  padding: 8px var(--gutter) 8px;
+}
+
+@media (min-width: 720px) {
+  .feed {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 20px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .feed {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1400px) {
+  .feed {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1680px) {
+  .feed {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 2000px) {
+  .feed {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (min-width: 2400px) {
+  .feed {
+    grid-template-columns: repeat(7, 1fr);
+  }
 }
 
 .row {
   display: block;
   background: var(--card);
-  border: 1px solid var(--line);
   border-radius: var(--r-card);
-  overflow: hidden;
+  transition: transform 150ms;
 }
 
-.row:active {
-  background: #fcfbf9;
+.row:hover .row__photo {
+  transform: scale(1.03);
 }
 
-/* Photo first, flush to the card's rounded top corners. */
+/* Photo first, rounded on its own — the card itself carries no border,
+   Airbnb-style: the image edge and a little whitespace do all the work. */
 .row__photo {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-card);
+  transition: transform 300ms ease;
 }
 
 .row__body {
-  padding: 10px 12px 12px;
+  padding: 10px 2px 0;
 }
 
 /* ------------------------------------------------------------------ photo */
@@ -783,7 +1065,7 @@ ul {
 .photo {
   position: relative;
   overflow: hidden;
-  background: #e9e6e0;
+  background: var(--inset);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -797,7 +1079,7 @@ ul {
 }
 
 .row__name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -827,7 +1109,7 @@ ul {
 
 .row__for,
 .store__for {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
@@ -844,7 +1126,7 @@ ul {
 
 .row__line strong,
 .store__line strong {
-  color: var(--win-ink);
+  color: var(--babu-dark);
   font-weight: 700;
 }
 
@@ -858,17 +1140,16 @@ ul {
 }
 
 .strip__col {
-  padding: 8px 8px 7px;
-  border-radius: 8px;
-  background: var(--page);
-  border: 1px solid var(--line);
+  padding: 7px 8px 6px;
+  border-radius: var(--r-ctl);
+  background: var(--inset);
   min-width: 0;
 }
 
 .strip__plat {
   display: block;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -878,7 +1159,7 @@ ul {
 .strip__price {
   display: block;
   margin-top: 3px;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.2;
 }
 
@@ -890,13 +1171,18 @@ ul {
   white-space: nowrap;
 }
 
+/* Winner: a quiet teal tint — never a loud fill. The one color reserved
+   exclusively for "this is the cheapest," never reused for UI state. */
 .strip__col--best {
-  background: var(--win-bg);
-  border-color: var(--win);
+  background: var(--babu-bg);
+}
+
+.strip__col--best .strip__plat {
+  color: var(--babu-dark);
 }
 
 .strip__col--best .strip__price {
-  color: var(--win-ink);
+  color: var(--babu-dark);
 }
 
 .strip__col--none .strip__price {
@@ -907,14 +1193,14 @@ ul {
 /* --------------------------------------------------------------- skeleton */
 
 .sk {
-  background: var(--inset);
+  background: var(--line-soft);
   border-radius: 6px;
 }
 
 .sk--photo {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 0;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-card);
 }
 
 .sk--title {
@@ -930,7 +1216,7 @@ ul {
 
 .sk--col {
   height: 52px;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
 }
 
 .sk--line {
@@ -940,7 +1226,8 @@ ul {
 }
 
 .empty {
-  padding: 40px 16px;
+  grid-column: 1 / -1;
+  padding: 48px 16px;
   text-align: center;
   color: var(--muted);
   display: grid;
@@ -951,14 +1238,15 @@ ul {
 }
 
 .notice {
-  padding: 40px var(--gutter);
+  padding: 48px var(--gutter);
   text-align: center;
   color: var(--muted);
 }
 
 .notice a {
-  color: var(--accent-ink);
-  font-weight: 600;
+  color: var(--hof);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 /* ---------------------------------------------------------------- buttons */
@@ -968,24 +1256,40 @@ ul {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 16px;
+  height: 42px;
+  padding: 0 18px;
   border-radius: var(--r-ctl);
   font-weight: 700;
   font-size: 14px;
   border: 1px solid var(--line);
   background: var(--card);
+  color: var(--hof);
+  transition: background 120ms, transform 100ms;
+}
+
+.btn:hover {
+  background: var(--inset);
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn--accent {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--rausch);
+  border-color: var(--rausch);
   color: #fff;
+}
+
+.btn--accent:hover {
+  background: var(--rausch-dark);
+  border-color: var(--rausch-dark);
 }
 
 .btn--accent:disabled {
   opacity: 0.45;
   cursor: default;
+  transform: none !important;
 }
 
 .btn--ghost {
@@ -994,35 +1298,36 @@ ul {
 
 .btn--cta {
   width: 100%;
-  height: 52px;
-  border-radius: var(--r-card);
-  font-size: 15px;
+  height: 54px;
+  border-radius: var(--r-ctl);
+  font-size: 16px;
   justify-content: space-between;
-  padding: 0 18px;
+  padding: 0 20px;
+  box-shadow: var(--sh-hover);
 }
 
 /* ----------------------------------------------------------------- store */
 
 .cover {
   width: 100%;
-  height: 200px;
+  height: 220px;
 }
 
 @media (max-width: 480px) {
   .cover {
-    height: 160px;
+    height: 180px;
   }
 }
 
 .store {
-  padding: 14px var(--gutter) 12px;
+  padding: 16px var(--gutter) 12px;
   background: var(--card);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .store__name {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
@@ -1034,7 +1339,7 @@ ul {
   gap: 3px;
   font-size: 13px;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .store__meta .num {
@@ -1059,22 +1364,22 @@ ul {
   z-index: 15;
   display: flex;
   background: var(--card);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .tabs__tab {
   flex: 1;
-  padding: 13px 0 11px;
+  padding: 14px 0 12px;
   text-align: center;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
   border-bottom: 2px solid transparent;
 }
 
 .tabs__tab--active {
-  color: var(--accent-ink);
-  border-bottom-color: var(--accent);
+  color: var(--hof);
+  border-bottom-color: var(--hof);
 }
 
 /* menu tab */
@@ -1089,14 +1394,14 @@ ul {
   grid-template-columns: 1fr 64px 64px 64px;
   gap: 4px;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .menu__row--head {
   padding: 8px 0 6px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1127,8 +1432,9 @@ ul {
 }
 
 .menu__price--best {
-  color: var(--win-ink);
-  background: var(--win-bg);
+  color: var(--babu-dark);
+  background: var(--babu-bg);
+  font-weight: 700;
 }
 
 .menu__foot {
@@ -1139,31 +1445,32 @@ ul {
 
 .prices {
   display: grid;
-  gap: 12px;
-  padding: 12px var(--gutter) 0;
+  gap: 14px;
+  padding: 14px var(--gutter) 0;
 }
 
 .card {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-card);
-  padding: 14px 14px 12px;
+  box-shadow: var(--sh-card);
+  padding: 16px 16px 14px;
 }
 
 .card--gap {
-  margin: 12px var(--gutter) 0;
+  margin: 14px var(--gutter) 0;
 }
 
 .card__head {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .card__title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
@@ -1194,7 +1501,6 @@ ul {
   gap: 6px;
 }
 
-/* A short line sample, matching the chart stroke — not a dot. */
 .legend__line {
   display: inline-block;
   width: 16px;
@@ -1215,9 +1521,9 @@ ul {
   grid-template-columns: minmax(0, 2fr) 1fr 1fr 1.2fr;
   gap: 6px;
   align-items: center;
-  padding: 8px 6px;
+  padding: 9px 8px;
   font-size: 12px;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
   text-align: right;
 }
 
@@ -1226,22 +1532,21 @@ ul {
 }
 
 .ledger__row--head {
-  padding: 2px 6px 6px;
+  padding: 2px 8px 6px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .ledger__row--best {
-  background: var(--win-bg);
-  outline: 1px solid var(--win);
-  outline-offset: -1px;
+  background: var(--babu-bg);
 }
 
 .ledger__row--best .ledger__total {
-  color: var(--win-ink);
+  color: var(--babu-dark);
+  font-weight: 800;
 }
 
 .ledger__plat {
@@ -1272,8 +1577,8 @@ ul {
 }
 
 .ledger__note--promo {
-  color: var(--win-ink);
-  font-weight: 600;
+  color: var(--babu-dark);
+  font-weight: 700;
 }
 
 .ledger__total {
@@ -1310,13 +1615,13 @@ ul {
 }
 
 .chart__axis--accent {
-  fill: var(--accent-ink);
-  font-weight: 600;
+  fill: var(--hof);
+  font-weight: 700;
 }
 
 .chart__axis--win {
-  fill: var(--win-ink);
-  font-weight: 600;
+  fill: var(--babu-dark);
+  font-weight: 700;
 }
 
 /* sticky CTA: the only bottom element on the store page */
@@ -1328,8 +1633,8 @@ ul {
   bottom: 0;
   width: 100%;
   max-width: var(--col);
-  padding: 10px var(--gutter) calc(10px + var(--safe-b));
-  background: linear-gradient(to bottom, rgba(244, 241, 236, 0), var(--page) 40%);
+  padding: 12px var(--gutter) calc(12px + var(--safe-b));
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--page) 45%);
   z-index: 18;
 }
 
@@ -1337,7 +1642,7 @@ ul {
 
 .savelist {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   padding: 0 var(--gutter);
 }
 
@@ -1345,11 +1650,17 @@ ul {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px 10px 10px;
+  padding: 12px 16px 12px 12px;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
   min-width: 0;
+  transition: box-shadow 150ms;
+}
+
+.save:hover {
+  box-shadow: var(--sh-hover);
 }
 
 .save__thumb {
@@ -1381,13 +1692,12 @@ ul {
   color: var(--fg);
 }
 
-/* The saving, in win ink on a mint pill. */
 .save__amt {
   display: inline-block;
-  padding: 0 7px;
+  padding: 1px 8px;
   border-radius: var(--r-pill);
-  background: var(--win-bg);
-  color: var(--win-ink);
+  background: var(--babu-bg);
+  color: var(--babu-dark);
   font-weight: 700;
   line-height: 1.5;
 }
@@ -1402,19 +1712,20 @@ ul {
 
 .input {
   flex: 1;
-  height: 40px;
-  padding: 0 12px;
+  height: 44px;
+  padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-ctl);
-  background: var(--inset);
+  background: var(--card);
   font-size: 15px;
   outline: none;
   min-width: 0;
+  transition: border-color 120ms;
 }
 
 .input:focus {
-  border-color: var(--accent);
-  background: var(--card);
+  border-color: var(--hof);
+  border-width: 2px;
 }
 
 .toggles {
@@ -1427,8 +1738,8 @@ ul {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .toggle:last-child {
@@ -1453,28 +1764,28 @@ ul {
 
 .switch {
   flex: none;
-  width: 46px;
-  height: 28px;
+  width: 44px;
+  height: 26px;
   border-radius: var(--r-pill);
-  background: #d9d5cd;
+  background: var(--line);
   position: relative;
   transition: background 150ms;
 }
 
 .switch__knob {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--sh-pill);
   transition: transform 150ms;
 }
 
 .switch--on {
-  background: var(--accent);
+  background: var(--rausch);
 }
 
 .switch--on .switch__knob {
@@ -1495,13 +1806,13 @@ ul {
 }
 
 .toast {
-  padding: 9px 14px;
+  padding: 10px 16px;
   border-radius: var(--r-pill);
-  background: var(--fg);
+  background: var(--hof);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(27, 25, 23, 0.18);
+  box-shadow: var(--sh-hover);
   animation: toast-in 160ms ease-out;
 }
 
@@ -1529,7 +1840,7 @@ ul {
   padding-bottom: var(--safe-b);
   display: flex;
   background: var(--card);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-soft);
   z-index: 30;
 }
 
@@ -1546,7 +1857,7 @@ ul {
 }
 
 .tabbar__item--active {
-  color: var(--accent-ink);
+  color: var(--rausch);
 }
 
 /* --------------------------------------------------------------- desktop */
@@ -1557,8 +1868,8 @@ ul {
   }
 
   .app {
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
+    border-left: 1px solid var(--line-soft);
+    border-right: 1px solid var(--line-soft);
   }
 
   .page {

@@ -43,6 +43,17 @@ export const ChevronDown = ({ size = 14, stroke = 'currentColor', ...rest }: P) 
   </svg>
 );
 
+export const SlidersIcon = ({ size = 16, stroke = 'currentColor', ...rest }: P) => (
+  <svg {...base(size, stroke, 2.2)} {...rest}>
+    <path d="M4 6h8M16 6h4" />
+    <circle cx="14" cy="6" r="2" />
+    <path d="M4 12h4M12 12h8" />
+    <circle cx="10" cy="12" r="2" />
+    <path d="M4 18h10M18 18h2" />
+    <circle cx="16" cy="18" r="2" />
+  </svg>
+);
+
 export const ChevronLeft = ({ size = 20, stroke = 'currentColor', ...rest }: P) => (
   <svg {...base(size, stroke)} {...rest}>
     <path d="M15 5l-7 7 7 7" />

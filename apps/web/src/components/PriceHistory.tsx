@@ -95,7 +95,7 @@ export function PriceHistory({ snapshots, highlight, band }: Props) {
             const left = Math.min(Math.max(PAD_L, x0 - (w - (x1 - x0)) / 2), nowX - w);
             return (
               <g>
-                <rect x={left} y={PLOT_TOP - 4} width={w} height={PLOT_BOTTOM - PLOT_TOP + 4} fill="var(--win)" opacity={0.16} rx={3} />
+                <rect x={left} y={PLOT_TOP - 4} width={w} height={PLOT_BOTTOM - PLOT_TOP + 4} fill="var(--babu)" opacity={0.16} rx={3} />
                 <text className="chart__axis chart__axis--win" x={left + w / 2} y={PLOT_BOTTOM + 30} textAnchor="middle">
                   cheapest
                 </text>
@@ -122,7 +122,7 @@ export function PriceHistory({ snapshots, highlight, band }: Props) {
             opacity={s.platform.slug === highlight ? 1 : 0.7}
           />
         ))}
-        <line x1={nowX} y1={PLOT_TOP - 4} x2={nowX} y2={PLOT_BOTTOM} stroke="var(--accent)" strokeWidth={1.5} strokeDasharray="3 3" />
+        <line x1={nowX} y1={PLOT_TOP - 4} x2={nowX} y2={PLOT_BOTTOM} stroke="var(--rausch)" strokeWidth={1.5} strokeDasharray="3 3" />
         {last && hl && (
           <circle cx={nowX} cy={y(last.total)} r={4.5} fill={hl.platform.brandColor} stroke="#fff" strokeWidth={2} />
         )}

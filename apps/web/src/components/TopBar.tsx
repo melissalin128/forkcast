@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { usePrefs } from '../hooks/usePrefs';
 import { zipLabel } from '../lib/prefs';
-import { ChevronDown, ChevronLeft, ClearIcon, ForkIcon, PinIcon, SearchIcon } from './Icons';
+import { ChevronLeft, ClearIcon, ForkIcon, PinIcon, SearchIcon } from './Icons';
 
 interface SearchProps {
   value: string;
@@ -11,9 +11,9 @@ interface SearchProps {
 }
 
 interface Props {
-  /** Deliver-to row + 48px search field (Home). */
+  /** Deliver-to segment + search segment, combined into one pill (Home). */
   search?: SearchProps;
-  /** Back chevron + title instead of the deliver row (Store). */
+  /** Back chevron + title instead of the search pill (Store). */
   back?: { title: string };
   /** Plain title row (Savings, Account). */
   title?: string;
@@ -42,14 +42,10 @@ export function TopBar({ search, back, title }: Props) {
           <button type="button" className="top__back" onClick={() => (window.history.length > 1 ? nav(-1) : nav('/'))} aria-label="Back">
             <ChevronLeft />
           </button>
-        ) : title ? null : (
-          <Link to="/account" className="deliver" aria-label={`Deliver to ${prefs.zip}, change in Account`}>
-            <PinIcon stroke="var(--accent)" />
-            <span className="deliver__label">Deliver to</span>
-            <span className="deliver__where">
-              <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}
-            </span>
-            <ChevronDown stroke="var(--muted)" />
+        ) : (
+          <Link to="/" className="brand" aria-label="Forkcast home">
+            <ForkIcon size={20} stroke="var(--rausch)" />
+            <span>Forkcast</span>
           </Link>
         )}
         {back && <span className="top__title">{back.title}</span>}
@@ -62,15 +58,11 @@ export function TopBar({ search, back, title }: Props) {
             </NavLink>
           ))}
         </nav>
-        <Link to="/" className="brand" aria-label="Forkcast home">
-          <ForkIcon size={18} stroke="var(--accent)" />
-          <span>Forkcast</span>
-        </Link>
       </div>
 
       {search && (
         <form
-          className="searchbar"
+          className="searchpill"
           role="search"
           onSubmit={(e) => {
             // Results filter as you type; Enter only dismisses the keyboard.
@@ -78,22 +70,31 @@ export function TopBar({ search, back, title }: Props) {
             inputRef.current?.blur();
           }}
         >
-          <SearchIcon stroke="var(--muted)" />
-          <input
-            ref={inputRef}
-            type="search"
-            value={search.value}
-            onChange={(e) => search.onChange(e.target.value)}
-            placeholder="Search restaurants or dishes"
-            aria-label="Search restaurants or dishes"
-            autoComplete="off"
-            enterKeyHint="search"
-          />
-          {search.value && (
-            <button type="button" className="searchbar__clear" onClick={() => search.onChange('')} aria-label="Clear search">
-              <ClearIcon />
-            </button>
-          )}
+          <Link to="/account" className="searchpill__seg searchpill__seg--where" aria-label={`Deliver to ${prefs.zip}, change in Account`}>
+            <PinIcon size={15} stroke="var(--hof)" />
+            <span className="searchpill__where">
+              <span className="num">{prefs.zip}</span> · {zipLabel(prefs.zip)}
+            </span>
+          </Link>
+          <span className="searchpill__divider" aria-hidden="true" />
+          <span className="searchpill__seg searchpill__seg--what">
+            <SearchIcon size={16} stroke="var(--muted)" />
+            <input
+              ref={inputRef}
+              type="search"
+              value={search.value}
+              onChange={(e) => search.onChange(e.target.value)}
+              placeholder="Search restaurants or dishes"
+              aria-label="Search restaurants or dishes"
+              autoComplete="off"
+              enterKeyHint="search"
+            />
+            {search.value && (
+              <button type="button" className="searchpill__clear" onClick={() => search.onChange('')} aria-label="Clear search">
+                <ClearIcon size={15} />
+              </button>
+            )}
+          </span>
         </form>
       )}
     </header>
