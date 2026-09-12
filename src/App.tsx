@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -145,6 +145,241 @@ const HOT_PICKS = [1, 5, 3, 7].map(id => DEAL_CARDS.find(c => c.id === id)!)
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
+// ─── Trend data ──────────────────────────────────────────────────────────────
+
+const WEEKS = ['Aug 4','Aug 11','Aug 18','Aug 25','Sep 1','Sep 8','Sep 15','Sep 22','Sep 29','Oct 6','Oct 13','Oct 20']
+
+const TREND_SERIES = {
+  total: {
+    label: 'Avg Total Price',
+    unit: '$',
+    doordash: [18.4, 17.9, 19.2, 16.8, 18.1, 20.5, 19.3, 16.9, 18.7, 20.1, 18.9, 17.8],
+    ubereats:  [20.8, 20.1, 21.5, 19.3, 20.4, 22.9, 21.7, 19.6, 20.2, 21.8, 20.5, 19.4],
+    grubhub:   [19.5, 18.8, 20.4, 18.1, 19.3, 21.6, 20.1, 18.3, 19.0, 20.4, 19.7, 18.2],
+  },
+  fee: {
+    label: 'Avg Delivery Fee',
+    unit: '$',
+    doordash: [2.49, 2.99, 1.99, 2.49, 2.99, 3.49, 2.49, 1.99, 2.99, 3.49, 2.99, 2.49],
+    ubereats:  [3.99, 3.49, 4.49, 3.99, 4.49, 4.99, 3.99, 3.49, 4.49, 4.99, 4.49, 3.99],
+    grubhub:   [1.49, 0.99, 1.99, 1.49, 1.99, 2.49, 1.49, 0.99, 1.49, 1.99, 1.49, 0.99],
+  },
+  time: {
+    label: 'Avg Delivery Time',
+    unit: ' min',
+    doordash: [24, 22, 26, 21, 23, 28, 25, 20, 24, 27, 25, 22],
+    ubereats:  [28, 26, 29, 25, 27, 31, 29, 24, 27, 30, 28, 25],
+    grubhub:   [21, 19, 23, 18, 21, 25, 22, 18, 21, 24, 22, 19],
+  },
+}
+
+// Validated categorical palette slots 1–3 (all-pairs safe for 3 series)
+// Relief: direct endpoint labels ship for aqua (#1baf7a) which is sub-3:1
+const CHART_COLORS = {
+  doordash: '#2a78d6',  // slot 1 blue
+  grubhub:  '#eb6834',  // slot 2 orange
+  ubereats: '#1baf7a',  // slot 3 aqua — sub-3:1, endpoint labels are relief
+}
+
+type MetricKey = 'total' | 'fee' | 'time'
+
+function TrendsChart() {
+  const [metric, setMetric] = useState<MetricKey>('total')
+  const [crosshairIdx, setCrosshairIdx] = useState<number | null>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  const series = TREND_SERIES[metric]
+  const allVals = [...series.doordash, ...series.ubereats, ...series.grubhub]
+  const minVal = Math.min(...allVals)
+  const maxVal = Math.max(...allVals)
+
+  const W = 350, H = 200
+  const ml = 38, mr = 12, mt = 12, mb = 28
+  const chartW = W - ml - mr
+  const chartH = H - mt - mb
+  const n = WEEKS.length
+
+  const xPos = (i: number) => ml + (i / (n - 1)) * chartW
+  const yPos = (v: number) => mt + chartH - ((v - minVal) / (maxVal - minVal || 1)) * chartH
+
+  const makePath = (vals: number[]) =>
+    vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ')
+
+  const gridSteps = 4
+  const gridVals = Array.from({ length: gridSteps + 1 }, (_, i) =>
+    minVal + (i / gridSteps) * (maxVal - minVal)
+  )
+
+  const handleMove = useCallback((e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>) => {
+    const svg = svgRef.current
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const x = (clientX - rect.left) * (W / rect.width) - ml
+    const idx = Math.round((x / chartW) * (n - 1))
+    setCrosshairIdx(Math.max(0, Math.min(n - 1, idx)))
+  }, [chartW, n])
+
+  const ci = crosshairIdx
+
+  const PLATFORMS = [
+    { key: 'doordash' as const, label: 'DoorDash' },
+    { key: 'ubereats' as const, label: 'Uber Eats' },
+    { key: 'grubhub' as const, label: 'Grubhub' },
+  ]
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Metric pills */}
+      <div className="flex gap-2">
+        {([
+          { key: 'total', label: 'Total Price' },
+          { key: 'fee', label: 'Delivery Fee' },
+          { key: 'time', label: 'Delivery Time' },
+        ] as const).map(m => (
+          <button
+            key={m.key}
+            onClick={() => { setMetric(m.key); setCrosshairIdx(null) }}
+            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+            style={{
+              background: metric === m.key ? '#17171C' : '#F6F6F4',
+              color: metric === m.key ? '#FFFFFF' : '#63636B',
+            }}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Chart card */}
+      <div className="rounded-[18px] overflow-hidden" style={{ background: '#FAFAF8', border: '1px solid #EBEBEB' }}>
+        {/* Tooltip strip */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-2" style={{ minHeight: 40 }}>
+          {ci !== null ? (
+            <>
+              <span className="text-xs font-semibold" style={{ color: '#63636B' }}>{WEEKS[ci]}</span>
+              <div className="flex items-center gap-3">
+                {PLATFORMS.map(p => (
+                  <span key={p.key} className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#17171C' }}>
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[p.key] }} />
+                    {series[p.key][ci].toFixed(metric === 'time' ? 0 : 2)}{series.unit}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <span className="text-xs" style={{ color: '#ADADB8' }}>Touch chart to compare</span>
+          )}
+        </div>
+
+        {/* SVG chart */}
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          style={{ display: 'block', touchAction: 'none', cursor: 'crosshair' }}
+          onMouseMove={handleMove}
+          onTouchMove={handleMove}
+          onMouseLeave={() => setCrosshairIdx(null)}
+          onTouchEnd={() => setCrosshairIdx(null)}
+        >
+          {/* Grid lines */}
+          {gridVals.map((v, i) => (
+            <g key={i}>
+              <line
+                x1={ml} x2={W - mr}
+                y1={yPos(v).toFixed(1)} y2={yPos(v).toFixed(1)}
+                stroke="#E8E8E4" strokeWidth="1"
+              />
+              <text
+                x={ml - 5} y={yPos(v)}
+                textAnchor="end" dominantBaseline="middle"
+                fontSize="9" fill="#ADADB8" fontFamily="system-ui,sans-serif"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              >
+                {metric === 'time' ? v.toFixed(0) : `$${v.toFixed(0)}`}
+              </text>
+            </g>
+          ))}
+
+          {/* X axis labels — every 3rd week */}
+          {WEEKS.map((w, i) => i % 3 === 0 && (
+            <text
+              key={i}
+              x={xPos(i)} y={H - 6}
+              textAnchor="middle" fontSize="9" fill="#ADADB8"
+              fontFamily="system-ui,sans-serif"
+            >
+              {w.split(' ')[0]} {w.split(' ')[1]}
+            </text>
+          ))}
+
+          {/* Lines */}
+          {PLATFORMS.map(p => (
+            <path
+              key={p.key}
+              d={makePath(series[p.key])}
+              fill="none"
+              stroke={CHART_COLORS[p.key]}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          ))}
+
+          {/* Endpoint labels (required relief for aqua sub-3:1) */}
+          {PLATFORMS.map(p => {
+            const lastVal = series[p.key][n - 1]
+            const lx = xPos(n - 1)
+            const ly = yPos(lastVal)
+            return (
+              <text
+                key={p.key}
+                x={lx + 4} y={ly}
+                dominantBaseline="middle"
+                fontSize="8.5" fontWeight="600"
+                fill={CHART_COLORS[p.key]}
+                fontFamily="system-ui,sans-serif"
+              >
+                {p.label.split(' ')[0]}
+              </text>
+            )
+          })}
+
+          {/* Crosshair */}
+          {ci !== null && (
+            <g>
+              <line
+                x1={xPos(ci)} x2={xPos(ci)}
+                y1={mt} y2={mt + chartH}
+                stroke="#17171C" strokeWidth="1" strokeDasharray="3 3" opacity="0.3"
+              />
+              {PLATFORMS.map(p => (
+                <circle
+                  key={p.key}
+                  cx={xPos(ci)} cy={yPos(series[p.key][ci])}
+                  r="4" fill="#FFFFFF"
+                  stroke={CHART_COLORS[p.key]} strokeWidth="2"
+                />
+              ))}
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4">
+        {PLATFORMS.map(p => (
+          <div key={p.key} className="flex items-center gap-1.5">
+            <div className="w-5 h-0.5 rounded-full" style={{ background: CHART_COLORS[p.key] }} />
+            <span className="text-xs font-medium" style={{ color: '#63636B' }}>{p.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-0.5 text-xs font-semibold" style={{ color: '#17171C' }}>
@@ -248,7 +483,7 @@ function DealRow({ card, saved, onToggleSave }: {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 type SortKey = 'total' | 'fee_dollar' | 'fastest'
-type TabKey = 'explore' | 'saved' | 'alerts'
+type TabKey = 'explore' | 'trends' | 'saved' | 'alerts'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'total', label: 'Total Price' },
@@ -412,6 +647,18 @@ export default function App() {
             </>
           )}
 
+          {activeTab === 'trends' && (
+            <div className="px-5 pt-5 pb-4">
+              <div className="mb-5">
+                <h2 className="text-xl font-bold" style={{ color: '#17171C', fontFamily: 'Bricolage Grotesque, sans-serif', letterSpacing: '-0.02em' }}>
+                  Price Trends
+                </h2>
+                <p className="text-xs mt-1" style={{ color: '#63636B' }}>12-week platform comparison</p>
+              </div>
+              <TrendsChart />
+            </div>
+          )}
+
           {activeTab === 'saved' && (
             <div className="px-5 pt-6">
               <h2 className="text-xl font-bold mb-5" style={{ color: '#17171C', fontFamily: 'Bricolage Grotesque, sans-serif', letterSpacing: '-0.02em' }}>Saved</h2>
@@ -470,6 +717,14 @@ export default function App() {
               icon: (active: boolean) => (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? '#17171C' : 'none'} stroke={active ? '#17171C' : '#ADADB8'} strokeWidth="2">
                   <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              )
+            },
+            {
+              key: 'trends', label: 'Trends',
+              icon: (active: boolean) => (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#17171C' : '#ADADB8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                 </svg>
               )
             },
