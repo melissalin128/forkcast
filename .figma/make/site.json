@@ -1,0 +1,10 @@
+{
+  "description": "Compare food delivery orders across Uber Eats, Grubhub, and DoorDash to find the best total price with fees and promos for smarter, faster ordering.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
