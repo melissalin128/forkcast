@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { getHistory, getPromos, getRestaurant, getRestaurants, mockFallback, type PromosResponse, type Source } from '../api/client';
+import { getDeals, getHistory, getPromos, getRestaurant, getRestaurants, mockFallback, type Deal, type PromosResponse, type Source } from '../api/client';
 import { REFRESHED_AT } from '../data/mock';
 import { applyPrefs, applyPrefsToSnapshots } from '../lib/prefs';
 import type { PriceSnapshot, Restaurant } from '../types';
@@ -93,4 +93,31 @@ export function usePromos() {
   }, []);
 
   return { promos, loading };
+}
+
+/**
+ * Live scraped deals for the configured address. Empty when the API is down or
+ * no run has landed yet; the UI hides the strip rather than inventing any.
+ */
+export function useDeals(limit = 20) {
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
+  const [totalActive, setTotalActive] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    getDeals({ limit }).then((res) => {
+      if (!alive) return;
+      setDeals(res?.deals ?? []);
+      setRefreshedAt(res?.refreshedAt ?? null);
+      setTotalActive(res?.totalActive ?? 0);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [limit]);
+
+  return { deals, refreshedAt, totalActive, loading };
 }

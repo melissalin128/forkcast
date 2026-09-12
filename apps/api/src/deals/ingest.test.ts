@@ -74,7 +74,7 @@ test('a successful feed run is normalized, upserted, and closed out with the rea
   assert.equal(res.parseFailures, 1, 'the id-less fixture record');
   assert.equal(res.storesWithoutDeals, 1);
   assert.equal(res.actualCost, 0.198);
-  assert.deepEqual(datasetCalls[0], ['ds-1', { limit: 36 }], 'never reads more than the configured cap');
+  assert.deepEqual(datasetCalls[0], ['ds-1', { limit: 5000 }], 'reads the whole dataset: it is already paid for and reading is free');
 
   const stored = await repo.getScrapeRun(ledger.id);
   assert.equal(stored?.status, 'succeeded');

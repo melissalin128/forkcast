@@ -90,7 +90,7 @@ export class ApifyClient {
   private readonly sleep: (ms: number) => Promise<void>;
 
   constructor(opts: ApifyClientOptions = {}) {
-    const token = opts.token ?? config.apify.token;
+    const token = opts.token ?? config.dealsApify.token;
     if (!token) throw new Error('APIFY_API_KEY is not set (see .env.example)');
     this.token = token;
     this.baseUrl = (opts.baseUrl ?? APIFY_BASE_URL).replace(/\/+$/, '');

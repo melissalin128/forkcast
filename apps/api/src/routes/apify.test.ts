@@ -11,7 +11,7 @@ import { MemoryRepository } from '../repo/memory';
 
 let server: Server;
 let base: string;
-const originals = { webhookSecret: config.apify.webhookSecret, cronSecret: config.cronSecret };
+const originals = { webhookSecret: config.dealsApify.webhookSecret, cronSecret: config.cronSecret };
 
 before(async () => {
   setDealsConfig(
@@ -22,7 +22,7 @@ before(async () => {
     }),
   );
   setRepo(MemoryRepository.empty());
-  config.apify.webhookSecret = 'hook-secret';
+  config.dealsApify.webhookSecret = 'hook-secret';
   config.cronSecret = 'cron-secret';
   server = createApp().listen(0);
   await new Promise((r) => server.once('listening', r));
@@ -33,7 +33,7 @@ after(() => {
   server.close();
   setRepo(null);
   setDealsConfig(null);
-  config.apify.webhookSecret = originals.webhookSecret;
+  config.dealsApify.webhookSecret = originals.webhookSecret;
   config.cronSecret = originals.cronSecret;
 });
 

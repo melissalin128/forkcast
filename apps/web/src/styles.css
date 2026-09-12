@@ -606,6 +606,29 @@ ul {
   color: var(--muted);
 }
 
+/* Live (scraped) deals. Deliberately distinct from the simulated demo promos
+   above, so the two kinds of evidence are never mistaken for each other. */
+.deals--live .dealcard--live {
+  border-color: color-mix(in srgb, var(--accent, #06c) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent, #06c) 4%, var(--card));
+  text-decoration: none;
+  color: inherit;
+}
+
+.deals__badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+  color: #fff;
+  background: var(--accent, #06c);
+}
+
 .foryou__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -60,7 +60,7 @@ export const config = {
   /** Default tip used in every total (spec section 7 recommendation). */
   defaultTipPct: 0.15,
   /** Deals layer (src/deals): Apify access. The token is never logged. */
-  apify: {
+  dealsApify: {
     token: process.env.APIFY_API_KEY?.trim() || undefined,
     /** Shared secret Apify must send back (as ?token=) on POST /api/apify/webhook. */
     webhookSecret: process.env.APIFY_WEBHOOK_SECRET?.trim() || undefined,

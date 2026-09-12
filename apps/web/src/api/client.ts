@@ -186,3 +186,72 @@ export async function getPromos(platform?: PlatformSlug): Promise<Sourced<Promos
     source: 'mock',
   };
 }
+
+// ---------------------------------------------------------------------------
+// Live deals (apps/api/src/deals): DoorDash promos collected through Apify,
+// ranked server-side. These are *scraped*, not simulated, so the UI labels them
+// separately from the demo promos above.
+// ---------------------------------------------------------------------------
+
+export type DealType =
+  | 'free_delivery'
+  | 'reduced_delivery_fee'
+  | 'percent_off'
+  | 'dollar_off'
+  | 'bogo'
+  | 'item_discount'
+  | 'promo_code'
+  | 'other';
+
+export interface Deal {
+  id?: string;
+  platform: PlatformSlug;
+  restaurantName: string;
+  platformRestaurantId: string;
+  cuisine: string[];
+  distanceMi: number | null;
+  dealType: DealType;
+  headline: string;
+  value: { percent?: number; dollars?: number; deliveryFee?: number; originalPrice?: number; salePrice?: number } | null;
+  minOrder: number | null;
+  promoCode: string | null;
+  deepLink: string | null;
+  savings: number;
+  /** true when `savings` is a per-type estimate rather than a number the platform stated. */
+  savingsEstimated: boolean;
+  score: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  expiresAt: string | null;
+}
+
+export interface DealsResponse {
+  address: string;
+  count: number;
+  totalActive: number;
+  refreshedAt: string | null;
+  platforms: PlatformSlug[];
+  deals: Deal[];
+}
+
+function isDealsResponse(v: unknown): v is DealsResponse {
+  return !!v && typeof v === 'object' && Array.isArray((v as DealsResponse).deals);
+}
+
+/**
+ * Active deals for an address, already ranked by the API. Returns null when the
+ * API is unreachable: there is no mock fallback here on purpose, because a
+ * simulated "live deal" would be a lie. The UI just hides the strip.
+ */
+export async function getDeals(
+  options: { address?: string; q?: string; type?: DealType; maxDistance?: number; limit?: number } = {},
+): Promise<DealsResponse | null> {
+  const params = new URLSearchParams();
+  if (options.address) params.set('address', options.address);
+  if (options.q) params.set('q', options.q);
+  if (options.type) params.set('type', options.type);
+  if (options.maxDistance !== undefined) params.set('maxDistance', String(options.maxDistance));
+  params.set('limit', String(options.limit ?? 20));
+  const qs = params.toString();
+  return tryJson(`/api/deals?${qs}`, isDealsResponse);
+}

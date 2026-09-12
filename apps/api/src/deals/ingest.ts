@@ -43,6 +43,9 @@ export interface IngestResult {
   error?: string;
 }
 
+/** Upper bound on rows read back from one dataset. Reading is free; this only stops a runaway. */
+const INGEST_READ_LIMIT = 5000;
+
 const FINISHED: Record<string, ScrapeRun['status']> = {
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
@@ -116,9 +119,17 @@ export async function ingestRun(opts: IngestOptions): Promise<IngestResult> {
     return blank({ ok: false, status: apifyRun.status, run: run ?? ledger, actualCost, error });
   }
 
+  /*
+   * Read the whole dataset, not caps.maxResultsPerRun of it. That cap limits
+   * what a run is allowed to *produce* (it is passed as maxItems when the run
+   * starts, which is what costs money). Reading back a dataset is free, and a
+   * run started elsewhere — an Apify Schedule, or by hand in the console — can
+   * legitimately hold more rows than our own runs would. Capping the read here
+   * would silently drop rows we already paid for.
+   */
   let items: unknown[];
   try {
-    items = await client.getDatasetItems(apifyRun.defaultDatasetId, { limit: cfg.caps.maxResultsPerRun });
+    items = await client.getDatasetItems(apifyRun.defaultDatasetId, { limit: INGEST_READ_LIMIT });
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     const run = await opts.repo.updateScrapeRun(ledger.id, { status: 'failed', finishedAt, actualCost, error });

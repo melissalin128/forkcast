@@ -46,7 +46,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 apifyRouter.post('/apify/webhook', async (req, res, next) => {
   try {
     const q = webhookQuery.parse(req.query);
-    const expected = config.apify.webhookSecret;
+    const expected = config.dealsApify.webhookSecret;
     if (!expected) throw new HttpError(503, 'APIFY_WEBHOOK_SECRET is not configured');
     if (!q.token || !timingSafeEqual(q.token, expected)) throw new HttpError(401, 'invalid webhook token');
 

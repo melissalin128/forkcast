@@ -12,6 +12,7 @@
  *   --dry-run                   print the guard verdict and the actor input, start nothing
  *   --fixture <file>            normalize a saved fixture into the database, no Apify call
  *   --ingest-run <apifyRunId>   ingest a run that already happened, no new spend
+ *                               (--force re-normalizes one already ingested)
  *   --dump-run <apifyRunId>     save a finished run's dataset as a fixture, no new spend
  *   --reconcile                 ingest any runs the webhook missed
  *   --status                    print the ledger: recent runs, deals, credit burned
@@ -47,6 +48,7 @@ interface Args {
   wait: boolean;
   json: boolean;
   live: boolean;
+  force: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -76,6 +78,7 @@ function parseArgs(argv: string[]): Args {
     wait: has('wait'),
     json: has('json'),
     live: has('live'),
+    force: has('force'),
   };
 }
 
@@ -95,7 +98,15 @@ async function main(): Promise<number> {
     return 0;
   }
   if (args.ingestRun) {
-    const res = await ingestRun({ repo, apifyRunId: args.ingestRun, cfg, log, fallback: { platform: args.platform, addressKey: address.key, kind: 'feed' } });
+    const res = await ingestRun({
+      repo,
+      apifyRunId: args.ingestRun,
+      cfg,
+      log,
+      force: args.force,
+      fallback: { platform: args.platform, addressKey: address.key, kind: 'feed' },
+    });
+    if (res.skipped === 'already_ingested') console.error('already ingested; pass --force to re-normalize it into the database');
     if (args.json) console.log(JSON.stringify(res, null, 2));
     return res.ok ? 0 : 1;
   }
@@ -107,7 +118,7 @@ async function main(): Promise<number> {
         '  --q "<query>" --live       start a search run (COSTS CREDIT)\n' +
         '  --dry-run --feed           show the guard verdict and actor input, start nothing\n' +
         '  --fixture <file>           normalize a saved fixture into the database\n' +
-        '  --ingest-run <apifyRunId>  ingest a run that already happened\n' +
+        '  --ingest-run <apifyRunId>  ingest a run that already happened (--force to re-do it)\n' +
         '  --dump-run <apifyRunId>    save a finished run as a fixture\n' +
         '  --reconcile                ingest runs the webhook missed\n' +
         '  --status                   show runs, deals and credit burned',

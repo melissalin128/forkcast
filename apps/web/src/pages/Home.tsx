@@ -5,11 +5,12 @@ import { CategoryStrip } from '../components/CategoryStrip';
 import { DealsStrip } from '../components/DealsStrip';
 import { Feed } from '../components/Feed';
 import { FilterBar } from '../components/FilterBar';
+import { LiveDealsStrip } from '../components/LiveDealsStrip';
 import { ClearIcon } from '../components/Icons';
 import { SortSegment } from '../components/SortSegment';
 import { TopBar } from '../components/TopBar';
 import { COVERED_ZIPS, PLATFORM_BY_SLUG, ZIP } from '../data/mock';
-import { useMockFallback, usePromos, useRestaurants } from '../hooks/useData';
+import { useDeals, useMockFallback, usePromos, useRestaurants } from '../hooks/useData';
 import { usePrefs } from '../hooks/usePrefs';
 import { useToast } from '../hooks/useToast';
 import {
@@ -76,6 +77,7 @@ export function Home() {
   const toast = useToast();
   const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
   const { promos } = usePromos();
+  const { deals: liveDeals, refreshedAt: dealsRefreshedAt, totalActive: dealsTotal } = useDeals();
   const sample = useMockFallback();
 
   const [input, setInput] = useState(urlQ);
@@ -225,6 +227,10 @@ export function Home() {
       <FilterBar category={category} query={q} active={active} onToggle={toggleFilter} onClear={clearAll} />
 
       <p className="trust">Same order on DoorDash, Uber Eats and Grubhub</p>
+
+      {!hasCombo && (
+        <LiveDealsStrip deals={liveDeals} refreshedAt={dealsRefreshedAt} totalActive={dealsTotal} />
+      )}
 
       {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
 

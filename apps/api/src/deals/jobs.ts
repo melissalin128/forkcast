@@ -69,7 +69,7 @@ async function startJob(opts: StartJobOptions & { kind: ScrapeRunKind; query?: s
   const query = opts.kind === 'search' ? opts.query?.trim() : cfg.feedQueries.join(', ');
   if (opts.kind === 'search' && !query) return notConfigured('search needs a non-empty query');
 
-  const liveRuns = opts.allowLiveRuns ?? config.apify.liveRuns;
+  const liveRuns = opts.allowLiveRuns ?? config.dealsApify.liveRuns;
   const maxResults = opts.maxResults ?? cfg.caps.maxResultsPerRun;
   const estimatedCost = estimateRunCost(actor, maxResults);
 
@@ -174,13 +174,13 @@ export function buildWebhookUrl(
   baseUrl?: string,
   secret?: string,
 ): string | undefined {
-  const base = (baseUrl ?? config.apify.publicBaseUrl)?.replace(/\/+$/, '');
+  const base = (baseUrl ?? config.dealsApify.publicBaseUrl)?.replace(/\/+$/, '');
   if (!base) return undefined;
   const url = new URL(`${base}/api/apify/webhook`);
   url.searchParams.set('platform', platform);
   url.searchParams.set('address', addressKey);
   url.searchParams.set('kind', kind);
-  const token = secret ?? config.apify.webhookSecret;
+  const token = secret ?? config.dealsApify.webhookSecret;
   if (token) url.searchParams.set('token', token);
   return url.toString();
 }
