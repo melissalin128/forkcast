@@ -13,6 +13,8 @@ const DEAL_CARDS = [
     savings: 4.20,
     originalTotal: 22.49,
     newTotal: 18.29,
+    deliveryFee: 2.99,
+    etaMinutes: 22,
     eta: '22 min',
     rating: 4.8,
     deal: '40% off first order',
@@ -28,6 +30,8 @@ const DEAL_CARDS = [
     savings: 3.15,
     originalTotal: 19.60,
     newTotal: 16.45,
+    deliveryFee: 0,
+    etaMinutes: 18,
     eta: '18 min',
     rating: 4.6,
     deal: 'Free delivery today',
@@ -43,6 +47,8 @@ const DEAL_CARDS = [
     savings: 5.80,
     originalTotal: 27.30,
     newTotal: 21.50,
+    deliveryFee: 3.49,
+    etaMinutes: 34,
     eta: '34 min',
     rating: 4.9,
     deal: '$5 off $20+ orders',
@@ -58,6 +64,8 @@ const DEAL_CARDS = [
     savings: 2.95,
     originalTotal: 18.90,
     newTotal: 15.95,
+    deliveryFee: 1.99,
+    etaMinutes: 20,
     eta: '20 min',
     rating: 4.7,
     deal: '20% off with DashPass',
@@ -73,6 +81,8 @@ const DEAL_CARDS = [
     savings: 6.40,
     originalTotal: 26.80,
     newTotal: 20.40,
+    deliveryFee: 0,
+    etaMinutes: 28,
     eta: '28 min',
     rating: 4.9,
     deal: 'Free delivery + 25% off',
@@ -88,6 +98,8 @@ const DEAL_CARDS = [
     savings: 3.60,
     originalTotal: 21.10,
     newTotal: 17.50,
+    deliveryFee: 0,
+    etaMinutes: 15,
     eta: '15 min',
     rating: 4.5,
     deal: 'Free delivery, no minimum',
@@ -103,6 +115,8 @@ const DEAL_CARDS = [
     savings: 2.10,
     originalTotal: 13.20,
     newTotal: 11.10,
+    deliveryFee: 1.49,
+    etaMinutes: 12,
     eta: '12 min',
     rating: 4.8,
     deal: '$2 off with code PIZZA',
@@ -118,6 +132,8 @@ const DEAL_CARDS = [
     savings: 4.75,
     originalTotal: 23.75,
     newTotal: 19.00,
+    deliveryFee: 0,
+    etaMinutes: 22,
     eta: '22 min',
     rating: 4.7,
     deal: '20% off + free delivery',
@@ -226,8 +242,16 @@ export default function App() {
   const [addressValue, setAddressValue] = useState('')
   const [cravingValue, setCravingValue] = useState('')
   const [alertPhone, setAlertPhone] = useState('')
+  const [sortBy, setSortBy] = useState<'total' | 'fee_dollar' | 'fee_pct' | 'fastest'>('total')
 
-  const filteredCards = activeTab === 'all' ? DEAL_CARDS : DEAL_CARDS.filter(c => c.platform === activeTab)
+  const filtered = activeTab === 'all' ? DEAL_CARDS : DEAL_CARDS.filter(c => c.platform === activeTab)
+  const filteredCards = [...filtered].sort((a, b) => {
+    if (sortBy === 'total') return a.newTotal - b.newTotal
+    if (sortBy === 'fee_dollar') return a.deliveryFee - b.deliveryFee
+    if (sortBy === 'fee_pct') return (a.deliveryFee / a.originalTotal) - (b.deliveryFee / b.originalTotal)
+    if (sortBy === 'fastest') return a.etaMinutes - b.etaMinutes
+    return 0
+  })
 
   const toggleSave = (id: number) => {
     setSavedCards(prev => {
@@ -284,23 +308,6 @@ export default function App() {
 
           {/* Left */}
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-5">
-              <h1
-                className="font-display leading-[1.05] tracking-tight"
-                style={{
-                  fontFamily: 'Bricolage Grotesque, sans-serif',
-                  fontWeight: 600,
-                  fontSize: 'clamp(40px, 5vw, 64px)',
-                  color: '#17171C',
-                  letterSpacing: '-0.03em'
-                }}
-              >
-                Same food.<br />Three apps.<br />One honest price.
-              </h1>
-              <p className="text-base leading-relaxed max-w-md" style={{ color: '#63636B', fontSize: 16 }}>
-                Platter checks DoorDash, Uber Eats, and Grubhub at the same time and shows you the real total — food, fees, taxes, and promos all included. No surprises at checkout.
-              </p>
-            </div>
 
             {/* Search bar */}
             <div
@@ -552,12 +559,15 @@ export default function App() {
 
               {/* Sort dropdown */}
               <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as typeof sortBy)}
                 className="text-sm font-medium px-4 py-2 rounded-full outline-none cursor-pointer appearance-none pr-8 relative"
                 style={{ background: '#F6F6F4', border: '1px solid #E8E8EC', color: '#17171C' }}
               >
-                <option>Cheapest total</option>
-                <option>Fastest delivery</option>
-                <option>Biggest discount</option>
+                <option value="total">Total price</option>
+                <option value="fee_dollar">Delivery fee ($)</option>
+                <option value="fee_pct">Delivery fee (%)</option>
+                <option value="fastest">Fastest delivery</option>
               </select>
             </div>
           </div>
