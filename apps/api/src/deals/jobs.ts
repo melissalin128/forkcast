@@ -19,6 +19,8 @@ import { getDealProvider } from './providers';
 
 export interface StartJobOptions {
   repo: Repository;
+  /** Override the DEALS_LIVE_RUNS switch. The CLI sets it from --live; tests set it explicitly. */
+  allowLiveRuns?: boolean;
   addressKey: string;
   platform?: PlatformSlug;
   cfg?: DealsConfig;
@@ -42,7 +44,7 @@ export interface StartedJob {
 export interface NotStartedJob {
   started: false;
   reason: string;
-  code: GuardRefused['code'] | 'not_configured' | 'dry_run' | 'apify_error';
+  code: GuardRefused['code'] | 'not_configured' | 'dry_run' | 'apify_error' | 'live_runs_disabled';
   run?: ScrapeRun;
   existingRunId?: string;
   input?: Record<string, unknown>;
@@ -67,6 +69,7 @@ async function startJob(opts: StartJobOptions & { kind: ScrapeRunKind; query?: s
   const query = opts.kind === 'search' ? opts.query?.trim() : cfg.feedQueries.join(', ');
   if (opts.kind === 'search' && !query) return notConfigured('search needs a non-empty query');
 
+  const liveRuns = opts.allowLiveRuns ?? config.apify.liveRuns;
   const maxResults = opts.maxResults ?? cfg.caps.maxResultsPerRun;
   const estimatedCost = estimateRunCost(actor, maxResults);
 
@@ -97,6 +100,19 @@ async function startJob(opts: StartJobOptions & { kind: ScrapeRunKind; query?: s
     log(`[deals] dry run: would start ${platform} ${opts.kind} for ${address.key}, est $${estimatedCost.toFixed(3)}`);
     log(`[deals] actor ${actor.actorId} input: ${JSON.stringify(input)}`);
     return { started: false, code: 'dry_run', reason: 'dry run: nothing was started', input };
+  }
+
+  /*
+   * Last line of defence before money is spent. The cost guard decides whether a
+   * run is affordable; this decides whether this process is allowed to spend at
+   * all. Off by default so no stray request, local curl or fresh deploy can
+   * start an actor: it has to be turned on deliberately (DEALS_LIVE_RUNS=1, or
+   * `npm run deals -- --live`).
+   */
+  if (!liveRuns) {
+    const reason = 'live Apify runs are disabled (set DEALS_LIVE_RUNS=1, or pass --live to the CLI)';
+    log(`[deals] not starting ${platform} ${opts.kind} for ${address.key}: ${reason}`);
+    return { started: false, code: 'live_runs_disabled', reason, input };
   }
 
   // the ledger row exists before the actor does, so a crash mid-start still leaves a trace

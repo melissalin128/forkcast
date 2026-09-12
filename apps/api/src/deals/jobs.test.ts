@@ -35,7 +35,7 @@ function fakeClient(over: Partial<ApifyClient> = {}): { client: ApifyClient; sta
 test('a feed job writes the ledger row, starts the actor and records the Apify run id', async () => {
   const repo = MemoryRepository.empty();
   const { client, starts } = fakeClient();
-  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, log: () => undefined });
+  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, allowLiveRuns: true, log: () => undefined });
 
   assert.equal(res.started, true);
   assert.ok(res.started);
@@ -60,7 +60,7 @@ test('a feed job writes the ledger row, starts the actor and records the Apify r
 test('a search job carries the user query and one URL', async () => {
   const repo = MemoryRepository.empty();
   const { client, starts } = fakeClient();
-  const res = await startSearchJob({ repo, addressKey: '15232', query: '  Primanti Bros ', cfg, client, now, log: () => undefined });
+  const res = await startSearchJob({ repo, addressKey: '15232', query: '  Primanti Bros ', cfg, client, now, allowLiveRuns: true, log: () => undefined });
   assert.ok(res.started);
   assert.equal((starts[0].input.startUrls as Array<{ url: string }>)[0].url, 'https://www.doordash.com/search/store/Primanti%20Bros?event_type=search');
   const [run] = await repo.listScrapeRuns();
@@ -77,7 +77,7 @@ test('the cost guard stops a job before the actor is ever called', async () => {
       startedAt: new Date(now.getTime() - (i + 1) * 3600 * 1000), status: 'succeeded', estimatedCost: 0.216,
     });
   }
-  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, log: () => undefined });
+  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, allowLiveRuns: true, log: () => undefined });
   assert.equal(res.started, false);
   assert.equal(!res.started && res.code, 'feed_cap');
   assert.equal(starts.length, 0, 'nothing was sent to Apify');
@@ -89,7 +89,7 @@ test('a dry run reports the input and the estimate without starting or writing a
   const repo = MemoryRepository.empty();
   const { client, starts } = fakeClient();
   const lines: string[] = [];
-  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, dryRun: true, log: (l) => lines.push(l) });
+  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, allowLiveRuns: true, dryRun: true, log: (l) => lines.push(l) });
   assert.equal(!res.started && res.code, 'dry_run');
   assert.equal(starts.length, 0);
   assert.equal(await repo.countScrapeRuns(), 0);
@@ -99,12 +99,29 @@ test('a dry run reports the input and the estimate without starting or writing a
 test('an unconfigured address or platform refuses without touching the ledger', async () => {
   const repo = MemoryRepository.empty();
   const { client } = fakeClient();
-  const bad = await startFeedJob({ repo, addressKey: '99999', cfg, client, now, log: () => undefined });
+  const bad = await startFeedJob({ repo, addressKey: '99999', cfg, client, now, allowLiveRuns: true, log: () => undefined });
   assert.equal(!bad.started && bad.code, 'not_configured');
-  const noActor = await startFeedJob({ repo, addressKey: '15232', platform: 'grubhub', cfg, client, now, log: () => undefined });
+  const noActor = await startFeedJob({ repo, addressKey: '15232', platform: 'grubhub', cfg, client, now, allowLiveRuns: true, log: () => undefined });
   assert.equal(!noActor.started && noActor.code, 'not_configured');
   assert.match(!noActor.started ? noActor.reason : '', /no actor id configured for grubhub/);
   assert.equal(await repo.countScrapeRuns(), 0);
+});
+
+test('nothing starts unless live runs are explicitly enabled', async () => {
+  const repo = MemoryRepository.empty();
+  const { client, starts } = fakeClient();
+
+  // the default: the switch is off, so a job that passes every other check still does not spend
+  const off = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, allowLiveRuns: false, log: () => undefined });
+  assert.equal(off.started, false);
+  assert.equal(!off.started && off.code, 'live_runs_disabled');
+  assert.equal(starts.length, 0, 'Apify was never called');
+  assert.equal(await repo.countScrapeRuns(), 0, 'and no ledger row was written');
+  assert.ok(!off.started && off.input, 'the input is still reported so a dry run is useful');
+
+  const search = await startSearchJob({ repo, addressKey: '15232', query: 'ramen', cfg, client, now, allowLiveRuns: false, log: () => undefined });
+  assert.equal(!search.started && search.code, 'live_runs_disabled');
+  assert.equal(starts.length, 0);
 });
 
 test('an Apify failure marks the ledger row failed instead of leaving it running forever', async () => {
@@ -114,7 +131,7 @@ test('an Apify failure marks the ledger row failed instead of leaving it running
       throw new Error('POST /v2/acts/x/runs -> 402: monthly usage hard limit exceeded');
     },
   } as Partial<ApifyClient>);
-  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, log: () => undefined });
+  const res = await startFeedJob({ repo, addressKey: '15232', cfg, client, now, allowLiveRuns: true, log: () => undefined });
   assert.equal(!res.started && res.code, 'apify_error');
   const [run] = await repo.listScrapeRuns();
   assert.equal(run.status, 'failed');

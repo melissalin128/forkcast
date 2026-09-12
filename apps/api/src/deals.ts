@@ -1,5 +1,9 @@
 /**
  * `npm run deals -- ...` — the manual entrypoint for the Apify deals layer.
+ *
+ * Nothing here spends credit unless you pass --live (or DEALS_LIVE_RUNS=1 is
+ * set). Without it, --feed and --q report the actor input and the cost guard's
+ * verdict and stop, exactly like --dry-run.
  * This is how the layer is developed, debugged and run by hand; the scheduled
  * feed goes through Apify Schedules and the webhook instead.
  *
@@ -42,6 +46,7 @@ interface Args {
   status: boolean;
   wait: boolean;
   json: boolean;
+  live: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -70,6 +75,7 @@ function parseArgs(argv: string[]): Args {
     status: has('status'),
     wait: has('wait'),
     json: has('json'),
+    live: has('live'),
   };
 }
 
@@ -97,8 +103,8 @@ async function main(): Promise<number> {
   if (!args.feed && !args.query) {
     console.error(
       'Nothing to do. Pick one:\n' +
-        '  --feed                     start the preset cuisine feed (costs credit)\n' +
-        '  --q "<query>"              start a search run (costs credit)\n' +
+        '  --feed --live              start the preset cuisine feed (COSTS CREDIT)\n' +
+        '  --q "<query>" --live       start a search run (COSTS CREDIT)\n' +
         '  --dry-run --feed           show the guard verdict and actor input, start nothing\n' +
         '  --fixture <file>           normalize a saved fixture into the database\n' +
         '  --ingest-run <apifyRunId>  ingest a run that already happened\n' +
@@ -109,7 +115,10 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const common = { repo, addressKey: address.key, platform: args.platform, cfg, maxResults: args.maxResults, dryRun: args.dryRun, log };
+  const common = {
+    repo, addressKey: address.key, platform: args.platform, cfg,
+    maxResults: args.maxResults, dryRun: args.dryRun, allowLiveRuns: args.live, log,
+  };
   const res = args.feed ? await startFeedJob(common) : await startSearchJob({ ...common, query: args.query! });
 
   if (!res.started) {

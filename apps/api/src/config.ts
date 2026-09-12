@@ -66,6 +66,13 @@ export const config = {
     webhookSecret: process.env.APIFY_WEBHOOK_SECRET?.trim() || undefined,
     /** Public base URL of this API (e.g. https://forkcast-api.vercel.app), used to build webhook URLs. */
     publicBaseUrl: process.env.API_PUBLIC_URL?.trim().replace(/\/+$/, '') || undefined,
+    /**
+     * Master switch for spending credit. Off unless DEALS_LIVE_RUNS is
+     * explicitly "1"/"true", so a stray request, a local curl or a fresh deploy
+     * can never start an actor by accident. Reads and ingests are unaffected:
+     * they cost nothing.
+     */
+    liveRuns: /^(1|true|yes)$/i.test(process.env.DEALS_LIVE_RUNS?.trim() ?? ''),
   },
   /** Bearer token Vercel Cron sends to GET /api/apify/reconcile. */
   cronSecret: process.env.CRON_SECRET?.trim() || undefined,
