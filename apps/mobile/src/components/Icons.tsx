@@ -38,6 +38,23 @@ export const PinIcon: FC<P> = ({ size = 16, stroke = '#1b1917', strokeWidth }) =
   </Svg>
 );
 
+export const MenuIcon: FC<P> = ({ size = 18, stroke = '#1b1917', strokeWidth }) => (
+  <Svg {...base(size, stroke, strokeWidth ?? 2.2)}>
+    <Path d="M4 7h16M4 12h16M4 17h16" />
+  </Svg>
+);
+
+export const SlidersIcon: FC<P> = ({ size = 16, stroke = '#1b1917', strokeWidth }) => (
+  <Svg {...base(size, stroke, strokeWidth ?? 2.2)}>
+    <Path d="M4 6h8M16 6h4" />
+    <Circle cx="14" cy="6" r="2" />
+    <Path d="M4 12h4M12 12h8" />
+    <Circle cx="10" cy="12" r="2" />
+    <Path d="M4 18h10M18 18h2" />
+    <Circle cx="16" cy="18" r="2" />
+  </Svg>
+);
+
 export const SearchIcon: FC<P> = ({ size = 18, stroke = '#1b1917', strokeWidth }) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Circle cx="11" cy="11" r="7" />

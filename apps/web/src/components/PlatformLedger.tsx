@@ -5,7 +5,7 @@ import type { Restaurant } from '../types';
 
 /**
  * The three-platform ledger for the representative order: App / Food / Fees /
- * Total per platform. Cheapest row is mint. Totals carry `data-price` so the
+ * Total per platform, every row styled alike. Totals carry `data-price` so the
  * Prices tab can count them up.
  */
 export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
@@ -36,11 +36,10 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
           <span>Fees</span>
           <span>Total</span>
         </div>
-        {offers.map((o, i) => {
-          const best = i === 0 && offers.length > 1;
+        {offers.map((o) => {
           const p = PLATFORM_BY_SLUG[o.platformSlug];
           return (
-            <div key={o.platformSlug} className={`ledger__row${best ? ' ledger__row--best' : ''}`}>
+            <div key={o.platformSlug} className="ledger__row">
               <span className="ledger__plat">
                 <span className="ledger__name">
                   {p.name} <span className="ledger__eta">{etaRange(o)}</span>

@@ -5,13 +5,10 @@ import {
   activeDeals,
   bestOffer,
   cheapestFeeOffer,
-  etaRange,
   fastestOffer,
   money,
-  orderSummary,
   platformName,
   ratingCount,
-  savingsTail,
 } from '../lib/analysis';
 import { hawtPixScore, type Sort } from '../lib/filter';
 import { restaurantPhoto } from '../lib/photos';
@@ -32,7 +29,6 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
   const fastest = fastestOffer(r);
   const lowFee = cheapestFeeOffer(r);
   if (!best || !fastest || !lowFee) return null;
-  const byTime = sort === 'fastest';
   const byFee = sort === 'cheapestFee';
   const deals = activeDeals(r);
   const saved = prefs.savedRestaurantIds.includes(r.id);
@@ -82,27 +78,15 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
           </Text>
         </View>
 
-        <CompareStrip restaurant={r} highlight={byTime ? 'fastest' : 'cheapest'} />
+        <CompareStrip restaurant={r} />
 
-        <Text style={styles.forLine} numberOfLines={1}>
-          For {orderSummary(r)}, delivered
-        </Text>
-
-        <Text style={styles.line} numberOfLines={1}>
-          {byTime ? (
-            <>
-              <Text style={styles.strong}>Fastest on {platformName(fastest.platformSlug)}</Text> · {etaRange(fastest)}
-            </>
-          ) : byFee ? (
-            <>
-              <Text style={styles.strong}>Lowest fee on {platformName(lowFee.platformSlug)}</Text> · {money(lowFee.deliveryFee)} delivery
-            </>
-          ) : (
-            <>
-              <Text style={styles.strong}>Cheapest on {platformName(best.platformSlug)}</Text> · {savingsTail(r)}
-            </>
-          )}
-        </Text>
+        {/* Delivery fee is the one number the strip does not show, so "Low fee"
+            still gets a line. Other sorts need no caption under the prices. */}
+        {byFee && (
+          <Text style={styles.line} numberOfLines={1}>
+            <Text style={styles.strong}>Lowest fee on {platformName(lowFee.platformSlug)}</Text> · {money(lowFee.deliveryFee)} delivery
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -164,7 +148,6 @@ const styles = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   metaText: { fontSize: 13, color: C.muted, flexShrink: 1 },
   fg: { color: C.fg },
-  forLine: { marginTop: 8, fontSize: 12, color: C.muted },
   line: { marginTop: 3, fontSize: 13, color: C.muted },
   strong: { color: C.winInk, fontWeight: '700' },
 });

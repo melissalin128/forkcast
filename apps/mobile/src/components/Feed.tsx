@@ -43,7 +43,6 @@ export function Feed({ restaurants, loading, sort, emptyText, action, header, re
                 <View style={[styles.sk, styles.skCol]} />
                 <View style={[styles.sk, styles.skCol]} />
               </View>
-              <View style={[styles.sk, styles.skLine]} />
             </View>
           </View>
         )}
@@ -93,7 +92,6 @@ const styles = StyleSheet.create({
   skMeta: { height: 12, width: '40%', marginTop: 8 },
   skStrip: { flexDirection: 'row', gap: 6, marginTop: 10 },
   skCol: { flex: 1, height: 52, borderRadius: 8 },
-  skLine: { height: 12, width: '70%', marginTop: 10 },
   empty: { paddingVertical: 40, paddingHorizontal: 16, alignItems: 'center', gap: 14 },
   emptyText: { color: C.muted, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   item: { marginHorizontal: GUTTER },

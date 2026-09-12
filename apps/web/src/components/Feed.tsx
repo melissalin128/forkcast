@@ -47,7 +47,6 @@ export function Feed({ restaurants, loading, sort, emptyText, action }: Props) {
                 <div className="sk sk--col" />
                 <div className="sk sk--col" />
               </div>
-              <div className="sk sk--line" />
             </div>
           </div>
         ))}

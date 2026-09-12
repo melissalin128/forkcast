@@ -5,11 +5,10 @@ import { CategoryStrip } from '../../src/components/CategoryStrip';
 import { DealsStrip } from '../../src/components/DealsStrip';
 import { Feed } from '../../src/components/Feed';
 import { FilterBar } from '../../src/components/FilterBar';
-import { ClearIcon } from '../../src/components/Icons';
 import { SortSegment } from '../../src/components/SortSegment';
 import { TopBar } from '../../src/components/TopBar';
 import { PLATFORM_BY_SLUG, ZIP } from '../../src/data/mock';
-import { useMockFallback, usePromos, useRestaurants } from '../../src/hooks/useData';
+import { usePromos, useRestaurants } from '../../src/hooks/useData';
 import { usePrefs } from '../../src/hooks/usePrefs';
 import { useToast } from '../../src/hooks/useToast';
 import {
@@ -43,21 +42,17 @@ function freshness(iso: string): string {
   return 'updated today';
 }
 
-let barDismissedThisSession = false;
-
 export default function Home() {
   const { prefs, setZip } = usePrefs();
   const toast = useToast();
   const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
   const { promos } = usePromos();
-  const sample = useMockFallback();
 
   const [input, setInput] = useState('');
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<Category>('All');
   const [sort, setSort] = useState<Sort>('cheapest');
   const [active, setActive] = useState<FilterKey[]>([]);
-  const [barDismissed, setBarDismissed] = useState(barDismissedThisSession);
 
   useEffect(() => {
     const t = setTimeout(() => setQ(input), DEBOUNCE_MS);
@@ -112,30 +107,10 @@ export default function Home() {
 
   const header = (
     <View>
-      {sample && !barDismissed && (
-        <View accessibilityRole="alert" style={styles.bar}>
-          <Text style={styles.barText}>
-            Demo prices. Restaurants and menu prices are real listings; delivery fees and totals are modelled estimates,
-            not live prices.
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Dismiss"
-            hitSlop={8}
-            onPress={() => {
-              barDismissedThisSession = true;
-              setBarDismissed(true);
-            }}
-          >
-            <ClearIcon size={16} stroke={C.accentInk} />
-          </Pressable>
-        </View>
-      )}
-
-      <CategoryStrip value={category} onChange={setCategory} />
-      <FilterBar category={category} query={q} active={active} onToggle={toggleFilter} onClear={clearAll} />
-
-      <Text style={styles.trust}>Same order on DoorDash, Uber Eats and Grubhub</Text>
+      <View style={styles.tools}>
+        <CategoryStrip value={category} onChange={setCategory} />
+        <FilterBar category={category} query={q} active={active} onToggle={toggleFilter} onClear={clearAll} />
+      </View>
 
       {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
 
@@ -214,25 +189,21 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: C.page },
-  bar: {
+  tools: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 10,
-    paddingVertical: 7,
+    gap: 8,
+    paddingTop: 12,
     paddingHorizontal: GUTTER,
-    backgroundColor: C.accentBg,
-    borderBottomWidth: 1,
-    borderBottomColor: C.accentLine,
+    paddingBottom: 4,
   },
-  barText: { color: C.accentInk, fontSize: 12, fontWeight: '600', flexShrink: 1 },
-  trust: { paddingTop: 4, paddingHorizontal: GUTTER, paddingBottom: 6, fontSize: 12, color: C.muted },
   foryou: { paddingHorizontal: GUTTER, paddingBottom: 8 },
   forTitle: { fontSize: 15, fontWeight: '700', color: C.fg },
   forSub: { fontSize: 12, color: C.muted, marginTop: 2, marginBottom: 8 },
   forGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   forCard: {
-    width: '48%',
+    width: '100%',
     flexGrow: 1,
     paddingVertical: 10,
     paddingHorizontal: 12,

@@ -13,6 +13,8 @@ interface Props {
   /** Clears search + category + filters together — used by the query-summary line below. */
   onClear: () => void;
   resultCount: number;
+  /** Phone toolbar: Filter button only, no chip row or query line. */
+  compact?: boolean;
 }
 
 const GROUP_LABEL: Record<string, string> = { price: 'Price', time: 'Delivery time', diet: 'Dietary' };
@@ -26,7 +28,7 @@ const GROUPS = Array.from(new Set(FILTERS.map((f) => f.group)));
  * that's always taking up space. Whatever's already on shows as a small removable
  * tag next to the pill, so the active state is never hidden — only the picker is.
  */
-export function FilterBar({ category, query, active, onToggle, onClearFilters, onClear, resultCount }: Props) {
+export function FilterBar({ category, query, active, onToggle, onClearFilters, onClear, resultCount, compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const label = queryLabel(category, active, query);
   const activeChips = FILTERS.filter((f) => active.includes(f.key));
@@ -44,7 +46,7 @@ export function FilterBar({ category, query, active, onToggle, onClearFilters, o
   }, [open]);
 
   return (
-    <div className="filters">
+    <div className={`filters${compact ? ' filters--compact' : ''}`}>
       <div className="filters__row">
         <div className="chips" role="group" aria-label="Filters">
           <button
@@ -60,28 +62,25 @@ export function FilterBar({ category, query, active, onToggle, onClearFilters, o
             Filters{active.length > 0 ? ` · ${active.length}` : ''}
           </button>
 
-          {activeChips.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className="chip chip--active"
-              aria-pressed="true"
-              onClick={(e) => {
-                onToggle(f.key);
-                chipPop(e.currentTarget);
-              }}
-            >
-              {f.label} ✕
-            </button>
-          ))}
+          {!compact &&
+            activeChips.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                className="chip chip--active"
+                aria-pressed="true"
+                onClick={(e) => {
+                  onToggle(f.key);
+                  chipPop(e.currentTarget);
+                }}
+              >
+                {f.label} ✕
+              </button>
+            ))}
         </div>
-
-        {/* Fills the space next to a short chip row on wide screens instead of
-            leaving it blank — same text that used to sit alone on its own line. */}
-        <p className="filters__trust">Same order on DoorDash, Uber Eats and Grubhub</p>
       </div>
 
-      {label && (
+      {!compact && label && (
         <div className="query" role="status">
           <span className="query__text">{label}</span>
           <button type="button" className="query__clear" onClick={onClear}>

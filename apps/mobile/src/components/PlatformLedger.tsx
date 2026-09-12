@@ -38,11 +38,10 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
           <Text style={[styles.headCell, styles.colNum]}>Fees</Text>
           <Text style={[styles.headCell, styles.colTotal]}>Total</Text>
         </View>
-        {offers.map((o, i) => {
-          const best = i === 0 && offers.length > 1;
+        {offers.map((o) => {
           const p = PLATFORM_BY_SLUG[o.platformSlug];
           return (
-            <View key={o.platformSlug} style={[styles.row, best && styles.rowBest]}>
+            <View key={o.platformSlug} style={styles.row}>
               <View style={styles.colApp}>
                 <Text style={styles.name}>
                   {p.name} <Text style={styles.eta}>{etaRange(o)}</Text>
@@ -52,7 +51,7 @@ export function PlatformLedger({ restaurant: r }: { restaurant: Restaurant }) {
               </View>
               <Text style={[styles.cell, num, styles.colNum]}>{money(o.subtotal)}</Text>
               <Text style={[styles.cell, num, styles.colNum]}>{money(fees(o))}</Text>
-              <CountUpMoney value={o.total} style={[styles.cell, styles.total, styles.colTotal, best && styles.ink]} />
+              <CountUpMoney value={o.total} style={[styles.cell, styles.total, styles.colTotal]} />
             </View>
           );
         })}
@@ -89,14 +88,12 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   rowHead: { paddingTop: 2, paddingBottom: 6 },
-  rowBest: { backgroundColor: C.winBg, borderColor: C.win },
   headCell: { fontSize: 10, fontWeight: '600', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
   colApp: { flex: 2, minWidth: 0 },
   colNum: { flex: 1, textAlign: 'right' },
   colTotal: { flex: 1.2, textAlign: 'right' },
   cell: { fontSize: 12, color: C.fg },
   total: { fontSize: 13 },
-  ink: { color: C.winInk },
   name: { fontWeight: '600', fontSize: 12, color: C.fg },
   eta: { color: C.muted, fontWeight: '500' },
   note: { fontSize: 11, color: C.muted, marginTop: 1 },

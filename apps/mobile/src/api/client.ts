@@ -28,32 +28,6 @@ export interface Sourced<T> {
 
 const TIMEOUT_MS = 2500;
 
-// ---------------------------------------------------------------------------
-// Fallback flag. Flipped the first time any call serves sample data; the Home
-// screen subscribes and shows a thin "sample prices" bar. Reset when the API
-// answers again.
-// ---------------------------------------------------------------------------
-
-let usingMock = false;
-const listeners = new Set<() => void>();
-
-function setUsingMock(next: boolean) {
-  if (usingMock === next) return;
-  usingMock = next;
-  listeners.forEach((fn) => fn());
-}
-
-/** For `useSyncExternalStore`: true once sample data has been served. */
-export const mockFallback = {
-  subscribe(fn: () => void) {
-    listeners.add(fn);
-    return () => {
-      listeners.delete(fn);
-    };
-  },
-  get: () => usingMock,
-};
-
 async function tryJson<T>(path: string, validate: (json: unknown) => json is T): Promise<T | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -121,10 +95,8 @@ export async function getRestaurants(zip: string, q = '', subscriptions: string[
     const data: RestaurantsResponse = Array.isArray(json)
       ? { restaurants: json, refreshedAt: new Date().toISOString() }
       : { ...json, restaurants: json.restaurants.map((r) => demo ? { ...r, imageUrl: undefined } : r) };
-    setUsingMock(demo);
     return { data, source: demo ? 'mock' : 'api' };
   }
-  setUsingMock(true);
   return { data: { restaurants: filterMock(q), refreshedAt: REFRESHED_AT }, source: 'mock' };
 }
 
@@ -132,17 +104,14 @@ export async function getRestaurant(id: string, subscriptions: string[] = [], ti
   const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}?${query({ zip, subs: subscriptions.join(','), tip: String(tipPct) })}`, isRestaurant);
   if (json) {
     const demo = (json as Restaurant & { dataMode?: string }).dataMode === 'demo';
-    setUsingMock(demo);
     return { data: demo ? { ...json, imageUrl: undefined } : json, source: demo ? 'mock' : 'api' };
   }
-  setUsingMock(true);
   return { data: RESTAURANTS.find((r) => r.id === id), source: 'mock' };
 }
 
 export async function getHistory(id: string): Promise<Sourced<PriceSnapshot[]>> {
   const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}/history`, isSnapshotList);
   if (json) return { data: Array.isArray(json) ? json : json.snapshots, source: 'api' };
-  setUsingMock(true);
   return { data: mockHistory(id), source: 'mock' };
 }
 

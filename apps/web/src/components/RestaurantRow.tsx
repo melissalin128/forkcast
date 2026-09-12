@@ -4,13 +4,10 @@ import {
   activeDeals,
   bestOffer,
   cheapestFeeOffer,
-  etaRange,
   fastestOffer,
   money,
-  orderSummary,
   platformName,
   ratingCount,
-  savingsTail,
 } from '../lib/analysis';
 import { hawtPixScore, type Sort } from '../lib/filter';
 import { restaurantPhoto } from '../lib/photos';
@@ -25,14 +22,13 @@ interface Props {
   sort?: Sort;
 }
 
-/** Feed card: 16:9 photo, name + meta, the compare strip, what the price is for, one verdict line. */
+/** Feed card: 16:9 photo, name + meta, and the three-platform price strip. */
 export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
   const { prefs, toggleSaved } = usePrefs();
   const best = bestOffer(r);
   const fastest = fastestOffer(r);
   const lowFee = cheapestFeeOffer(r);
   if (!best || !fastest || !lowFee) return null;
-  const byTime = sort === 'fastest';
   const byFee = sort === 'cheapestFee';
   const deals = activeDeals(r);
   const saved = prefs.savedRestaurantIds.includes(r.id);
@@ -75,25 +71,15 @@ export function RestaurantRow({ restaurant: r, sort = 'cheapest' }: Props) {
           </span>
         </div>
 
-        <CompareStrip restaurant={r} highlight={byTime ? 'fastest' : 'cheapest'} />
+        <CompareStrip restaurant={r} />
 
-        <div className="row__for">For {orderSummary(r)}, delivered</div>
-
-        <div className="row__line">
-          {byTime ? (
-            <>
-              <strong>Fastest on {platformName(fastest.platformSlug)}</strong> · {etaRange(fastest)}
-            </>
-          ) : byFee ? (
-            <>
-              <strong>Lowest fee on {platformName(lowFee.platformSlug)}</strong> · {money(lowFee.deliveryFee)} delivery
-            </>
-          ) : (
-            <>
-              <strong>Cheapest on {platformName(best.platformSlug)}</strong> · {savingsTail(r)}
-            </>
-          )}
-        </div>
+        {/* Delivery fee is the one number the strip does not show, so "Low fee"
+            still gets a line. Other sorts need no caption under the prices. */}
+        {byFee && (
+          <div className="row__line">
+            <strong>Lowest fee on {platformName(lowFee.platformSlug)}</strong> · {money(lowFee.deliveryFee)} delivery
+          </div>
+        )}
       </div>
     </Link>
   );

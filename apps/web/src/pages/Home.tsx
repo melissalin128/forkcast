@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { BottomTabs } from "../components/BottomTabs";
-import { CategoryStrip } from "../components/CategoryStrip";
-import { DealsStrip } from "../components/DealsStrip";
-import { Feed } from "../components/Feed";
-import { FilterBar } from "../components/FilterBar";
-import { ClearIcon } from "../components/Icons";
-import { SortSegment } from "../components/SortSegment";
-import { TopBar } from "../components/TopBar";
-import { COVERED_ZIPS, PLATFORM_BY_SLUG, ZIP } from "../data/mock";
-import { useMockFallback, usePromos, useRestaurants } from "../hooks/useData";
-import { usePrefs } from "../hooks/usePrefs";
-import { useToast } from "../hooks/useToast";
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BottomTabs } from '../components/BottomTabs';
+import { CategoryStrip } from '../components/CategoryStrip';
+import { DealsStrip } from '../components/DealsStrip';
+import { Feed } from '../components/Feed';
+import { FilterBar } from '../components/FilterBar';
+import { SortSegment } from '../components/SortSegment';
+import { TopBar } from '../components/TopBar';
+import { COVERED_ZIPS, PLATFORM_BY_SLUG, ZIP } from '../data/mock';
+import { usePromos, useRestaurants } from '../hooks/useData';
+import { usePrefs } from '../hooks/usePrefs';
+import { useToast } from '../hooks/useToast';
 import {
   CATEGORY_WORD,
   categoryFromSlug,
@@ -37,8 +36,7 @@ const SORT_WORD: Record<Sort, string> = {
   cheapestFee: "Lowest fee",
 };
 const DEBOUNCE_MS = 150;
-const BAR_KEY = "forkcast.sampleBarDismissed";
-const ONBOARD_KEY = "forkcast.onboarded";
+const ONBOARD_KEY = 'forkcast.onboarded';
 
 function readFlag(key: string): boolean {
   try {
@@ -76,7 +74,6 @@ export function Home() {
   const toast = useToast();
   const { restaurants, refreshedAt, loading, refresh } = useRestaurants();
   const { promos } = usePromos();
-  const sample = useMockFallback();
 
   const [input, setInput] = useState(urlQ);
   const [q, setQ] = useState(urlQ);
@@ -101,7 +98,6 @@ export function Home() {
     else next.delete("filters");
     setParams(next, { replace: true });
   };
-  const [barDismissed, setBarDismissed] = useState(() => readFlag(BAR_KEY));
   const [onboarded, setOnboarded] = useState(() => readFlag(ONBOARD_KEY));
 
   useEffect(() => {
@@ -192,6 +188,7 @@ export function Home() {
   return (
     <div className="page">
       <TopBar search={{ value: input, onChange: setInput }} />
+
       {!onboarded && (
         <section className="onboard" aria-label="Set up Forkcast">
           <div>
@@ -217,7 +214,22 @@ export function Home() {
       )}
 
       <div className="home-body">
-        <CategoryStrip value={category} onChange={setCategory} />
+        <CategoryStrip
+          value={category}
+          onChange={setCategory}
+          toolbar={
+            <FilterBar
+              compact
+              category={category}
+              query={q}
+              active={active}
+              onToggle={toggleFilter}
+              onClearFilters={() => setActive([])}
+              onClear={clearAll}
+              resultCount={visible.length}
+            />
+          }
+        />
 
         <div className="home-main">
           <FilterBar

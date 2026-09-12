@@ -115,10 +115,6 @@ ul {
   font-variant-numeric: tabular-nums;
 }
 
-.win {
-  color: var(--babu-dark);
-}
-
 .muted {
   color: var(--muted);
 }
@@ -305,85 +301,67 @@ ul {
   flex: none;
 }
 
-/* ------------------------------------------------------- sample-price bar */
+/* --------------------------------------------------------- category chrome */
 
-.bar {
+/* Phone: hamburger + Filter button on one row, full-width stacked cards.
+   Desktop (≥641px): Melissa's sticky left cuisine rail — do not put a
+   persistent rail on a 375px screen; the 18 labels will not fit. */
+
+.home-body {
+  display: block;
+}
+
+.home-main {
+  min-width: 0;
+}
+
+.cats-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 9px var(--gutter);
-  background: var(--inset);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-  border-bottom: 1px solid var(--line-soft);
+  gap: 8px;
+  padding: 12px var(--gutter) 0;
 }
 
-.bar__close {
+.cats-bar__btn {
   display: inline-flex;
-  color: inherit;
-  flex: none;
-  padding: 4px;
-  margin: -4px;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hof);
 }
-
-/* --------------------------------------------------------- category strip */
 
 .cats-wrap {
-  position: relative;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.cats-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0), var(--page));
-  pointer-events: none;
-}
-
-.cats {
-  display: flex;
-  gap: 8px;
-  padding: 16px var(--gutter) 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  /* The accordion's flex-grow transition (below) recalculates layout on every
-     hover frame; containment keeps that reflow scoped to this row instead of
-     rippling into the rest of the page's layout tree. */
-  contain: layout style;
-}
-
-.cats::-webkit-scrollbar {
   display: none;
 }
 
-/* Quiet by default — icon and label both gray. Selected turns charcoal and
-   gets a bottom underline, Airbnb's actual category-tab treatment. */
-/* flex-grow lets the tiles stretch evenly to fill the full row on wide screens; the
-   min-width keeps them from shrinking below a usable size, at which point the row
-   scrolls horizontally instead (mobile). */
-.cat {
-  flex: 1 1 88px;
-  min-width: 88px;
-  max-width: 170px;
+.cats-sheet__list {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 16px;
+}
+
+.cat {
+  flex: none;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  padding-bottom: 12px;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--r-ctl);
   color: var(--muted);
-  border-bottom: 2px solid transparent;
   opacity: 0.75;
   transition:
-    flex-grow 340ms cubic-bezier(0.34, 1.1, 0.4, 1),
     opacity 120ms,
-    border-color 120ms,
     color 120ms,
     background 150ms,
     transform 150ms;
@@ -391,26 +369,13 @@ ul {
 
 .cat:hover {
   opacity: 1;
+  background: var(--inset);
 }
 
-/* The accordion: hovering anywhere in the row eases every tile back a little,
-   then the one actually under the cursor fans out wider than the rest. Only
-   makes sense while the row is still horizontal (≤640px, before it becomes
-   the sidebar below) — touch has no hover to get stuck in either. */
-@media (hover: hover) and (max-width: 640px) {
-  .cats:hover .cat {
-    flex-grow: 0.6;
-  }
-
-  .cats .cat:hover {
-    flex-grow: 3.4;
-  }
-}
-
-/* Quiet ring at rest; blooms into the category's own tint the moment you engage. */
 .cat__bubble {
-  width: 52px;
-  height: 52px;
+  width: 34px;
+  height: 34px;
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -428,10 +393,6 @@ ul {
   background: var(--cat-tint);
 }
 
-/* Line icon in the category's own color, at 45% strength until hover/select
-   reveals it in full — the same "hint of color at rest" balance the emoji
-   version was tuned to, just driven by `color` instead of `filter: grayscale`
-   since these are currentColor SVGs, not platform emoji glyphs. */
 .cat__icon {
   display: inline-block;
   color: color-mix(in srgb, var(--cat-fg) 45%, var(--muted));
@@ -447,19 +408,15 @@ ul {
 }
 
 .cat__label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  white-space: nowrap;
-  transition: transform 200ms ease;
-}
-
-.cat:hover .cat__label {
-  transform: translateY(1px);
+  line-height: 1.25;
+  text-align: left;
 }
 
 .cat--active {
   color: var(--hof);
-  border-bottom-color: var(--hof);
+  background: var(--inset);
   opacity: 1;
 }
 
@@ -467,9 +424,24 @@ ul {
   font-weight: 800;
 }
 
-/* Sidebar mode: past the point where the bottom tab bar gives way to the top
-   nav, the cuisine row moves to a sticky left column instead of a horizontal
-   strip that scrolls out of view with the rest of the page. */
+.cats-bar .filters__row {
+  padding: 0;
+}
+
+.cats-bar .filters .chips {
+  padding: 0;
+  overflow: visible;
+}
+
+/* Desktop FilterBar is the one in .home-main; hide it on a phone so only
+   the compact button on the hamburger row remains. */
+.home-main > .filters {
+  display: none;
+}
+
+/* Desktop: hide the hamburger and pin Melissa's cuisine rail on the left.
+   Search pill lives in the sticky header (~52px + 12px margin under the
+   56px brand row), so the rail's sticky top starts below that whole block. */
 @media (min-width: 641px) {
   .home-body {
     display: flex;
@@ -479,95 +451,73 @@ ul {
   }
 
   .home-main {
+    display: block;
     flex: 1;
     min-width: 0;
   }
 
-  .cats-wrap {
-    flex: none;
-    width: 176px;
-    border-bottom: 0;
-    position: sticky;
-    top: calc(var(--top-h) + 96px);
-    max-height: calc(100dvh - var(--top-h) - 96px - 16px);
-    overflow: hidden;
+  .home-main > .filters {
+    display: block;
   }
 
-  /* The right-edge fade was for the horizontal scroll cue; the sidebar has
-     no equivalent (it scrolls vertically, if at all, with a native bar). */
-  .cats-wrap::after {
-    content: none;
+  .cats-bar {
+    display: none;
+  }
+
+  .cats-wrap {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    width: 176px;
+    position: sticky;
+    top: calc(var(--top-h) + 64px);
+    z-index: 4;
+    height: calc(100dvh - var(--top-h) - 64px - 16px);
+    overflow-x: clip;
   }
 
   .cats {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
+    flex: 1 1 auto;
     gap: 2px;
-    padding: 4px;
-    overflow-x: visible;
+    padding: 8px 4px 16px;
+    min-height: 0;
+    overflow-x: clip;
     overflow-y: auto;
-    max-height: 100%;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    contain: layout style;
   }
 
-  .cat {
-    flex: none;
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 8px 10px;
-    border-bottom: 0;
-    border-radius: var(--r-ctl);
+  .cats::-webkit-scrollbar {
+    display: none;
   }
 
-  /* No room (or reason) to fan neighbors aside in a vertical list — a quiet
-     background + a small rightward nudge reads as "reach toward this one"
-     without the horizontal accordion's layout math. */
   .cat:hover {
-    background: var(--inset);
     transform: translateX(2px);
   }
 
-  .cat--active {
-    background: var(--inset);
-    border-bottom: 0;
+  .filters__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px 12px;
+    padding: 0;
   }
 
-  .cat__bubble {
-    width: 34px;
-    height: 34px;
-    flex: none;
+  .filters__row .chips {
+    padding: 14px 0 4px;
   }
 
-  .cat__label {
-    font-size: 14px;
-    white-space: normal;
+  .filters__row .chips > .chip:not(.chip--filters) {
+    display: inline-flex;
   }
 }
 
-/* -------------------------------------------------------------- trust line */
-
-/* Chips on the left, trust line on the right of the same row — fills the
-   blank space a short chip row would otherwise leave on wide screens. Wraps
-   to its own line under the chips when there isn't room, so narrow/mobile
-   layouts look exactly as before. */
-.filters__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 12px;
-}
-
-.filters__trust {
-  padding: 10px var(--gutter) 2px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  white-space: nowrap;
-}
+/* ------------------------------------------------------------- filter row */
 
 /* ---------------------------------------------------------- section head */
 
@@ -953,9 +903,15 @@ ul {
 
 .foryou__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   padding: 0 var(--gutter);
+}
+
+@media (min-width: 641px) {
+  .foryou__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .foryou__card {
@@ -1255,34 +1211,19 @@ ul {
   color: var(--fg);
 }
 
-.row__for,
-.store__for {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.row__line,
-.store__line {
-  margin-top: 3px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.row__for,
+/* Only the "Low fee" sort still prints a line here — see RestaurantRow. */
 .row__line {
+  margin-top: 8px;
+  font-size: 13px;
   line-height: 18px;
   height: 18px;
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.row__line strong,
-.store__line strong {
+.row__line strong {
   color: var(--babu-dark);
   font-weight: 700;
 }
@@ -1335,20 +1276,6 @@ ul {
   text-overflow: ellipsis;
 }
 
-/* Winner: a quiet teal tint — never a loud fill. The one color reserved
-   exclusively for "this is the cheapest," never reused for UI state. */
-.strip__col--best {
-  background: var(--babu-bg);
-}
-
-.strip__col--best .strip__plat {
-  color: var(--babu-dark);
-}
-
-.strip__col--best .strip__price {
-  color: var(--babu-dark);
-}
-
 .strip__col--none .strip__price {
   color: var(--muted);
   font-weight: 500;
@@ -1381,12 +1308,6 @@ ul {
 .sk--col {
   height: 64px;
   border-radius: var(--r-ctl);
-}
-
-.sk--line {
-  height: 12px;
-  width: 70%;
-  margin-top: 12px;
 }
 
 .empty {
@@ -1595,12 +1516,6 @@ ul {
   color: var(--muted);
 }
 
-.menu__price--best {
-  color: var(--babu-dark);
-  background: var(--babu-bg);
-  font-weight: 700;
-}
-
 .menu__foot {
   padding-top: 10px;
 }
@@ -1702,15 +1617,6 @@ ul {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.ledger__row--best {
-  background: var(--babu-bg);
-}
-
-.ledger__row--best .ledger__total {
-  color: var(--babu-dark);
-  font-weight: 800;
 }
 
 .ledger__plat {

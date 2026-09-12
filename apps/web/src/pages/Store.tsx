@@ -13,14 +13,12 @@ import {
   activeDeals,
   bestOffer,
   bestTime,
-  cheapestMenuPlatform,
   deepLink,
   etaRange,
   menuFor,
   money,
   platformName,
   ratingCount,
-  savingsTail,
   windowLabel,
 } from '../lib/analysis';
 import { countUpPrices } from '../lib/motion';
@@ -108,10 +106,6 @@ export function Store() {
           <span>{r.openUntil === 'hours vary' ? 'hours vary by app' : `open until ${r.openUntil}`}</span>
         </p>
         <CompareStrip restaurant={r} />
-        <p className="store__for">For {r.orderLabel}</p>
-        <p className="store__line">
-          <strong>Cheapest on {bestName}</strong> · {savingsTail(r)}
-        </p>
       </header>
 
       <div className="tabs" role="tablist" aria-label="Store sections">
@@ -207,7 +201,6 @@ function useFullMenu(id: string): FullMenu | null {
 function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
   const full = useFullMenu(r.id);
   const items = full?.items ?? menuFor(r);
-  const listed = PLATFORMS.filter((p) => r.offers.some((o) => o.platformSlug === p.slug));
   const cols = PLATFORMS;
   return (
     <div className="menu" role="tabpanel">
@@ -219,22 +212,19 @@ function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
           </span>
         ))}
       </div>
-      {items.map((item) => {
-        const cheapest = listed.length > 1 ? cheapestMenuPlatform(item) : undefined;
-        return (
-          <div key={item.name} className="menu__row">
-            <span className="menu__name">{item.name}</span>
-            {cols.map((p) => {
-              const v = item.prices[p.slug];
-              return (
-                <span key={p.slug} className={`menu__price num${v === undefined ? ' menu__price--none' : ''}${cheapest === p.slug ? ' menu__price--best' : ''}`}>
-                  {v === undefined ? '—' : money(v)}
-                </span>
-              );
-            })}
-          </div>
-        );
-      })}
+      {items.map((item) => (
+        <div key={item.name} className="menu__row">
+          <span className="menu__name">{item.name}</span>
+          {cols.map((p) => {
+            const v = item.prices[p.slug];
+            return (
+              <span key={p.slug} className={`menu__price num${v === undefined ? ' menu__price--none' : ''}`}>
+                {v === undefined ? '—' : money(v)}
+              </span>
+            );
+          })}
+        </div>
+      ))}
       <p className="card__foot menu__foot">
         {full && full.total > full.items.length && `Showing ${full.items.length} of ${full.total} items. `}
         Menu prices before fees, tax and tip. Fees change the answer — see the Prices tab.

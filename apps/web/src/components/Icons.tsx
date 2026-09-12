@@ -37,6 +37,12 @@ export const SearchIcon = ({ size = 18, stroke = 'currentColor', ...rest }: P) =
   </svg>
 );
 
+export const MenuIcon = ({ size = 18, stroke = 'currentColor', ...rest }: P) => (
+  <svg {...base(size, stroke, 2.2)} {...rest}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
+
 export const SlidersIcon = ({ size = 16, stroke = 'currentColor', ...rest }: P) => (
   <svg {...base(size, stroke, 2.2)} {...rest}>
     <path d="M4 6h8M16 6h4" />

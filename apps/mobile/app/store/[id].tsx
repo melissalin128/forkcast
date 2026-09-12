@@ -16,14 +16,12 @@ import {
   activeDeals,
   bestOffer,
   bestTime,
-  cheapestMenuPlatform,
   deepLink,
   etaRange,
   menuFor,
   money,
   platformName,
   ratingCount,
-  savingsTail,
   windowLabel,
 } from '../../src/lib/analysis';
 import { restaurantPhoto } from '../../src/lib/photos';
@@ -115,12 +113,6 @@ export default function Store() {
               {' · '}{r.openUntil === 'hours vary' ? 'hours vary by app' : `open until ${r.openUntil}`}
             </Text>
             <CompareStrip restaurant={r} />
-            <Text style={styles.forLine} numberOfLines={1}>
-              For {r.orderLabel}
-            </Text>
-            <Text style={styles.line}>
-              <Text style={styles.strong}>Cheapest on {bestName}</Text> · {savingsTail(r)}
-            </Text>
           </View>
         </View>
 
@@ -228,7 +220,6 @@ function useFullMenu(id: string): FullMenu | undefined {
 function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
   const full = useFullMenu(r.id);
   const items = full?.items.length ? full.items : menuFor(r);
-  const listed = PLATFORMS.filter((p) => r.offers.some((o) => o.platformSlug === p.slug));
   const cols = PLATFORMS;
   return (
     <View style={styles.menu}>
@@ -240,30 +231,19 @@ function MenuTab({ restaurant: r }: { restaurant: Restaurant }) {
           </Text>
         ))}
       </View>
-      {items.map((item) => {
-        const cheapest = listed.length > 1 ? cheapestMenuPlatform(item) : undefined;
-        return (
-          <View key={item.name} style={styles.menuRow}>
-            <Text style={styles.menuName}>{item.name}</Text>
-            {cols.map((p) => {
-              const v = item.prices[p.slug];
-              return (
-                <Text
-                  key={p.slug}
-                  style={[
-                    styles.menuPrice,
-                    num,
-                    v === undefined && styles.menuPriceNone,
-                    cheapest === p.slug && styles.menuPriceBest,
-                  ]}
-                >
-                  {v === undefined ? '—' : money(v)}
-                </Text>
-              );
-            })}
-          </View>
-        );
-      })}
+      {items.map((item) => (
+        <View key={item.name} style={styles.menuRow}>
+          <Text style={styles.menuName}>{item.name}</Text>
+          {cols.map((p) => {
+            const v = item.prices[p.slug];
+            return (
+              <Text key={p.slug} style={[styles.menuPrice, num, v === undefined && styles.menuPriceNone]}>
+                {v === undefined ? '—' : money(v)}
+              </Text>
+            );
+          })}
+        </View>
+      ))}
       <Text style={[styles.foot, styles.menuFoot]}>
         {full && full.total > items.length ? `Showing ${items.length} of ${full.total} items. ` : ''}
         Menu prices as listed on each app, before fees, tax and tip. Fees change the answer — see the Prices tab.
@@ -302,7 +282,6 @@ const styles = StyleSheet.create({
   name: { fontSize: 22, fontWeight: '700', letterSpacing: -0.44, lineHeight: 26, color: C.fg },
   meta: { fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 19 },
   fg: { color: C.fg },
-  forLine: { marginTop: 8, fontSize: 12, color: C.muted },
   line: { marginTop: 3, fontSize: 13, color: C.muted },
   strong: { color: C.winInk, fontWeight: '700' },
   tabs: {
@@ -331,7 +310,6 @@ const styles = StyleSheet.create({
   menuName: { flex: 1, fontSize: 14, fontWeight: '500', color: C.fg, minWidth: 0 },
   menuPrice: { width: 64, textAlign: 'right', fontSize: 13, paddingVertical: 3, paddingHorizontal: 4, borderRadius: 6, color: C.fg },
   menuPriceNone: { color: C.muted },
-  menuPriceBest: { color: C.winInk, backgroundColor: C.winBg },
   menuFoot: { paddingTop: 10 },
   // prices tab
   prices: { gap: 12, paddingTop: 12, paddingHorizontal: GUTTER },

@@ -1,4 +1,4 @@
-import { PLATFORM_BY_SLUG, PLATFORMS } from '../data/mock';
+import { PLATFORM_BY_SLUG } from '../data/mock';
 import type { MenuItem, Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
 
 export const money = (n: number) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toFixed(2);
@@ -40,22 +40,6 @@ export function saving(r: Restaurant): number {
   return Math.round((w.total - b.total) * 100) / 100;
 }
 
-/** "save $5.10 vs DoorDash" / "only app that lists it" / "same price everywhere". */
-export function savingsTail(r: Restaurant): string {
-  const w = worstOffer(r);
-  if (!w || r.offers.length < 2) return 'only app that lists it';
-  const s = saving(r);
-  if (s < 0.05) return 'same price everywhere';
-  return `save ${money(s)} vs ${platformName(w.platformSlug)}`;
-}
-
-/** "Tonkotsu ramen + gyoza": the representative order without any ", delivered" tail. */
-export function orderSummary(r: Restaurant): string {
-  const label = (r.orderLabel ?? '').replace(/,?\s*delivered\.?\s*$/i, '').trim();
-  if (label) return label;
-  return r.order.map((l) => (l.qty > 1 ? `${l.qty}× ${l.name}` : l.name)).join(' + ');
-}
-
 /** "24–34 min" */
 export const etaRange = (o: Offer) => `${o.etaMin}–${o.etaMax} min`;
 
@@ -83,12 +67,6 @@ export function menuFor(r: Restaurant): MenuItem[] {
       r.offers.map((o) => [o.platformSlug, Math.round(o.subtotal * share * 100) / 100]),
     ) as Partial<Record<PlatformSlug, number>>,
   }));
-}
-
-export function cheapestMenuPlatform(item: MenuItem): PlatformSlug | undefined {
-  return PLATFORMS.map((p) => p.slug)
-    .filter((s) => item.prices[s] !== undefined)
-    .sort((a, b) => (item.prices[a] ?? 0) - (item.prices[b] ?? 0))[0];
 }
 
 // ---------------------------------------------------------------------------

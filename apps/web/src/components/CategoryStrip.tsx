@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ComponentType, type ReactNode } from 'react';
 import { CATEGORIES, type Category } from '../lib/filter';
 import { chipPop, prefersReducedMotion } from '../lib/motion';
 import {
@@ -21,11 +21,15 @@ import {
   SproutIcon,
   CrescentIcon,
   CartIcon,
+  ClearIcon,
+  MenuIcon,
 } from './Icons';
 
 interface Props {
   value: string;
   onChange: (cat: Category) => void;
+  /** Phone-only: sits on the hamburger row (Filter button). Ignored on desktop. */
+  toolbar?: ReactNode;
 }
 
 /** One line icon, one hover/selected bubble tint, and one saturated icon
@@ -57,70 +61,126 @@ const ART: Record<Category, { Icon: ComponentType<IconProps>; tint: string; fg: 
   Grocery: { Icon: CartIcon, tint: '#E6F0FB', fg: '#3E7FC1' },
 };
 
+function CatButton({
+  cat,
+  active,
+  onChange,
+  after,
+}: {
+  cat: Category;
+  active: boolean;
+  onChange: (cat: Category) => void;
+  after?: () => void;
+}) {
+  const art = ART[cat];
+  const Icon = art.Icon;
+  return (
+    <button
+      type="button"
+      className={`cat${active ? ' cat--active' : ''}`}
+      style={{ '--cat-tint': art.tint, '--cat-fg': art.fg } as CSSProperties}
+      aria-pressed={active}
+      onClick={(e) => {
+        onChange(cat);
+        chipPop(e.currentTarget.firstElementChild ?? e.currentTarget);
+        after?.();
+      }}
+    >
+      <span className="cat__bubble">
+        <Icon className="cat__icon" size={26} />
+      </span>
+      <span className="cat__label">{cat}</span>
+    </button>
+  );
+}
+
 /**
- * The cuisine row, given its own bit of personality: hovering a tile makes it fan
- * open (flex-grow via CSS in styles.css) while its neighbors ease aside, and a
- * soft per-cuisine color bubble blooms in behind the icon. Quiet and Airbnb-plain
- * at rest; playful the moment you actually touch it. Selection uses the same
- * bubble language so "active" reads as a natural extension of "hovered."
+ * Phone: a hamburger that opens a sheet of the 18 cuisines. Desktop (≥641px):
+ * Melissa's sticky left rail — the list stays on screen while the feed scrolls.
+ * `?category=` still drives the active tile in both chrome.
  */
-export function CategoryStrip({ value, onChange }: Props) {
+export function CategoryStrip({ value, onChange, toolbar }: Props) {
   const stripRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
-  // A deep link like `/?category=sushi` lands with its tile off-screen: bring it into view.
-  // Horizontal strip on mobile, vertical sidebar from 641px up (styles.css) — scroll
-  // whichever axis the current layout actually overflows on.
   useEffect(() => {
-    const strip = stripRef.current;
-    const tile = strip?.querySelector<HTMLElement>('.cat--active');
-    if (!strip || !tile) return;
+    const rail = stripRef.current;
+    const tile = rail?.querySelector<HTMLElement>('.cat--active');
+    if (!rail || !tile) return;
     const pad = 16;
-    const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
-
-    if (strip.scrollWidth > strip.clientWidth) {
-      const left = tile.offsetLeft - pad;
-      const right = tile.offsetLeft + tile.offsetWidth + pad;
-      let target: number | null = null;
-      if (left < strip.scrollLeft) target = left;
-      else if (right > strip.scrollLeft + strip.clientWidth) target = right - strip.clientWidth;
-      if (target !== null) strip.scrollTo({ left: Math.max(0, target), behavior });
-    } else if (strip.scrollHeight > strip.clientHeight) {
-      const top = tile.offsetTop - pad;
-      const bottom = tile.offsetTop + tile.offsetHeight + pad;
-      let target: number | null = null;
-      if (top < strip.scrollTop) target = top;
-      else if (bottom > strip.scrollTop + strip.clientHeight) target = bottom - strip.clientHeight;
-      if (target !== null) strip.scrollTo({ top: Math.max(0, target), behavior });
+    const top = tile.offsetTop - pad;
+    const bottom = tile.offsetTop + tile.offsetHeight + pad;
+    let target: number | null = null;
+    if (top < rail.scrollTop) target = top;
+    else if (bottom > rail.scrollTop + rail.clientHeight) target = bottom - rail.clientHeight;
+    if (target !== null) {
+      rail.scrollTo({ top: Math.max(0, target), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }
   }, [value]);
 
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
-    <div className="cats-wrap">
-      <div className="cats" role="group" aria-label="Category" ref={stripRef}>
-        {CATEGORIES.map((cat) => {
-          const active = value === cat;
-          const art = ART[cat];
-          const Icon = art.Icon;
-          return (
-            <button
-              key={cat}
-              type="button"
-              className={`cat${active ? ' cat--active' : ''}`}
-              style={{ '--cat-tint': art.tint, '--cat-fg': art.fg } as CSSProperties}
-              aria-pressed={active}
-              onClick={(e) => {
-                onChange(cat);
-                chipPop(e.currentTarget.firstElementChild ?? e.currentTarget);
-              }}
-            >
-              <span className="cat__bubble">
-                <Icon className="cat__icon" size={26} />
-              </span>
-              <span className="cat__label">{cat}</span>
-            </button>
-          );
-        })}
+    <>
+      <div className="cats-bar">
+        <button
+          type="button"
+          className="cats-bar__btn"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={`Categories, ${value} selected`}
+          onClick={(e) => {
+            setOpen(true);
+            chipPop(e.currentTarget);
+          }}
+        >
+          <MenuIcon size={18} />
+          <span>{value}</span>
+        </button>
+        {toolbar}
       </div>
-    </div>
+
+      {open && (
+        <div className="modal-veil" onClick={() => setOpen(false)}>
+          <div
+            className="modal cats-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Category"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal__head">
+              <button type="button" className="modal__close" aria-label="Close" onClick={() => setOpen(false)}>
+                <ClearIcon size={16} />
+              </button>
+              <h2 className="modal__title">Categories</h2>
+            </div>
+            <div className="modal__body cats-sheet__list" role="group" aria-label="Category">
+              {CATEGORIES.map((cat) => (
+                <CatButton key={cat} cat={cat} active={value === cat} onChange={onChange} after={() => setOpen(false)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="cats-wrap">
+        <div className="cats" role="group" aria-label="Category" ref={stripRef}>
+          {CATEGORIES.map((cat) => (
+            <CatButton key={cat} cat={cat} active={value === cat} onChange={onChange} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
