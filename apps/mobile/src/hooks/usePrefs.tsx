@@ -1,0 +1,85 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { DEFAULT_PREFS, loadPrefs, savePrefs, type DietaryPref, type Prefs } from '../lib/prefs';
+import type { PlatformSlug } from '../types';
+
+interface PrefsApi {
+  prefs: Prefs;
+  /** False until AsyncStorage has answered; data hooks wait for it. */
+  ready: boolean;
+  setZip: (zip: string) => void;
+  setTipPct: (tipPct: number) => void;
+  toggleSubscription: (slug: PlatformSlug) => void;
+  toggleDietary: (tag: DietaryPref) => void;
+  toggleCuisine: (cuisine: string) => void;
+  toggleSaved: (id: string) => void;
+}
+
+const Ctx = createContext<PrefsApi | null>(null);
+
+export function PrefsProvider({ children }: { children: ReactNode }) {
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    loadPrefs().then((p) => {
+      if (!alive) return;
+      setPrefs(p);
+      setReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const update = useCallback((next: Prefs) => {
+    setPrefs(next);
+    void savePrefs(next);
+  }, []);
+
+  const api = useMemo<PrefsApi>(
+    () => ({
+      prefs,
+      ready,
+      setZip: (zip) => update({ ...prefs, zip }),
+      setTipPct: (tipPct) => update({ ...prefs, tipPct }),
+      toggleSubscription: (slug) =>
+        update({
+          ...prefs,
+          subscriptions: prefs.subscriptions.includes(slug)
+            ? prefs.subscriptions.filter((s) => s !== slug)
+            : [...prefs.subscriptions, slug],
+        }),
+      toggleDietary: (tag) =>
+        update({
+          ...prefs,
+          dietaryDefaults: prefs.dietaryDefaults.includes(tag)
+            ? prefs.dietaryDefaults.filter((d) => d !== tag)
+            : [...prefs.dietaryDefaults, tag],
+        }),
+      toggleCuisine: (cuisine) =>
+        update({
+          ...prefs,
+          favoriteCuisines: prefs.favoriteCuisines.includes(cuisine)
+            ? prefs.favoriteCuisines.filter((c) => c !== cuisine)
+            : [...prefs.favoriteCuisines, cuisine],
+        }),
+      toggleSaved: (id) =>
+        update({
+          ...prefs,
+          savedRestaurantIds: prefs.savedRestaurantIds.includes(id)
+            ? prefs.savedRestaurantIds.filter((x) => x !== id)
+            : [...prefs.savedRestaurantIds, id],
+        }),
+    }),
+    [prefs, ready, update],
+  );
+
+  return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
+}
+
+export function usePrefs(): PrefsApi {
+  const v = useContext(Ctx);
+  if (!v) throw new Error('usePrefs must be used inside <PrefsProvider>');
+  return v;
+}

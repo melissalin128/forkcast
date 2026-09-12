@@ -19,3 +19,7 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+
+# Forkcast
+!.env.example
+design/forkcast-design.html

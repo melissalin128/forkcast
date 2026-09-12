@@ -87,6 +87,41 @@ Open the local URL printed by Vite. The default Figma Make development port is `
 pnpm build
 ```
 
+### Full web app and API
+
+Each application installs independently:
+
+```bash
+npm install --prefix apps/api
+npm install --prefix apps/web
+cp .env.example .env
+npm run dev:api                 # API: http://localhost:4000
+npm run dev:web                 # Web: http://localhost:5173
+```
+
+The API uses seeded in-memory data when `MONGODB_URI` is unset, so the demo works without a database. Set `ADAPTER=mock` to ensure it never contacts live delivery platforms.
+
+### Expo mobile app
+
+```bash
+cd apps/mobile
+npm install
+npm start
+```
+
+Scan the QR code with Expo Go, or use `npm run ios`, `npm run android`, or `npm run web`. On networks that block local device discovery, use `npx expo start --tunnel`.
+
+## Repository layout
+
+- `src/` — Figma Make web prototype
+- `apps/web/` — full Vite and React web application
+- `apps/api/` — Express and Mongoose comparison API
+- `apps/mobile/` — Expo and React Native mobile application
+- `apps/ios/` — Capacitor native wrapper
+- `docs/PRODUCT_SPEC.md` — product decisions, data model, and collection plan
+- `docs/DESIGN_SYSTEM.md` — visual and interaction system
+- `design/` — design canvas artboards
+
 ## Product principles
 
 1. Lead with one clear recommendation, then let users inspect the details.
