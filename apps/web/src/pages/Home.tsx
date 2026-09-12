@@ -11,12 +11,15 @@ import { useMockFallback, useRestaurants } from '../hooks/useData';
 import { usePrefs } from '../hooks/usePrefs';
 import { useToast } from '../hooks/useToast';
 import {
+  CATEGORY_WORD,
+  categoryFromSlug,
   FILTERS,
   matchesCategory,
   matchesFilters,
   matchesQuery,
   SORTS,
   sortBy,
+  type Category,
   type FilterKey,
   type Sort,
 } from '../lib/filter';
@@ -57,7 +60,14 @@ export function Home() {
 
   const [input, setInput] = useState(urlQ);
   const [q, setQ] = useState(urlQ);
-  const [category, setCategory] = useState('All');
+  // The category lives in the URL (`/?category=sushi`) so a tap is shareable and survives back/forward.
+  const category = categoryFromSlug(params.get('category'));
+  const setCategory = (cat: Category) => {
+    const next = new URLSearchParams(params);
+    if (cat === 'All') next.delete('category');
+    else next.set('category', cat.toLowerCase());
+    setParams(next, { replace: true });
+  };
   const [sort, setSort] = useState<Sort>('cheapest');
   const [active, setActive] = useState<FilterKey[]>([]);
   const [barDismissed, setBarDismissed] = useState(readDismissed);
@@ -110,12 +120,16 @@ export function Home() {
   const clearAll = () => {
     setInput('');
     setQ('');
-    setCategory('All');
     setActive([]);
+    const next = new URLSearchParams(params);
+    next.delete('q');
+    next.delete('category');
+    setParams(next, { replace: true });
   };
 
   const noCoverage = !loading && restaurants.length === 0;
-  const heading = category === 'All' ? `${SORT_WORD[sort]} near you` : `${SORT_WORD[sort]} ${category} near you`;
+  const heading =
+    category === 'All' ? `${SORT_WORD[sort]} near you` : `${SORT_WORD[sort]} ${CATEGORY_WORD[category]} near you`;
   const count = `${visible.length} place${visible.length === 1 ? '' : 's'}`;
   const passes = prefs.subscriptions.map((s) => PLATFORM_BY_SLUG[s].subscriptionName);
   const passLine =

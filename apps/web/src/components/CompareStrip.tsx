@@ -12,8 +12,8 @@ interface Props {
 
 /**
  * The product: three fixed columns (DoorDash, Uber Eats, Grubhub) with the
- * delivered total for the same order. The winning column is mint; "—" when
- * the platform does not list the place.
+ * delivered total for the same order. Platform names sit in their brand
+ * color; the winning column is mint; "—" when the platform does not list the place.
  */
 export function CompareStrip({ restaurant: r, animate = false, highlight = 'cheapest' }: Props) {
   const top = highlight === 'fastest' ? fastestOffer(r) : bestOffer(r);
@@ -28,7 +28,9 @@ export function CompareStrip({ restaurant: r, animate = false, highlight = 'chea
             role="listitem"
             className={`strip__col${isTop ? ' strip__col--best' : ''}${o ? '' : ' strip__col--none'}`}
           >
-            <span className="strip__plat">{p.name}</span>
+            <span className="strip__plat" style={o ? { color: p.brandColor } : undefined}>
+              {p.name}
+            </span>
             {o ? (
               <>
                 <span className="strip__price num" data-price={animate ? o.total : undefined}>

@@ -3,7 +3,7 @@
    600 weight with tabular figures. */
 
 :root {
-  --page: #f7f6f3;
+  --page: #f4f1ec;
   --card: #ffffff;
   --inset: #f1efea;
   --line: #e8e5df;
@@ -286,9 +286,25 @@ ul {
 
 /* --------------------------------------------------------- category strip */
 
+.cats-wrap {
+  position: relative;
+}
+
+/* Soft fade on the right so the row reads as scrollable. */
+.cats-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, rgba(244, 241, 236, 0), var(--page));
+  pointer-events: none;
+}
+
 .cats {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   padding: 12px var(--gutter) 6px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -300,7 +316,7 @@ ul {
 
 .cat {
   flex: none;
-  width: 60px;
+  width: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -308,17 +324,21 @@ ul {
   color: var(--fg);
 }
 
+/* Tint is set per category inline. */
 .cat__circle {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: var(--card);
-  border: 1px solid var(--line);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg);
-  transition: border-color 120ms, background 120ms;
+  transition: box-shadow 120ms;
+}
+
+.cat__emoji {
+  font-size: 26px;
+  line-height: 1;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 .cat__label {
@@ -329,9 +349,7 @@ ul {
 }
 
 .cat--active .cat__circle {
-  background: var(--accent-bg);
-  border: 2px solid var(--accent);
-  color: var(--accent-ink);
+  box-shadow: 0 0 0 2px var(--page), 0 0 0 4px var(--accent);
 }
 
 .cat--active .cat__label {
@@ -453,33 +471,39 @@ ul {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
-  padding: 12px;
+  overflow: hidden;
 }
 
 .row:active {
   background: #fcfbf9;
 }
 
-.row__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Photo first, flush to the card's rounded top corners. */
+.row__photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
 }
 
-.row__thumb {
-  width: 56px;
-  height: 56px;
-  flex: none;
-  border-radius: 10px;
+.row__body {
+  padding: 10px 12px 12px;
+}
+
+/* ------------------------------------------------------------------ photo */
+
+.photo {
+  position: relative;
+  overflow: hidden;
+  background: #e9e6e0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--inset);
 }
 
-.row__text {
-  min-width: 0;
-  flex: 1;
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .row__name {
@@ -581,7 +605,6 @@ ul {
   border-color: var(--win);
 }
 
-.strip__col--best .strip__plat,
 .strip__col--best .strip__price {
   color: var(--win-ink);
 }
@@ -598,6 +621,12 @@ ul {
   border-radius: 6px;
 }
 
+.sk--photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+}
+
 .sk--title {
   height: 16px;
   width: 55%;
@@ -612,6 +641,12 @@ ul {
 .sk--col {
   height: 52px;
   border-radius: 8px;
+}
+
+.sk--line {
+  height: 12px;
+  width: 70%;
+  margin-top: 12px;
 }
 
 .empty {
@@ -680,10 +715,13 @@ ul {
 
 .cover {
   width: 100%;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 200px;
+}
+
+@media (max-width: 480px) {
+  .cover {
+    height: 160px;
+  }
 }
 
 .store {
@@ -745,7 +783,7 @@ ul {
 }
 
 .tabs__tab--active {
-  color: var(--fg);
+  color: var(--accent-ink);
   border-bottom-color: var(--accent);
 }
 
@@ -1001,7 +1039,7 @@ ul {
   width: 100%;
   max-width: var(--col);
   padding: 10px var(--gutter) calc(10px + var(--safe-b));
-  background: linear-gradient(to bottom, rgba(247, 246, 243, 0), var(--page) 40%);
+  background: linear-gradient(to bottom, rgba(244, 241, 236, 0), var(--page) 40%);
   z-index: 18;
 }
 
@@ -1014,13 +1052,28 @@ ul {
 }
 
 .save {
-  display: grid;
-  gap: 3px;
-  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   min-width: 0;
+}
+
+.save__thumb {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.save__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
 
 .save__name {
@@ -1031,16 +1084,22 @@ ul {
 .save__detail {
   font-size: 13px;
   color: var(--muted);
-  line-height: 1.45;
+  line-height: 1.6;
 }
 
 .save__detail .num {
   color: var(--fg);
 }
 
+/* The saving, in win ink on a mint pill. */
 .save__amt {
+  display: inline-block;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--win-bg);
   color: var(--win-ink);
   font-weight: 700;
+  line-height: 1.5;
 }
 
 /* --------------------------------------------------------------- account */

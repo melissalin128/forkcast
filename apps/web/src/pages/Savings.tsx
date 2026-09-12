@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BottomTabs } from '../components/BottomTabs';
+import { Photo } from '../components/Photo';
 import { TopBar } from '../components/TopBar';
 import { useRestaurants } from '../hooks/useData';
 import { bestOffer, money, platformName, saving, worstOffer } from '../lib/analysis';
+import { restaurantPhoto } from '../lib/photos';
 
 /** Where picking the cheapest app matters most: the gap between cheapest and priciest, per restaurant. */
 export function Savings() {
@@ -41,10 +43,13 @@ export function Savings() {
           {rows.map(({ r, save, best, worst }) => (
             <li key={r.id}>
               <Link to={`/store/${r.id}?tab=prices`} className="save">
-                <span className="save__name">{r.name}</span>
-                <span className="save__detail">
-                  {platformName(best.platformSlug)} <span className="num">{money(best.total)}</span> ·{' '}
-                  <strong className="save__amt">save {money(save)}</strong> vs {platformName(worst.platformSlug)}
+                <Photo className="save__thumb" src={restaurantPhoto(r)} fallback={r.image} iconSize={18} />
+                <span className="save__text">
+                  <span className="save__name">{r.name}</span>
+                  <span className="save__detail">
+                    {platformName(best.platformSlug)} <span className="num">{money(best.total)}</span> ·{' '}
+                    <strong className="save__amt">save {money(save)}</strong> vs {platformName(worst.platformSlug)}
+                  </span>
                 </span>
               </Link>
             </li>

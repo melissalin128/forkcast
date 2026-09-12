@@ -80,6 +80,21 @@ function isSnapshotList(v: unknown): v is PriceSnapshot[] | { snapshots: PriceSn
   );
 }
 
+/** Gradient art for a listing the API sends without any placeholder of its own. */
+const FALLBACK_ART = 'linear-gradient(135deg, #f6dcc6, #e9b48c)';
+
+/**
+ * The API's `imageUrl` (from the scrapers) becomes the card photo; `image`
+ * stays the gradient shown only when there is no photo.
+ */
+function normalizeRestaurant(r: Restaurant): Restaurant {
+  const raw = r as Restaurant & { imageUrl?: unknown; image?: unknown };
+  const imageUrl =
+    typeof raw.imageUrl === 'string' && /^(https?:)?\/\//.test(raw.imageUrl.trim()) ? raw.imageUrl.trim() : undefined;
+  const image = typeof raw.image === 'string' && raw.image ? raw.image : FALLBACK_ART;
+  return { ...r, imageUrl, image };
+}
+
 const covered = (zip: string) => zip === '' || (COVERED_ZIPS as readonly string[]).includes(zip);
 
 function filterMock(zip: string, q: string): Restaurant[] {
@@ -100,8 +115,8 @@ export async function getRestaurants(zip: string, q = ''): Promise<Sourced<Resta
   const json = await tryJson(`/api/restaurants?${params}`, isRestaurantsResponse);
   if (json) {
     const data: RestaurantsResponse = Array.isArray(json)
-      ? { restaurants: json, refreshedAt: new Date().toISOString() }
-      : json;
+      ? { restaurants: json.map(normalizeRestaurant), refreshedAt: new Date().toISOString() }
+      : { ...json, restaurants: json.restaurants.map(normalizeRestaurant) };
     setUsingMock(false);
     return { data, source: 'api' };
   }
@@ -113,7 +128,7 @@ export async function getRestaurant(id: string): Promise<Sourced<Restaurant | un
   const json = await tryJson(`/api/restaurants/${encodeURIComponent(id)}`, isRestaurant);
   if (json) {
     setUsingMock(false);
-    return { data: json, source: 'api' };
+    return { data: normalizeRestaurant(json), source: 'api' };
   }
   setUsingMock(true);
   return { data: RESTAURANTS.find((r) => r.id === id), source: 'mock' };

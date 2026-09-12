@@ -1,11 +1,80 @@
 import { bestOffer, fastestOffer } from './analysis';
 import type { Restaurant } from '../types';
 
-export const CATEGORIES = ['All', 'Pizza', 'Burgers', 'Ramen', 'Indian', 'Mexican', 'Thai', 'Grocery'] as const;
+export const CATEGORIES = [
+  'All',
+  'Pizza',
+  'Burgers',
+  'Chinese',
+  'Mexican',
+  'Sushi',
+  'Indian',
+  'Thai',
+  'Italian',
+  'Chicken',
+  'Sandwiches',
+  'Breakfast',
+  'Healthy',
+  'Desserts',
+  'Coffee',
+  'Vegan',
+  'Halal',
+  'Grocery',
+] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-export const matchesCategory = (r: Restaurant, cat: string) =>
-  cat === 'All' || r.category === cat || r.cuisine.includes(cat);
+/** `?category=sushi` -> 'Sushi'; anything unknown is 'All'. */
+export const categoryFromSlug = (slug: string | null): Category =>
+  CATEGORIES.find((c) => c.toLowerCase() === (slug ?? '').toLowerCase()) ?? 'All';
+
+/** How the category reads mid-sentence: "Cheapest sushi near you", "Cheapest Chinese near you". */
+export const CATEGORY_WORD: Record<Category, string> = {
+  All: '',
+  Pizza: 'pizza',
+  Burgers: 'burgers',
+  Chinese: 'Chinese',
+  Mexican: 'Mexican',
+  Sushi: 'sushi',
+  Indian: 'Indian',
+  Thai: 'Thai',
+  Italian: 'Italian',
+  Chicken: 'chicken',
+  Sandwiches: 'sandwiches',
+  Breakfast: 'breakfast',
+  Healthy: 'healthy food',
+  Desserts: 'desserts',
+  Coffee: 'coffee',
+  Vegan: 'vegan food',
+  Halal: 'halal',
+  Grocery: 'groceries',
+};
+
+/**
+ * Other cuisine / dietary words that count as a category. A restaurant matches
+ * when its category, a cuisine or a dietary tag equals one of these words (or
+ * starts with it: "Vegan options" counts as vegan).
+ */
+const CATEGORY_ALIASES: Partial<Record<Category, string[]>> = {
+  Burgers: ['burger'],
+  Chinese: ['sichuan', 'cantonese', 'dim sum'],
+  Mexican: ['tex-mex', 'tacos'],
+  Sushi: ['poke'],
+  Italian: ['pasta'],
+  Chicken: ['wings', 'fried chicken'],
+  Sandwiches: ['sandwich', 'deli', 'subs'],
+  Breakfast: ['brunch', 'diner'],
+  Healthy: ['salad'],
+  Desserts: ['dessert', 'bakery', 'ice cream'],
+  Coffee: ['cafe', 'café'],
+  Grocery: ['supermarket', 'convenience'],
+};
+
+export function matchesCategory(r: Restaurant, cat: string): boolean {
+  if (cat === 'All') return true;
+  const words = [cat.toLowerCase(), ...(CATEGORY_ALIASES[cat as Category] ?? [])];
+  const hay = [r.category ?? '', ...r.cuisine, ...r.dietaryTags].map((s) => s.toLowerCase());
+  return hay.some((h) => words.some((w) => h === w || h.startsWith(`${w} `)));
+}
 
 export const matchesQuery = (r: Restaurant, q: string) => {
   const needle = q.trim().toLowerCase();

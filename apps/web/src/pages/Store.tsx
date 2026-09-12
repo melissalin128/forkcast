@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CompareStrip } from '../components/CompareStrip';
-import { categoryIcon, ExternalIcon, StarIcon } from '../components/Icons';
+import { ExternalIcon, StarIcon } from '../components/Icons';
+import { Photo } from '../components/Photo';
 import { PlatformLedger } from '../components/PlatformLedger';
 import { PriceHistory } from '../components/PriceHistory';
 import { TopBar } from '../components/TopBar';
@@ -21,6 +22,7 @@ import {
   windowLabel,
 } from '../lib/analysis';
 import { countUpPrices } from '../lib/motion';
+import { restaurantPhoto } from '../lib/photos';
 import type { Restaurant } from '../types';
 
 type Tab = 'menu' | 'prices';
@@ -70,16 +72,13 @@ export function Store() {
   }
 
   const r = restaurant;
-  const Icon = categoryIcon(r.category);
   const bestName = platformName(best.platformSlug);
 
   return (
     <div className="page page--store page--cta">
       <TopBar back={{ title: r.name }} />
 
-      <div className="cover" style={{ background: r.image }}>
-        <Icon size={40} stroke="rgba(255,255,255,0.9)" strokeWidth={1.5} />
-      </div>
+      <Photo className="cover" src={restaurantPhoto(r)} fallback={r.image} iconSize={40} />
 
       <header className="store">
         <h1 className="store__name">{r.name}</h1>
