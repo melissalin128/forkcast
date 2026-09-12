@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+
+// Static hosts that cannot rewrite deep links to index.html (a shared preview
+// page, GitHub Pages) build with VITE_ROUTER=hash so /browse becomes #/browse.
+const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter;
 import { Browse } from './pages/Browse';
 import { Compare } from './pages/Compare';
 import { Landing } from './pages/Landing';
@@ -14,7 +18,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -23,6 +27,6 @@ export default function App() {
         {/* Tabs that are designed but not built in v1 land on Search. */}
         <Route path="*" element={<Navigate to="/browse" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }

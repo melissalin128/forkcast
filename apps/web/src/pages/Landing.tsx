@@ -45,8 +45,8 @@ export function Landing() {
     <main className="hero" ref={rootRef}>
       <video
         className="hero__video"
-        src="/hero.mp4"
-        poster="/hero.jpg"
+        src={`${import.meta.env.BASE_URL}hero.mp4`}
+        poster={`${import.meta.env.BASE_URL}hero.jpg`}
         autoPlay
         muted
         loop
