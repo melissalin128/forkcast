@@ -6,6 +6,10 @@ Instead of making users repeat the same search across DoorDash, Uber Eats, and G
 
 > Forkcast is a comparison and discovery tool. It does not process orders or payments, and it is not affiliated with DoorDash, Uber Eats, or Grubhub.
 
+
+## Demo
+https://hackcmu2026.vercel.app/
+
 ## The problem
 
 The price shown beside a menu item is rarely the price a customer ultimately pays. Each platform can apply different:
@@ -144,3 +148,6 @@ Contributor identities were verified from repository history and confirmed proje
 ## Status
 
 Forkcast is an early-stage hackathon prototype. Pricing shown in demo mode is illustrative and should be rechecked in the destination delivery app before placing an order.
+
+
+
