@@ -3,6 +3,9 @@
 Stock photos for the sample restaurants and categories. All are from Unsplash
 (https://unsplash.com/license), downloaded at `?w=900&q=70&auto=format&fit=crop`,
 then centre-cropped to 900×506 and re-encoded as progressive JPEG under 120 KB.
+The web app no longer bundles these files: they are served from Cloudinary as
+`https://res.cloudinary.com/kieg88kv/image/upload/<slug>.jpg` (see
+`src/lib/photos.ts`). The mobile app bundles WebP copies in `apps/mobile/assets/img`.
 
 | File | Subject | Source |
 | --- | --- | --- |

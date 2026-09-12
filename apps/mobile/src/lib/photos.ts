@@ -2,31 +2,32 @@ import type { ImageSourcePropType } from 'react-native';
 import type { Restaurant } from '../types';
 
 /**
- * Stock photos live in `assets/img/<slug>.jpg` and are bundled by Metro, so
- * the map has to be static `require` calls (no template paths). Same 20 files
- * as `apps/web/public/img`.
+ * Stock photos live in `assets/img/<slug>.webp` and are bundled by Metro, so
+ * the map has to be static `require` calls (no template paths). WebP at q80 is
+ * ~27% smaller than the original JPEGs and React Native decodes it natively.
+ * The web app serves the same 20 photos from Cloudinary (apps/web/src/lib/photos.ts).
  */
 const PHOTOS: Record<string, ImageSourcePropType> = {
-  'bangkok-balcony': require('../../assets/img/bangkok-balcony.jpg'),
-  'burgatory-waterfront': require('../../assets/img/burgatory-waterfront.jpg'),
-  'cat-coffee': require('../../assets/img/cat-coffee.jpg'),
-  'cat-healthy': require('../../assets/img/cat-healthy.jpg'),
-  'cat-italian': require('../../assets/img/cat-italian.jpg'),
-  'cat-vegan': require('../../assets/img/cat-vegan.jpg'),
-  'daves-hot-chicken': require('../../assets/img/daves-hot-chicken.jpg'),
-  'giant-eagle-market-district': require('../../assets/img/giant-eagle-market-district.jpg'),
-  'mad-mex-shadyside': require('../../assets/img/mad-mex-shadyside.jpg'),
-  'noodlehead': require('../../assets/img/noodlehead.jpg'),
-  'pamelas-diner-oakland': require('../../assets/img/pamelas-diner-oakland.jpg'),
-  'pizza-milano': require('../../assets/img/pizza-milano.jpg'),
-  'prantls-bakery-shadyside': require('../../assets/img/prantls-bakery-shadyside.jpg'),
-  'primanti-bros-oakland': require('../../assets/img/primanti-bros-oakland.jpg'),
-  'prince-of-india': require('../../assets/img/prince-of-india.jpg'),
-  'ramen-bar-oakland': require('../../assets/img/ramen-bar-oakland.jpg'),
-  'salems-market-grill': require('../../assets/img/salems-market-grill.jpg'),
-  'sichuan-gourmet': require('../../assets/img/sichuan-gourmet.jpg'),
-  'sushi-fuku': require('../../assets/img/sushi-fuku.jpg'),
-  'whole-foods-east-liberty': require('../../assets/img/whole-foods-east-liberty.jpg'),
+  'bangkok-balcony': require('../../assets/img/bangkok-balcony.webp'),
+  'burgatory-waterfront': require('../../assets/img/burgatory-waterfront.webp'),
+  'cat-coffee': require('../../assets/img/cat-coffee.webp'),
+  'cat-healthy': require('../../assets/img/cat-healthy.webp'),
+  'cat-italian': require('../../assets/img/cat-italian.webp'),
+  'cat-vegan': require('../../assets/img/cat-vegan.webp'),
+  'daves-hot-chicken': require('../../assets/img/daves-hot-chicken.webp'),
+  'giant-eagle-market-district': require('../../assets/img/giant-eagle-market-district.webp'),
+  'mad-mex-shadyside': require('../../assets/img/mad-mex-shadyside.webp'),
+  'noodlehead': require('../../assets/img/noodlehead.webp'),
+  'pamelas-diner-oakland': require('../../assets/img/pamelas-diner-oakland.webp'),
+  'pizza-milano': require('../../assets/img/pizza-milano.webp'),
+  'prantls-bakery-shadyside': require('../../assets/img/prantls-bakery-shadyside.webp'),
+  'primanti-bros-oakland': require('../../assets/img/primanti-bros-oakland.webp'),
+  'prince-of-india': require('../../assets/img/prince-of-india.webp'),
+  'ramen-bar-oakland': require('../../assets/img/ramen-bar-oakland.webp'),
+  'salems-market-grill': require('../../assets/img/salems-market-grill.webp'),
+  'sichuan-gourmet': require('../../assets/img/sichuan-gourmet.webp'),
+  'sushi-fuku': require('../../assets/img/sushi-fuku.webp'),
+  'whole-foods-east-liberty': require('../../assets/img/whole-foods-east-liberty.webp'),
 };
 
 /**

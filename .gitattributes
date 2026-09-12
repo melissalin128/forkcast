@@ -144,3 +144,19 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+
+# ---------------------------------------------------------------------------
+# App-shipped image assets: deliberately NOT in LFS (these rules override above)
+# ---------------------------------------------------------------------------
+# Vercel, like most CI, clones without Git LFS. An LFS-tracked asset therefore
+# arrives as a ~130-byte pointer file and the deployed app renders a broken
+# image. Everything matched here is bundled into a web/mobile build and is small
+# (~1.8 MB total), so store it as ordinary git blobs. Scoped to image extensions
+# so ATTRIBUTION.md in the same folders still gets normal text diffs.
+apps/web/public/**/*.png      -filter -diff -merge -text
+apps/web/public/**/*.jpg      -filter -diff -merge -text
+apps/web/public/**/*.ico      -filter -diff -merge -text
+apps/web/public/**/*.webp     -filter -diff -merge -text
+apps/mobile/assets/**/*.png   -filter -diff -merge -text
+apps/mobile/assets/**/*.jpg   -filter -diff -merge -text
+apps/mobile/assets/**/*.webp  -filter -diff -merge -text
