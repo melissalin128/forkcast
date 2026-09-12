@@ -15,7 +15,9 @@
   --babu-bg: #e0f5f3;
 
   --hof: #222222;
-  --fg: #222222;
+  /* Alias, not a second color: some rules predate the Airbnb token names and
+     still read `--fg`. Defined off --hof so the two can't drift apart. */
+  --fg: var(--hof);
   --muted: #717171;
 
   --page: #ffffff;
@@ -341,6 +343,10 @@ ul {
   padding: 16px var(--gutter) 0;
   overflow-x: auto;
   scrollbar-width: none;
+  /* The accordion's flex-grow transition (below) recalculates layout on every
+     hover frame; containment keeps that reflow scoped to this row instead of
+     rippling into the rest of the page's layout tree. */
+  contain: layout style;
 }
 
 .cats::-webkit-scrollbar {
@@ -960,7 +966,7 @@ ul {
 }
 
 .savebtn--on {
-  color: var(--rausch);
+  background: var(--rausch);
 }
 
 .savebtn--cover {

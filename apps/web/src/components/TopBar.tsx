@@ -42,7 +42,7 @@ export function TopBar({ search, back, title }: Props) {
           <button type="button" className="top__back" onClick={() => (window.history.length > 1 ? nav(-1) : nav('/'))} aria-label="Back">
             <ChevronLeft />
           </button>
-        ) : (
+        ) : title ? null : (
           <Link to="/" className="brand" aria-label="Forkcast home">
             <ForkIcon size={20} stroke="var(--rausch)" />
             <span>Forkcast</span>

@@ -37,12 +37,6 @@ export const SearchIcon = ({ size = 18, stroke = 'currentColor', ...rest }: P) =
   </svg>
 );
 
-export const ChevronDown = ({ size = 14, stroke = 'currentColor', ...rest }: P) => (
-  <svg {...base(size, stroke)} {...rest}>
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-);
-
 export const SlidersIcon = ({ size = 16, stroke = 'currentColor', ...rest }: P) => (
   <svg {...base(size, stroke, 2.2)} {...rest}>
     <path d="M4 6h8M16 6h4" />
@@ -57,12 +51,6 @@ export const SlidersIcon = ({ size = 16, stroke = 'currentColor', ...rest }: P) 
 export const ChevronLeft = ({ size = 20, stroke = 'currentColor', ...rest }: P) => (
   <svg {...base(size, stroke)} {...rest}>
     <path d="M15 5l-7 7 7 7" />
-  </svg>
-);
-
-export const ChevronRight = ({ size = 14, stroke = 'currentColor', ...rest }: P) => (
-  <svg {...base(size, stroke)} {...rest}>
-    <path d="M9 6l6 6-6 6" />
   </svg>
 );
 

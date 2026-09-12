@@ -227,6 +227,7 @@ export function Home() {
         query={q}
         active={active}
         onToggle={toggleFilter}
+        onClearFilters={() => setActive([])}
         onClear={clearAll}
         resultCount={visible.length}
       />

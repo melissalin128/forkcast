@@ -8,12 +8,17 @@ interface Props {
   query: string;
   active: FilterKey[];
   onToggle: (key: FilterKey) => void;
+  /** Clears only the price/time/diet chips — used by the modal's own "Clear all". */
+  onClearFilters: () => void;
+  /** Clears search + category + filters together — used by the query-summary line below. */
   onClear: () => void;
   resultCount: number;
 }
 
 const GROUP_LABEL: Record<string, string> = { price: 'Price', time: 'Delivery time', diet: 'Dietary' };
-const GROUPS = ['price', 'time', 'diet'] as const;
+// Derived from FILTERS itself (in first-seen order) so a new group added there
+// can never be silently left out of the modal.
+const GROUPS = Array.from(new Set(FILTERS.map((f) => f.group)));
 
 /**
  * One "Filters" pill, closed by default. Opening it lifts the same price/time/diet
@@ -21,7 +26,7 @@ const GROUPS = ['price', 'time', 'diet'] as const;
  * that's always taking up space. Whatever's already on shows as a small removable
  * tag next to the pill, so the active state is never hidden — only the picker is.
  */
-export function FilterBar({ category, query, active, onToggle, onClear, resultCount }: Props) {
+export function FilterBar({ category, query, active, onToggle, onClearFilters, onClear, resultCount }: Props) {
   const [open, setOpen] = useState(false);
   const label = queryLabel(category, active, query);
   const activeChips = FILTERS.filter((f) => active.includes(f.key));
@@ -123,7 +128,7 @@ export function FilterBar({ category, query, active, onToggle, onClear, resultCo
             </div>
 
             <div className="modal__foot">
-              <button type="button" className="modal__clear" onClick={onClear} disabled={active.length === 0}>
+              <button type="button" className="modal__clear" onClick={onClearFilters} disabled={active.length === 0}>
                 Clear all
               </button>
               <button type="button" className="btn btn--accent" onClick={() => setOpen(false)}>
