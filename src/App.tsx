@@ -147,60 +147,118 @@ const HOT_PICKS = [1, 5, 3, 7].map(id => DEAL_CARDS.find(c => c.id === id)!)
 
 // ─── Trend data ──────────────────────────────────────────────────────────────
 
-const WEEKS = ['Aug 4','Aug 11','Aug 18','Aug 25','Sep 1','Sep 8','Sep 15','Sep 22','Sep 29','Oct 6','Oct 13','Oct 20']
+type RangeKey = 'day' | 'month' | 'historical'
+type MetricKey = 'total' | 'fee' | 'time'
 
-const TREND_SERIES = {
-  total: {
-    label: 'Avg Total Price',
-    unit: '$',
-    doordash: [18.4, 17.9, 19.2, 16.8, 18.1, 20.5, 19.3, 16.9, 18.7, 20.1, 18.9, 17.8],
-    ubereats:  [20.8, 20.1, 21.5, 19.3, 20.4, 22.9, 21.7, 19.6, 20.2, 21.8, 20.5, 19.4],
-    grubhub:   [19.5, 18.8, 20.4, 18.1, 19.3, 21.6, 20.1, 18.3, 19.0, 20.4, 19.7, 18.2],
+const RANGE_DATA: Record<RangeKey, {
+  labels: string[]
+  labelStep: number
+  total: { doordash: number[]; ubereats: number[]; grubhub: number[] }
+  fee:   { doordash: number[]; ubereats: number[]; grubhub: number[] }
+  time:  { doordash: number[]; ubereats: number[]; grubhub: number[] }
+}> = {
+  day: {
+    labels: ['12am','2am','4am','6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm'],
+    labelStep: 2,
+    total: {
+      doordash: [16.2,15.8,16.1,16.9,17.8,19.4,20.1,19.7,18.9,21.3,20.5,18.8],
+      ubereats:  [18.5,18.1,18.4,19.2,20.1,21.8,22.9,22.4,21.3,23.7,22.8,21.2],
+      grubhub:   [17.4,17.0,17.3,18.0,18.9,20.5,21.3,21.0,20.1,22.4,21.6,20.0],
+    },
+    fee: {
+      doordash: [1.99,1.49,1.49,1.99,2.49,2.99,3.49,2.99,2.49,3.99,3.49,2.99],
+      ubereats:  [2.99,2.49,2.49,2.99,3.49,4.49,4.99,4.49,3.99,4.99,4.49,3.99],
+      grubhub:   [0.99,0.49,0.49,0.99,1.49,1.99,2.49,1.99,1.49,2.99,2.49,1.99],
+    },
+    time: {
+      doordash: [18,16,15,17,22,25,28,27,24,30,28,24],
+      ubereats:  [22,20,19,21,26,29,32,31,28,34,32,28],
+      grubhub:   [15,13,12,14,19,22,25,24,21,27,25,21],
+    },
   },
-  fee: {
-    label: 'Avg Delivery Fee',
-    unit: '$',
-    doordash: [2.49, 2.99, 1.99, 2.49, 2.99, 3.49, 2.49, 1.99, 2.99, 3.49, 2.99, 2.49],
-    ubereats:  [3.99, 3.49, 4.49, 3.99, 4.49, 4.99, 3.99, 3.49, 4.49, 4.99, 4.49, 3.99],
-    grubhub:   [1.49, 0.99, 1.99, 1.49, 1.99, 2.49, 1.49, 0.99, 1.49, 1.99, 1.49, 0.99],
+  month: {
+    labels: ['Oct 1','Oct 4','Oct 7','Oct 10','Oct 13','Oct 16','Oct 19','Oct 22','Oct 25','Oct 28','Oct 31'],
+    labelStep: 2,
+    total: {
+      doordash: [18.4,17.9,19.2,16.8,18.1,20.5,19.3,16.9,18.7,20.1,17.8],
+      ubereats:  [20.8,20.1,21.5,19.3,20.4,22.9,21.7,19.6,20.2,21.8,19.4],
+      grubhub:   [19.5,18.8,20.4,18.1,19.3,21.6,20.1,18.3,19.0,20.4,18.2],
+    },
+    fee: {
+      doordash: [2.49,2.99,1.99,2.49,2.99,3.49,2.49,1.99,2.99,3.49,2.49],
+      ubereats:  [3.99,3.49,4.49,3.99,4.49,4.99,3.99,3.49,4.49,4.99,3.99],
+      grubhub:   [1.49,0.99,1.99,1.49,1.99,2.49,1.49,0.99,1.49,1.99,0.99],
+    },
+    time: {
+      doordash: [24,22,26,21,23,28,25,20,24,27,22],
+      ubereats:  [28,26,29,25,27,31,29,24,27,30,25],
+      grubhub:   [21,19,23,18,21,25,22,18,21,24,19],
+    },
   },
-  time: {
-    label: 'Avg Delivery Time',
-    unit: ' min',
-    doordash: [24, 22, 26, 21, 23, 28, 25, 20, 24, 27, 25, 22],
-    ubereats:  [28, 26, 29, 25, 27, 31, 29, 24, 27, 30, 28, 25],
-    grubhub:   [21, 19, 23, 18, 21, 25, 22, 18, 21, 24, 22, 19],
+  historical: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    labelStep: 2,
+    total: {
+      doordash: [17.2,17.8,18.1,18.9,19.4,20.2,19.8,18.4,18.9,19.5,20.1,21.3],
+      ubereats:  [19.5,20.1,20.6,21.3,22.0,22.8,22.2,20.8,21.4,22.1,22.9,24.2],
+      grubhub:   [18.3,18.9,19.3,20.0,20.6,21.5,21.0,19.5,20.1,20.8,21.4,22.7],
+    },
+    fee: {
+      doordash: [2.49,2.49,2.99,2.99,3.49,3.49,2.99,2.49,2.99,3.49,3.49,3.99],
+      ubereats:  [3.49,3.49,3.99,3.99,4.49,4.99,4.49,3.99,4.49,4.99,4.99,5.49],
+      grubhub:   [1.49,1.49,1.99,1.99,1.49,1.99,1.49,0.99,1.49,1.99,1.99,2.49],
+    },
+    time: {
+      doordash: [22,23,24,25,26,27,26,24,24,25,26,28],
+      ubereats:  [26,27,28,29,30,31,30,28,28,29,30,32],
+      grubhub:   [19,20,21,22,23,24,23,21,21,22,23,25],
+    },
   },
+}
+
+const METRIC_META: Record<MetricKey, { label: string; unit: string; prefix: string }> = {
+  total: { label: 'Total Price',    unit: '',     prefix: '$' },
+  fee:   { label: 'Delivery Fee',   unit: '',     prefix: '$' },
+  time:  { label: 'Delivery Time',  unit: ' min', prefix: ''  },
 }
 
 // Validated categorical palette slots 1–3 (all-pairs safe for 3 series)
 // Relief: direct endpoint labels ship for aqua (#1baf7a) which is sub-3:1
 const CHART_COLORS = {
-  doordash: '#2a78d6',  // slot 1 blue
-  grubhub:  '#eb6834',  // slot 2 orange
-  ubereats: '#1baf7a',  // slot 3 aqua — sub-3:1, endpoint labels are relief
+  doordash: '#2a78d6',
+  grubhub:  '#eb6834',
+  ubereats: '#1baf7a',
 }
 
-type MetricKey = 'total' | 'fee' | 'time'
+const PLATFORMS = [
+  { key: 'doordash' as const, label: 'DoorDash' },
+  { key: 'ubereats' as const, label: 'Uber Eats' },
+  { key: 'grubhub' as const, label: 'Grubhub' },
+]
 
 function TrendsChart() {
   const [metric, setMetric] = useState<MetricKey>('total')
+  const [range, setRange] = useState<RangeKey>('month')
   const [crosshairIdx, setCrosshairIdx] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
-  const series = TREND_SERIES[metric]
+  const rd = RANGE_DATA[range]
+  const series = rd[metric]
+  const labels = rd.labels
+  const n = labels.length
+
   const allVals = [...series.doordash, ...series.ubereats, ...series.grubhub]
   const minVal = Math.min(...allVals)
   const maxVal = Math.max(...allVals)
+  const pad = (maxVal - minVal) * 0.08
 
   const W = 350, H = 200
-  const ml = 38, mr = 12, mt = 12, mb = 28
+  const ml = 38, mr = 46, mt = 12, mb = 28
   const chartW = W - ml - mr
   const chartH = H - mt - mb
-  const n = WEEKS.length
 
   const xPos = (i: number) => ml + (i / (n - 1)) * chartW
-  const yPos = (v: number) => mt + chartH - ((v - minVal) / (maxVal - minVal || 1)) * chartH
+  const yPos = (v: number) => mt + chartH - ((v - (minVal - pad)) / ((maxVal + pad) - (minVal - pad) || 1)) * chartH
 
   const makePath = (vals: number[]) =>
     vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ')
@@ -209,6 +267,10 @@ function TrendsChart() {
   const gridVals = Array.from({ length: gridSteps + 1 }, (_, i) =>
     minVal + (i / gridSteps) * (maxVal - minVal)
   )
+
+  const { prefix, unit } = METRIC_META[metric]
+  const fmt = (v: number) => `${prefix}${metric === 'time' ? v.toFixed(0) : v.toFixed(2)}${unit}`
+  const fmtAxis = (v: number) => `${prefix}${metric === 'time' ? v.toFixed(0) : v.toFixed(0)}`
 
   const handleMove = useCallback((e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>) => {
     const svg = svgRef.current
@@ -222,14 +284,30 @@ function TrendsChart() {
 
   const ci = crosshairIdx
 
-  const PLATFORMS = [
-    { key: 'doordash' as const, label: 'DoorDash' },
-    { key: 'ubereats' as const, label: 'Uber Eats' },
-    { key: 'grubhub' as const, label: 'Grubhub' },
-  ]
-
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
+      {/* Range selector */}
+      <div className="flex items-center p-0.5 rounded-[10px] gap-0.5" style={{ background: '#F0F0EE' }}>
+        {([
+          { key: 'day', label: '1D' },
+          { key: 'month', label: '1M' },
+          { key: 'historical', label: 'All' },
+        ] as const).map(r => (
+          <button
+            key={r.key}
+            onClick={() => { setRange(r.key); setCrosshairIdx(null) }}
+            className="flex-1 py-1.5 rounded-[8px] text-xs font-semibold transition-all"
+            style={{
+              background: range === r.key ? '#FFFFFF' : 'transparent',
+              color: range === r.key ? '#17171C' : '#63636B',
+              boxShadow: range === r.key ? '0 1px 3px rgba(0,0,0,0.10)' : 'none',
+            }}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+
       {/* Metric pills */}
       <div className="flex gap-2">
         {([
@@ -257,18 +335,18 @@ function TrendsChart() {
         <div className="flex items-center justify-between px-4 pt-3 pb-2" style={{ minHeight: 40 }}>
           {ci !== null ? (
             <>
-              <span className="text-xs font-semibold" style={{ color: '#63636B' }}>{WEEKS[ci]}</span>
+              <span className="text-xs font-semibold" style={{ color: '#63636B' }}>{labels[ci]}</span>
               <div className="flex items-center gap-3">
                 {PLATFORMS.map(p => (
                   <span key={p.key} className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#17171C' }}>
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[p.key] }} />
-                    {series[p.key][ci].toFixed(metric === 'time' ? 0 : 2)}{series.unit}
+                    {fmt(series[p.key][ci])}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <span className="text-xs" style={{ color: '#ADADB8' }}>Touch chart to compare</span>
+            <span className="text-xs" style={{ color: '#ADADB8' }}>Touch to compare</span>
           )}
         </div>
 
@@ -283,84 +361,51 @@ function TrendsChart() {
           onMouseLeave={() => setCrosshairIdx(null)}
           onTouchEnd={() => setCrosshairIdx(null)}
         >
-          {/* Grid lines */}
+          {/* Grid lines + Y axis labels */}
           {gridVals.map((v, i) => (
             <g key={i}>
-              <line
-                x1={ml} x2={W - mr}
-                y1={yPos(v).toFixed(1)} y2={yPos(v).toFixed(1)}
-                stroke="#E8E8E4" strokeWidth="1"
-              />
-              <text
-                x={ml - 5} y={yPos(v)}
-                textAnchor="end" dominantBaseline="middle"
+              <line x1={ml} x2={W - mr} y1={yPos(v).toFixed(1)} y2={yPos(v).toFixed(1)} stroke="#E8E8E4" strokeWidth="1" />
+              <text x={ml - 5} y={yPos(v)} textAnchor="end" dominantBaseline="middle"
                 fontSize="9" fill="#ADADB8" fontFamily="system-ui,sans-serif"
-                style={{ fontVariantNumeric: 'tabular-nums' }}
-              >
-                {metric === 'time' ? v.toFixed(0) : `$${v.toFixed(0)}`}
+                style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {fmtAxis(v)}
               </text>
             </g>
           ))}
 
-          {/* X axis labels — every 3rd week */}
-          {WEEKS.map((w, i) => i % 3 === 0 && (
-            <text
-              key={i}
-              x={xPos(i)} y={H - 6}
-              textAnchor="middle" fontSize="9" fill="#ADADB8"
-              fontFamily="system-ui,sans-serif"
-            >
-              {w.split(' ')[0]} {w.split(' ')[1]}
+          {/* X axis labels */}
+          {labels.map((lbl, i) => i % rd.labelStep === 0 && (
+            <text key={i} x={xPos(i)} y={H - 6} textAnchor="middle"
+              fontSize="9" fill="#ADADB8" fontFamily="system-ui,sans-serif">
+              {lbl}
             </text>
           ))}
 
           {/* Lines */}
           {PLATFORMS.map(p => (
-            <path
-              key={p.key}
-              d={makePath(series[p.key])}
-              fill="none"
-              stroke={CHART_COLORS[p.key]}
-              strokeWidth="2"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+            <path key={p.key} d={makePath(series[p.key])}
+              fill="none" stroke={CHART_COLORS[p.key]}
+              strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
           ))}
 
-          {/* Endpoint labels (required relief for aqua sub-3:1) */}
-          {PLATFORMS.map(p => {
-            const lastVal = series[p.key][n - 1]
-            const lx = xPos(n - 1)
-            const ly = yPos(lastVal)
-            return (
-              <text
-                key={p.key}
-                x={lx + 4} y={ly}
-                dominantBaseline="middle"
-                fontSize="8.5" fontWeight="600"
-                fill={CHART_COLORS[p.key]}
-                fontFamily="system-ui,sans-serif"
-              >
-                {p.label.split(' ')[0]}
-              </text>
-            )
-          })}
+          {/* Endpoint labels — relief for aqua sub-3:1 */}
+          {PLATFORMS.map(p => (
+            <text key={p.key}
+              x={xPos(n - 1) + 4} y={yPos(series[p.key][n - 1])}
+              dominantBaseline="middle" fontSize="8.5" fontWeight="600"
+              fill={CHART_COLORS[p.key]} fontFamily="system-ui,sans-serif">
+              {p.label.split(' ')[0]}
+            </text>
+          ))}
 
           {/* Crosshair */}
           {ci !== null && (
             <g>
-              <line
-                x1={xPos(ci)} x2={xPos(ci)}
-                y1={mt} y2={mt + chartH}
-                stroke="#17171C" strokeWidth="1" strokeDasharray="3 3" opacity="0.3"
-              />
+              <line x1={xPos(ci)} x2={xPos(ci)} y1={mt} y2={mt + chartH}
+                stroke="#17171C" strokeWidth="1" strokeDasharray="3 3" opacity="0.3" />
               {PLATFORMS.map(p => (
-                <circle
-                  key={p.key}
-                  cx={xPos(ci)} cy={yPos(series[p.key][ci])}
-                  r="4" fill="#FFFFFF"
-                  stroke={CHART_COLORS[p.key]} strokeWidth="2"
-                />
+                <circle key={p.key} cx={xPos(ci)} cy={yPos(series[p.key][ci])}
+                  r="4" fill="#FFFFFF" stroke={CHART_COLORS[p.key]} strokeWidth="2" />
               ))}
             </g>
           )}
