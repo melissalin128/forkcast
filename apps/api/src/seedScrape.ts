@@ -25,7 +25,25 @@ import { PLATFORM_SLUGS, type PlatformSlug } from './models/types';
 import { platforms as platformSeed } from './seed/data';
 import { formatTable, runScrapeJob, type ScrapeResult } from './services/scrapeJob';
 
-const COMMON_QUERIES = ['pizza', 'boba', 'fast food', 'burgers', 'sushi', 'chinese', 'mexican', 'thai'];
+const COMMON_QUERIES = [
+  'pizza',
+  'burgers',
+  'chinese',
+  'mexican',
+  'sushi',
+  'indian',
+  'thai',
+  'italian',
+  'chicken',
+  'sandwiches',
+  'breakfast',
+  'healthy',
+  'desserts',
+  'coffee',
+  'vegan',
+  'halal',
+  'grocery',
+];
 
 interface Args {
   zips: string[];
