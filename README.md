@@ -23,6 +23,7 @@ cp .env.example .env          # fill in MONGODB_URI
 npm run seed                  # loads restaurants + 7 days of price snapshots
 npm run dev:api               # http://localhost:4000
 npm run dev:web               # http://localhost:5173
+npm run deals -- --status     # Apify deals feed: runs, active deals, credit burned
 ```
 
 With `ADAPTER=mock` the API serves seeded data and never touches the live

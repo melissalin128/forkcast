@@ -155,6 +155,9 @@ spend caps, actor id and pricing, ranking weights). Secrets stay in env:
 
 ### Commands
 
+Run these from `apps/api`, or from the repo root where `npm run deals` forwards
+to this package.
+
 ```bash
 npm run deals -- --status                        # runs, active deals, credit burned
 npm run deals -- --feed --dry-run                # the exact actor input, starts nothing
