@@ -4,10 +4,36 @@
  * the mock adapter curves, so every endpoint has data.
  */
 import { randomUUID } from 'node:crypto';
-import type { Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
+import {
+  dealKey,
+  type Deal,
+  type NewDeal,
+  type NewScrapeRun,
+  type Offer,
+  type Platform,
+  type PlatformSlug,
+  type PriceSnapshot,
+  type Promo,
+  type Restaurant,
+  type ScrapeRun,
+  type User,
+} from '../models/types';
 import { platforms as seedPlatforms, promos as seedPromos, restaurants as seedRestaurants } from '../seed/data';
 import { generateSnapshots } from '../seed/snapshots';
-import { matchesFilter, type NewRestaurant, type NewUser, type Repository, type RestaurantFilter } from './types';
+import {
+  matchesDealFilter,
+  matchesFilter,
+  matchesScrapeRunFilter,
+  type DealFilter,
+  type DealSeen,
+  type DeactivateDealsOptions,
+  type NewRestaurant,
+  type NewUser,
+  type Repository,
+  type RestaurantFilter,
+  type ScrapeRunFilter,
+  type UpsertDealsResult,
+} from './types';
 
 export class MemoryRepository implements Repository {
   readonly kind = 'memory' as const;
@@ -20,6 +46,9 @@ export class MemoryRepository implements Repository {
   /** restaurantId -> snapshots (append-only) */
   private snapshots = new Map<string, PriceSnapshot[]>();
   private users = new Map<string, User>();
+  /** dealKey() -> deal */
+  private deals = new Map<string, Deal>();
+  private scrapeRuns = new Map<string, ScrapeRun>();
 
   /** Platforms + promos only: the live scrapers fill in restaurants, offers and history. */
   static empty(): MemoryRepository {
@@ -121,5 +150,112 @@ export class MemoryRepository implements Repository {
 
   async getUser(id: string): Promise<User | null> {
     return this.users.get(id) ?? null;
+  }
+
+  // --- deals layer ---
+
+  async upsertDeals(deals: NewDeal[], seen: DealSeen): Promise<UpsertDealsResult> {
+    let inserted = 0;
+    let updated = 0;
+    for (const d of deals) {
+      const key = dealKey(d);
+      const existing = this.deals.get(key);
+      if (existing) {
+        this.deals.set(key, {
+          ...d,
+          id: existing.id,
+          firstSeenAt: existing.firstSeenAt,
+          firstRunId: existing.firstRunId,
+          lastSeenAt: seen.at,
+          lastRunId: seen.runId ?? existing.lastRunId,
+          lastRunKind: seen.runKind ?? existing.lastRunKind,
+          isActive: true,
+        });
+        updated += 1;
+      } else {
+        this.deals.set(key, {
+          ...d,
+          id: randomUUID(),
+          firstSeenAt: seen.at,
+          lastSeenAt: seen.at,
+          firstRunId: seen.runId,
+          lastRunId: seen.runId,
+          lastRunKind: seen.runKind,
+          isActive: true,
+        });
+        inserted += 1;
+      }
+    }
+    return { inserted, updated };
+  }
+
+  async deactivateDeals(platform: PlatformSlug, addressKey: string, opts: DeactivateDealsOptions): Promise<number> {
+    const before = opts.lastSeenBefore.getTime();
+    let n = 0;
+    for (const [key, d] of this.deals) {
+      if (!d.isActive || d.platform !== platform || d.addressKey !== addressKey) continue;
+      if (opts.lastRunKind && d.lastRunKind !== opts.lastRunKind) continue;
+      if (d.lastSeenAt.getTime() >= before) continue;
+      this.deals.set(key, { ...d, isActive: false });
+      n += 1;
+    }
+    return n;
+  }
+
+  async listDeals(filter: DealFilter = {}): Promise<Deal[]> {
+    const out = [...this.deals.values()]
+      .filter((d) => matchesDealFilter(d, filter))
+      .sort((a, b) => b.lastSeenAt.getTime() - a.lastSeenAt.getTime());
+    return filter.limit ? out.slice(0, filter.limit) : out;
+  }
+
+  async createScrapeRun(input: NewScrapeRun): Promise<ScrapeRun> {
+    const run: ScrapeRun = {
+      resultsReturned: 0,
+      dealsExtracted: 0,
+      parseFailures: 0,
+      ...input,
+      id: `run_${randomUUID().slice(0, 8)}`,
+    };
+    this.scrapeRuns.set(run.id, run);
+    return run;
+  }
+
+  async updateScrapeRun(id: string, patch: Partial<Omit<ScrapeRun, 'id'>>): Promise<ScrapeRun | null> {
+    const existing = this.scrapeRuns.get(id);
+    if (!existing) return null;
+    const defined = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+    const next: ScrapeRun = { ...existing, ...defined, id };
+    this.scrapeRuns.set(id, next);
+    return next;
+  }
+
+  async getScrapeRun(id: string): Promise<ScrapeRun | null> {
+    return this.scrapeRuns.get(id) ?? null;
+  }
+
+  async getScrapeRunByApifyId(apifyRunId: string): Promise<ScrapeRun | null> {
+    return [...this.scrapeRuns.values()].find((r) => r.apifyRunId === apifyRunId) ?? null;
+  }
+
+  async listScrapeRuns(filter: ScrapeRunFilter = {}): Promise<ScrapeRun[]> {
+    const out = [...this.scrapeRuns.values()]
+      .filter((r) => matchesScrapeRunFilter(r, filter))
+      .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+    return filter.limit ? out.slice(0, filter.limit) : out;
+  }
+
+  async countScrapeRuns(filter: ScrapeRunFilter = {}): Promise<number> {
+    return [...this.scrapeRuns.values()].filter((r) => matchesScrapeRunFilter(r, filter)).length;
+  }
+
+  async sumScrapeRunCost(since?: Date): Promise<number> {
+    let total = 0;
+    for (const r of this.scrapeRuns.values()) {
+      if (r.status === 'skipped') continue;
+      if (since && r.startedAt.getTime() < since.getTime()) continue;
+      total += r.actualCost ?? r.estimatedCost;
+    }
+    return total;
   }
 }

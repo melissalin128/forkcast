@@ -1,0 +1,40 @@
+{
+  "$comment": "Non-secret configuration for the Apify deals layer (src/deals). Secrets live in env: APIFY_API_KEY, APIFY_WEBHOOK_SECRET, CRON_SECRET.",
+  "addresses": [
+    { "key": "15232", "label": "Shadyside, Pittsburgh PA 15232", "lat": 40.4514, "lng": -79.933, "radiusMi": 3 }
+  ],
+  "feedQueries": ["pizza", "sushi", "chinese", "burgers", "indian", "thai"],
+  "caps": {
+    "feedRunsPerDay": 4,
+    "searchesPerDay": 10,
+    "searchCooldownHours": 0,
+    "maxResultsPerRun": 40,
+    "spendCeilingUsd": 5,
+    "staleAfterHours": 36
+  },
+  "actors": {
+    "doordash": {
+      "actorId": "",
+      "pricing": { "perRunUsd": 0, "perResultUsd": 0, "computeUsdEstimate": 0 },
+      "timeoutSecs": 600,
+      "input": {}
+    }
+  },
+  "scoreWeights": {
+    "savings": 1,
+    "deliveryFeePenalty": 0.5,
+    "minOrderPenalty": 0.05,
+    "distancePenaltyPerMi": 0.4,
+    "unknownDistancePenalty": 1,
+    "defaultSavingsByType": {
+      "free_delivery": 4,
+      "reduced_delivery_fee": 2,
+      "percent_off": 5,
+      "dollar_off": 5,
+      "bogo": 8,
+      "item_discount": 3,
+      "promo_code": 4,
+      "other": 1
+    }
+  }
+}

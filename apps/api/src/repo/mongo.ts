@@ -4,23 +4,41 @@
  */
 import { Types } from 'mongoose';
 import {
+  DealModel,
   OfferModel,
   PlatformModel,
   PriceSnapshotModel,
   PromoModel,
   RestaurantModel,
+  ScrapeRunModel,
   UserModel,
+  dealKey,
+  type Deal,
   type DietaryTag,
+  type NewDeal,
+  type NewScrapeRun,
   type Offer,
   type Platform,
   type PlatformSlug,
   type PriceSnapshot,
   type Promo,
   type Restaurant,
+  type ScrapeRun,
   type SubscriptionSlug,
   type User,
 } from '../models';
-import { servesZip, type NewRestaurant, type NewUser, type Repository, type RestaurantFilter } from './types';
+import {
+  servesZip,
+  type DealFilter,
+  type DealSeen,
+  type DeactivateDealsOptions,
+  type NewRestaurant,
+  type NewUser,
+  type Repository,
+  type RestaurantFilter,
+  type ScrapeRunFilter,
+  type UpsertDealsResult,
+} from './types';
 
 const oid = (v: unknown): string => String(v);
 const isObjectId = (s: string): boolean => Types.ObjectId.isValid(s) && String(new Types.ObjectId(s)) === s;
@@ -114,6 +132,67 @@ const toUser = (d: AnyDoc): User => ({
   })),
   createdAt: d.createdAt ? new Date(d.createdAt) : undefined,
 });
+
+const stripUndefined = (o: AnyDoc): AnyDoc => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+
+const toDeal = (d: AnyDoc): Deal => ({
+  id: oid(d._id),
+  platform: d.platform,
+  restaurantName: d.restaurantName,
+  platformRestaurantId: d.platformRestaurantId,
+  cuisine: d.cuisine ?? [],
+  ...(d.geo && typeof d.geo.lat === 'number' && typeof d.geo.lng === 'number' ? { geo: { lat: d.geo.lat, lng: d.geo.lng } } : {}),
+  ...(typeof d.distanceMi === 'number' ? { distanceMi: d.distanceMi } : {}),
+  dealType: d.dealType,
+  headline: d.headline,
+  ...(d.value ? { value: stripUndefined(d.value) } : {}),
+  ...(typeof d.minOrder === 'number' ? { minOrder: d.minOrder } : {}),
+  ...(d.promoCode ? { promoCode: d.promoCode } : {}),
+  addressKey: d.addressKey,
+  ...(d.deepLink ? { deepLink: d.deepLink } : {}),
+  firstSeenAt: new Date(d.firstSeenAt),
+  lastSeenAt: new Date(d.lastSeenAt),
+  ...(d.expiresAt ? { expiresAt: new Date(d.expiresAt) } : {}),
+  isActive: !!d.isActive,
+  ...(d.firstRunId ? { firstRunId: d.firstRunId } : {}),
+  ...(d.lastRunId ? { lastRunId: d.lastRunId } : {}),
+  ...(d.lastRunKind ? { lastRunKind: d.lastRunKind } : {}),
+  ...(d.raw !== undefined && d.raw !== null ? { raw: d.raw } : {}),
+});
+
+const toScrapeRun = (d: AnyDoc): ScrapeRun => ({
+  id: oid(d._id),
+  platform: d.platform,
+  addressKey: d.addressKey,
+  kind: d.kind,
+  ...(d.query ? { query: d.query } : {}),
+  actorId: d.actorId,
+  ...(d.apifyRunId ? { apifyRunId: d.apifyRunId } : {}),
+  ...(d.datasetId ? { datasetId: d.datasetId } : {}),
+  startedAt: new Date(d.startedAt),
+  ...(d.finishedAt ? { finishedAt: new Date(d.finishedAt) } : {}),
+  status: d.status,
+  resultsReturned: d.resultsReturned ?? 0,
+  dealsExtracted: d.dealsExtracted ?? 0,
+  parseFailures: d.parseFailures ?? 0,
+  estimatedCost: d.estimatedCost ?? 0,
+  ...(typeof d.actualCost === 'number' ? { actualCost: d.actualCost } : {}),
+  ...(d.error ? { error: d.error } : {}),
+});
+
+/** Optional Deal fields: absent in the parser output means "clear it" on update, mirroring the memory store. */
+const DEAL_OPTIONAL_FIELDS = ['geo', 'distanceMi', 'value', 'minOrder', 'promoCode', 'deepLink', 'expiresAt', 'raw'] as const;
+
+function scrapeRunQuery(f: ScrapeRunFilter): AnyDoc {
+  const q: AnyDoc = {};
+  if (f.status) q.status = Array.isArray(f.status) ? { $in: f.status } : f.status;
+  if (f.kind) q.kind = f.kind;
+  if (f.platform) q.platform = f.platform;
+  if (f.addressKey) q.addressKey = f.addressKey;
+  if (f.query !== undefined) q.query = f.query;
+  if (f.since) q.startedAt = { $gte: f.since };
+  return q;
+}
 
 export class MongoRepository implements Repository {
   readonly kind = 'mongo' as const;
@@ -210,5 +289,108 @@ export class MongoRepository implements Repository {
     if (!isObjectId(id)) return null;
     const doc = await UserModel.findById(id).lean();
     return doc ? toUser(doc) : null;
+  }
+
+  // --- deals layer ---
+
+  async upsertDeals(deals: NewDeal[], seen: DealSeen): Promise<UpsertDealsResult> {
+    // last write wins inside one batch, so two rows with the same key never race on the unique index
+    const byKey = new Map<string, NewDeal>();
+    for (const d of deals) byKey.set(dealKey(d), d);
+    if (byKey.size === 0) return { inserted: 0, updated: 0 };
+
+    const ops = [...byKey.values()].map((d) => {
+      const set: AnyDoc = { ...d, lastSeenAt: seen.at, isActive: true };
+      if (seen.runId) set.lastRunId = seen.runId;
+      if (seen.runKind) set.lastRunKind = seen.runKind;
+      const unset: AnyDoc = {};
+      for (const f of DEAL_OPTIONAL_FIELDS) {
+        if (set[f] === undefined) {
+          delete set[f];
+          unset[f] = '';
+        }
+      }
+      const setOnInsert: AnyDoc = { firstSeenAt: seen.at };
+      if (seen.runId) setOnInsert.firstRunId = seen.runId;
+      const update: AnyDoc = { $set: set, $setOnInsert: setOnInsert };
+      if (Object.keys(unset).length > 0) update.$unset = unset;
+      return {
+        updateOne: {
+          filter: { platform: d.platform, platformRestaurantId: d.platformRestaurantId, headline: d.headline, addressKey: d.addressKey },
+          update,
+          upsert: true,
+        },
+      };
+    });
+    const res = await DealModel.bulkWrite(ops, { ordered: false });
+    return { inserted: res.upsertedCount, updated: res.matchedCount };
+  }
+
+  async deactivateDeals(platform: PlatformSlug, addressKey: string, opts: DeactivateDealsOptions): Promise<number> {
+    const q: AnyDoc = { platform, addressKey, isActive: true, lastSeenAt: { $lt: opts.lastSeenBefore } };
+    if (opts.lastRunKind) q.lastRunKind = opts.lastRunKind;
+    const res = await DealModel.updateMany(q, { $set: { isActive: false } });
+    return res.modifiedCount;
+  }
+
+  async listDeals(f: DealFilter = {}): Promise<Deal[]> {
+    const q: AnyDoc = {};
+    const and: AnyDoc[] = [];
+    if (f.addressKey) q.addressKey = f.addressKey;
+    if (f.platform) q.platform = f.platform;
+    if (f.dealType) q.dealType = f.dealType;
+    if (f.activeOnly !== false) {
+      q.isActive = true;
+      and.push({ $or: [{ expiresAt: null }, { expiresAt: { $gt: f.now ?? new Date() } }] });
+    }
+    if (f.maxDistanceMi !== undefined) and.push({ $or: [{ distanceMi: null }, { distanceMi: { $lte: f.maxDistanceMi } }] });
+    if (f.q) {
+      const re = { $regex: escapeRegex(f.q), $options: 'i' };
+      and.push({ $or: [{ restaurantName: re }, { cuisine: { $elemMatch: re } }] });
+    }
+    if (and.length > 0) q.$and = and;
+    const docs = await DealModel.find(q).sort({ lastSeenAt: -1 }).limit(f.limit ?? 500).lean();
+    return docs.map(toDeal);
+  }
+
+  async createScrapeRun(input: NewScrapeRun): Promise<ScrapeRun> {
+    const doc = await ScrapeRunModel.create({ resultsReturned: 0, dealsExtracted: 0, parseFailures: 0, ...stripUndefined(input) });
+    return toScrapeRun(doc.toObject());
+  }
+
+  async updateScrapeRun(id: string, patch: Partial<Omit<ScrapeRun, 'id'>>): Promise<ScrapeRun | null> {
+    if (!isObjectId(id)) return null;
+    const doc = await ScrapeRunModel.findByIdAndUpdate(id, { $set: stripUndefined(patch) }, { new: true }).lean();
+    return doc ? toScrapeRun(doc) : null;
+  }
+
+  async getScrapeRun(id: string): Promise<ScrapeRun | null> {
+    if (!isObjectId(id)) return null;
+    const doc = await ScrapeRunModel.findById(id).lean();
+    return doc ? toScrapeRun(doc) : null;
+  }
+
+  async getScrapeRunByApifyId(apifyRunId: string): Promise<ScrapeRun | null> {
+    const doc = await ScrapeRunModel.findOne({ apifyRunId }).lean();
+    return doc ? toScrapeRun(doc) : null;
+  }
+
+  async listScrapeRuns(f: ScrapeRunFilter = {}): Promise<ScrapeRun[]> {
+    const docs = await ScrapeRunModel.find(scrapeRunQuery(f)).sort({ startedAt: -1 }).limit(f.limit ?? 100).lean();
+    return docs.map(toScrapeRun);
+  }
+
+  async countScrapeRuns(f: ScrapeRunFilter = {}): Promise<number> {
+    return ScrapeRunModel.countDocuments(scrapeRunQuery(f));
+  }
+
+  async sumScrapeRunCost(since?: Date): Promise<number> {
+    const match: AnyDoc = { status: { $ne: 'skipped' } };
+    if (since) match.startedAt = { $gte: since };
+    const rows = await ScrapeRunModel.aggregate<{ total: number }>([
+      { $match: match },
+      { $group: { _id: null, total: { $sum: { $ifNull: ['$actualCost', '$estimatedCost'] } } } },
+    ]);
+    return rows[0]?.total ?? 0;
   }
 }

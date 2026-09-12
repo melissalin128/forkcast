@@ -59,4 +59,16 @@ export const config = {
   offerCacheMs: 10 * 60 * 1000,
   /** Default tip used in every total (spec section 7 recommendation). */
   defaultTipPct: 0.15,
+  /** Deals layer (src/deals): Apify access. The token is never logged. */
+  apify: {
+    token: process.env.APIFY_API_KEY?.trim() || undefined,
+    /** Shared secret Apify must send back (as ?token=) on POST /api/apify/webhook. */
+    webhookSecret: process.env.APIFY_WEBHOOK_SECRET?.trim() || undefined,
+    /** Public base URL of this API (e.g. https://forkcast-api.vercel.app), used to build webhook URLs. */
+    publicBaseUrl: process.env.API_PUBLIC_URL?.trim().replace(/\/+$/, '') || undefined,
+  },
+  /** Bearer token Vercel Cron sends to GET /api/apify/reconcile. */
+  cronSecret: process.env.CRON_SECRET?.trim() || undefined,
+  /** Override for apps/api/deals.config.json. */
+  dealsConfigPath: process.env.DEALS_CONFIG_PATH?.trim() || undefined,
 };
