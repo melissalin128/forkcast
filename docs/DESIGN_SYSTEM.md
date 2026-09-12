@@ -20,75 +20,72 @@ behind one tap.
   amount next to it.
 - **One accent action per screen.** Everything else is quiet.
 
-## Direction: "the price terminal"
+## Direction v2: "a delivery app that shows all three prices"
 
+The v1 dark "price terminal" read as a restaurant website. The product is a
+**price comparison tool that looks like the delivery apps people already
+use**, with DoorDash as the inspiration for structure: a "Deliver to" row, a
+search field, a round-icon category strip, a vertical feed of restaurant
+cards, and a store page with tabs. Mobile first (390px), light, quick to
+scan. Inspiration means the conventions of the category, never DoorDash's
+logo, red, wordmark, icons or copy.
 
-Delivery apps are bright, rounded, and photo-heavy because they want you to
-browse and crave. We want the opposite feeling: a **calm, dark instrument
-that tells you a number**. Editorial typography, one warm accent, one cool
-accent, and a lot of restraint. Photos are used once (the hero) and never in
-lists.
+What makes it ours is the **compare strip** on every card (three columns,
+one per platform, cheapest highlighted) and the **Prices tab** on every
+store page (the three-platform ledger plus the 7-day history).
 
-**Tone:** confident, dry, on your side. Copy says "$4.10 cheaper on Grubhub
-right now", never "Yum! Great deals!".
+**Tone:** plain and helpful. "Cheapest on Grubhub · save $5.10 vs
+DoorDash", never "Yum! Great deals!".
 
 ## Color
 
-Defined in oklch so accents share chroma and lightness.
-
 | Token | Value | Use |
 |---|---|---|
-| `--bg` | `oklch(15% 0.008 60)` (#161412) | Page background, warm near-black |
-| `--bg-raised` | `oklch(19% 0.009 60)` (#1f1c19) | Cards, ledger rows |
-| `--bg-inset` | `oklch(12% 0.007 60)` (#100f0d) | Inputs, chart wells |
-| `--line` | `oklch(30% 0.01 60)` (#3a3631) | Hairlines |
-| `--fg` | `oklch(96% 0.006 80)` (#f5f2ec) | Primary text, warm off-white |
-| `--fg-muted` | `oklch(68% 0.01 70)` (#a39c92) | Secondary text |
-| `--accent` | `oklch(72% 0.17 55)` (#f0873f) | Tangerine: primary action, "now" marker |
-| `--win` | `oklch(72% 0.17 160)` (#3fd39b) | Mint: cheapest / savings / good |
-| `--warn` | `oklch(72% 0.17 25)` (#f56a6a) | Only for "price is spiking" |
+| `--page` | #f7f6f3 | Page ground beyond the phone column, warm light gray |
+| `--bg` | #ffffff | Cards, sheets, the app column |
+| `--bg-muted` | #f2f0eb | Inputs, chip fills, table stripes |
+| `--line` | #e8e5df | Hairlines |
+| `--fg` | #1b1917 | Primary text |
+| `--fg-muted` | #6f6a62 | Secondary text |
+| `--accent` | #f0873f | Tangerine: the one primary action per screen, active tab |
+| `--win` | #3fd39b (text #1f9d6f on white) | Cheapest / savings |
+| `--warn` | #e5484d | Only for "pricier right now" |
 
-Platform brand colors are used only as 6px identity dots and chart lines,
-never as fills: DoorDash `#ff3008`, Uber Eats `#06c167`, Grubhub `#f63440`.
-
+Platform brand colors are used only as 8px identity dots, compare-strip
+column headers and chart lines, never as fills: DoorDash `#ff3008`,
+Uber Eats `#06c167`, Grubhub `#f63440`.
 
 ## Typography
 
-- **Display:** `Syne` 700/800 — wide, slightly odd, unmistakable. Headlines and the big total.
-- **Body:** `Manrope` 400/500/600 — quiet geometric, good at small sizes.
-- **Numbers:** `JetBrains Mono` 500 — every price, ETA, and percentage is set in mono so columns line up and the eye reads them as data.
+- **Everything:** `Manrope` 400/500/600/700. Headlines are 700 at 20-24px.
+- **Numbers:** `JetBrains Mono` 500 for every price, ETA and percentage so
+  the compare strip columns line up.
 
-Scale (px): 12 · 14 · 16 · 20 · 28 · 40 · 64 · 96. Line-height 1.1 for display, 1.5 for body.
+Scale (px): 12 · 13 · 14 · 16 · 20 · 24 · 28. Line-height 1.4.
 
 ## Spacing and shape
 
-4px base. Radii: 6px controls, 12px cards, 999px chips. Borders are 1px
-`--line`, no drop shadows on dark. Cards get depth from a 1px top highlight
-(`inset 0 1px 0 oklch(100% 0 0 / 4%)`), not from shadow.
+4px base. Radii: 10px inputs, 12px cards, 999px chips and the segmented
+sort. Cards sit on white with a 1px `--line` border and no shadow; the
+sticky bottom CTA and the tab bar get a soft top shadow.
 
 ## Motion (anime.js)
 
-One orchestrated reveal per screen, then quiet.
-
-- **Total counter**: numbers tween from 0 with `easeOutExpo`, 900ms, staggered 60ms per row. This is the signature move.
-- **Ledger rows**: `translateY(12px) → 0`, opacity, stagger 50ms.
-- **Cheapest row**: after rows land, mint left-edge draws in over 300ms.
-- **Chips**: 120ms scale 0.96 → 1 on toggle. Nothing else animates on hover.
-- Respect `prefers-reduced-motion`: all durations → 0.
-
-## 3D (three.js)
-
-Used exactly once, on the landing hero: a slow-drifting field of translucent
-receipt-shaped planes behind the headline, lit by the tangerine accent. Low
-poly, `alpha: true`, pointer parallax capped at 6°, paused when off-screen.
-Never on data screens.
+- **Prices tab**: totals count up over 500ms `easeOutExpo` when the tab opens.
+- **Chips / categories**: 120ms scale 0.96 → 1 on toggle.
+- Nothing else animates. Respect `prefers-reduced-motion`.
 
 ## Components
 
-- **SearchBar** — 56px, inset bg, mono placeholder.
-- **Chip** — 36px, pill, toggles. Active = accent outline + accent text.
-- **SortSegment** — 4 options, underline indicator.
-- **ResultCard** — restaurant name (display 20), cuisine + rating (muted), right side: best platform dot + name, total (mono 28), ETA, savings pill (mint).
-- **PlatformLedger** — table, cheapest row highlighted mint, your-subscription badge.
-- **PriceHistory** — 7-day line chart, one line per platform, "now" marker, best-window band in mint at 12% opacity.
-- **BestTimeCallout** — raised card, one sentence, one number.
+- **DeliverToBar** — pin icon, "15213 · Oakland", chevron. Tapping opens zip entry.
+- **SearchField** — 48px, `--bg-muted`, magnifier icon.
+- **CategoryStrip** — horizontal scroll of 8 round line-icon categories; active = accent ring.
+- **SortSegment** — Cheapest / Fastest / Top rated pill.
+- **RestaurantRow** — 16:9 image, name, "4.7 (1.2k) · Ramen · 0.6 mi", then the CompareStrip and one savings line.
+- **CompareStrip** — three equal columns (DoorDash · Uber Eats · Grubhub): dot + name, delivered total in mono. Cheapest column: mint text on a light mint tint. Not listed: "—".
+- **StoreTabs** — Menu | Prices. Accent underline.
+- **MenuItemRow** — item name, three platform prices, cheapest highlighted.
+- **PlatformLedger** — Items / Fees / Promo / Total / ETA per platform, cheapest row tinted, subscription badge.
+- **PriceHistory** — 7-day line chart, one line per platform, legend, "now" marker, cheapest-hour band.
+- **StickyOrderCTA** — "Order on Grubhub · $21.40", accent, deep link.
+- **TabBar** — Home, Search, Prices, Account. Only at ≤640px.

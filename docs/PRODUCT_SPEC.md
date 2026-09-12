@@ -22,7 +22,7 @@ it deliberately, not by accident.
 
 | # | Decision | Reason |
 |---|----------|--------|
-| D1 | **Food delivery only.** No grocery, alcohol, electronics, pet, retail. | "Stick to 1 domain and do it right." Instacart has no markup so there is nothing to compare; Uber Eats' non-food verticals dilute the value prop. Category filter stays in the data model so it can be widened later. |
+| D1 | **Restaurant food first, grocery as a category.** No alcohol, electronics, pet, retail. | "Stick to 1 domain and do it right." Grocery listings on the three platforms (a supermarket's delivery storefront) are the one extra category worth comparing; the data model carries a `category` so it can be widened later. |
 | D2 | **Compare the *true total*, not menu price.** Total = items (with platform markup) + service fee + delivery fee + small-order fee + tax + tip. | Menu prices differ by platform by 10-30%; fees differ more. Anything less than the delivered total is a lie to the user. |
 | D3 | **Subscriptions are an input, not a feature.** Onboarding asks which passes you pay for (DashPass, Uber One, Grubhub+). Totals are recomputed with your pass applied. | Answers "is it even worth considering if they have subscriptions?" Yes, because the answer changes per person. We do not sell or compare subscriptions in v1. |
 | D4 | **Promos are first-class and time-bounded.** Every offer carries an optional `promo` with a code, discount rule, and expiry. Totals show pre- and post-promo. | "Dynamically able to adjust for promo deals." Promos are the most volatile part of the price and the biggest reason one app wins on a given night. |
@@ -31,6 +31,8 @@ it deliberately, not by accident.
 | D9 | **Simple first.** One number per card, one button per page, detail behind a tap. | Users are not tech-savvy. See `DESIGN_SYSTEM.md` principle zero. |
 | D6 | **Zip code is the only required input.** Address is optional and only affects delivery ETA precision. | Lowest-friction entry. Zip is enough to know which platforms serve you and roughly what delivery fees look like. |
 | D7 | **Sort and filter set is fixed for v1** (below). No free-text "natural language" filters. | Combined filters like "Italian, under $20 total, in 30 min" are expressible with the fixed set. |
+| D10 | **Looks like a delivery app, mobile first.** DoorDash is the inspiration for structure; the compare strip and the Prices tab are the product. | The v1 dark editorial design read as a restaurant website. Users should feel at home in two seconds and see three prices in three. |
+| D11 | **Prices come from live scrapers run locally.** DoorDash, Uber Eats and Grubhub, through one adapter interface, with the mock adapter as the demo fallback. | There is no public pricing API. Running on a laptop with a real browser profile is what gets past bot checks. |
 
 ## 3. Who it's for
 
@@ -60,19 +62,24 @@ order, usual time, and their subscriptions shape the default sort and the
 3. Optional: dietary defaults (vegan, vegetarian, gluten-free, halal, kosher, nut-free).
 4. Land on Search.
 
-### 4.2 Search (the home screen)
-- Search bar: cuisine, dish, or restaurant name.
-- Filter chips: **Cuisine**, **Price range** (total $ / $$ / $$$), **Dietary**, **Delivery time** (< 30 / < 45 / any), **Rating** (4.0+ / 4.5+).
-- Sort: **Cheapest total** (default), **Fastest delivery**, **Highest rated**, **Cheapest delivery fee**.
-- Results are *restaurants*, each card showing the best platform for that restaurant right now, the delivered total, the ETA, and how much you save vs the most expensive platform.
+### 4.2 Home (opens straight here, like a delivery app)
+- "Deliver to" row with the zip, then a search field.
+- Round-icon category strip: All, Pizza, Burgers, Ramen, Indian, Mexican, Thai, Grocery.
+- Sort: **Cheapest** (default), **Fastest**, **Top rated**.
+- A vertical feed of restaurant cards. Each card carries the **compare strip**: three columns, one per platform, with the delivered total for the same order; the cheapest is highlighted and a platform that does not list the restaurant shows "—". One line under it: "Cheapest on Grubhub · save $5.10 vs DoorDash".
+- Search results use the same feed plus filter chips (Under $20, Under 30 min, Vegan, Halal, Gluten-free).
 
-### 4.3 Restaurant compare (the money screen)
-- Header: restaurant, cuisine, rating, distance.
-- **Platform ledger**: one row per platform, columns = subtotal, fees, promo, total, ETA. Cheapest row is highlighted. Your subscription is applied and shown.
-- **Price history**: 7-day line per platform, and a "Best time to order" callout ("Tuesday 2-4 pm is on average 18% cheaper than now").
-- **Order on [platform]** deep-links out. We do not process payment in v1.
+### 4.3 Store page (the money screen)
+- Cover, name, rating · cuisine · distance · ETA.
+- Two tabs: **Menu** and **Prices**.
+  - **Menu**: the items with each platform's price side by side, cheapest highlighted.
+  - **Prices**: the three-platform ledger (items, fees, promo, total, ETA, cheapest row highlighted, your subscriptions applied), the 7-day price history with one line per platform, "Best time to order", and "Deals right now".
+- Sticky bottom **Order on [platform] · $total** deep-links to the cheapest platform. We do not process payment in v1.
 
-### 4.4 Alerts (v1.5, designed but not built)
+### 4.4 Tab bar
+Home · Search · Prices (biggest savings today) · Account (zip, subscriptions).
+
+### 4.5 Alerts (v1.5, designed but not built)
 - "Tell me when this restaurant drops under $X on any platform."
 
 ## 5. Data model (MongoDB)
