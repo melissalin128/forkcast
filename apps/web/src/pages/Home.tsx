@@ -216,79 +216,84 @@ export function Home() {
         </section>
       )}
 
-      <CategoryStrip value={category} onChange={setCategory} />
-      <FilterBar
-        category={category}
-        query={q}
-        active={active}
-        onToggle={toggleFilter}
-        onClearFilters={() => setActive([])}
-        onClear={clearAll}
-        resultCount={visible.length}
-      />
+      <div className="home-body">
+        <CategoryStrip value={category} onChange={setCategory} />
 
-      {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
+        <div className="home-main">
+          <FilterBar
+            category={category}
+            query={q}
+            active={active}
+            onToggle={toggleFilter}
+            onClearFilters={() => setActive([])}
+            onClear={clearAll}
+            resultCount={visible.length}
+          />
 
-      {picks.length > 0 && (
-        <section className="foryou" aria-label="HawtPix picks">
-          <div className="deals__head">
-            <h3 className="deals__title">For you · HawtPix</h3>
-            <span className="deals__sub">From your saved places, cuisines and diet — not the crowd</span>
+          {!hasCombo && !loading && <DealsStrip promos={promos} restaurants={restaurants} />}
+
+          {picks.length > 0 && (
+            <section className="foryou" aria-label="HawtPix picks">
+              <div className="deals__head">
+                <h3 className="deals__title">For you · HawtPix</h3>
+                <span className="deals__sub">From your saved places, cuisines and diet — not the crowd</span>
+              </div>
+              <div className="foryou__grid">
+                {picks.map((r) => (
+                  <Link key={r.id} to={`/store/${r.id}`} className="foryou__card">
+                    <span className="foryou__name">{r.name}</span>
+                    <span className="foryou__meta">{r.cuisine[0]} · {r.dietaryTags[0] ?? 'your tastes'}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="section-head">
+            <div>
+              <h2 className="section-head__title">{heading}</h2>
+              <span className="section-head__sub">
+                {loading
+                  ? 'Checking three apps…'
+                  : noCoverage
+                    ? 'No prices for this zip'
+                    : `${count}${combo ? ` · ${combo}` : ''} · ${freshness(refreshedAt)}`}
+              </span>
+              {passLine && !loading && <span className="section-head__pass">{passLine}</span>}
+            </div>
+            <div className="section-head__actions">
+              <button type="button" className="refresh" onClick={refresh} disabled={loading} aria-label="Refresh prices">
+                Refresh
+              </button>
+              <SortSegment options={SORTS} value={sort} onChange={setSort} label="Sort by" />
+            </div>
           </div>
-          <div className="foryou__grid">
-            {picks.map((r) => (
-              <Link key={r.id} to={`/store/${r.id}`} className="foryou__card">
-                <span className="foryou__name">{r.name}</span>
-                <span className="foryou__meta">{r.cuisine[0]} · {r.dietaryTags[0] ?? 'your tastes'}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
-      <div className="section-head">
-        <div>
-          <h2 className="section-head__title">{heading}</h2>
-          <span className="section-head__sub">
-            {loading
-              ? 'Checking three apps…'
-              : noCoverage
-                ? 'No prices for this zip'
-                : `${count}${combo ? ` · ${combo}` : ''} · ${freshness(refreshedAt)}`}
-          </span>
-          {passLine && !loading && <span className="section-head__pass">{passLine}</span>}
-        </div>
-        <div className="section-head__actions">
-          <button type="button" className="refresh" onClick={refresh} disabled={loading} aria-label="Refresh prices">
-            Refresh
-          </button>
-          <SortSegment options={SORTS} value={sort} onChange={setSort} label="Sort by" />
+          {noCoverage ? (
+            <Feed
+              restaurants={[]}
+              loading={false}
+              emptyText={`We only cover ${COVERED_ZIPS.length} Pittsburgh zips right now.`}
+              action={{
+                label: `Use ${ZIP}`,
+                onClick: () => {
+                  setZip(ZIP);
+                  toast('Prices updated');
+                },
+              }}
+            />
+          ) : (
+            <Feed
+              key={`${category}|${q}|${active.join(',')}|${sort}`}
+              restaurants={visible}
+              loading={loading}
+              sort={sort}
+              emptyText={emptyText}
+              action={hasCombo ? { label: 'Clear filters', onClick: clearAll } : undefined}
+            />
+          )}
         </div>
       </div>
-
-      {noCoverage ? (
-        <Feed
-          restaurants={[]}
-          loading={false}
-          emptyText={`We only cover ${COVERED_ZIPS.length} Pittsburgh zips right now.`}
-          action={{
-            label: `Use ${ZIP}`,
-            onClick: () => {
-              setZip(ZIP);
-              toast('Prices updated');
-            },
-          }}
-        />
-      ) : (
-        <Feed
-          key={`${category}|${q}|${active.join(',')}|${sort}`}
-          restaurants={visible}
-          loading={loading}
-          sort={sort}
-          emptyText={emptyText}
-          action={hasCombo ? { label: 'Clear filters', onClick: clearAll } : undefined}
-        />
-      )}
 
       <BottomTabs />
     </div>

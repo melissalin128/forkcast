@@ -375,7 +375,13 @@ ul {
   color: var(--muted);
   border-bottom: 2px solid transparent;
   opacity: 0.75;
-  transition: flex-grow 340ms cubic-bezier(0.34, 1.1, 0.4, 1), opacity 120ms, border-color 120ms, color 120ms;
+  transition:
+    flex-grow 340ms cubic-bezier(0.34, 1.1, 0.4, 1),
+    opacity 120ms,
+    border-color 120ms,
+    color 120ms,
+    background 150ms,
+    transform 150ms;
 }
 
 .cat:hover {
@@ -383,9 +389,10 @@ ul {
 }
 
 /* The accordion: hovering anywhere in the row eases every tile back a little,
-   then the one actually under the cursor fans out wider than the rest. Desktop
-   only — touch has no hover to get stuck in. */
-@media (hover: hover) {
+   then the one actually under the cursor fans out wider than the rest. Only
+   makes sense while the row is still horizontal (≤640px, before it becomes
+   the sidebar below) — touch has no hover to get stuck in either. */
+@media (hover: hover) and (max-width: 640px) {
   .cats:hover .cat {
     flex-grow: 0.6;
   }
@@ -453,6 +460,86 @@ ul {
 
 .cat--active .cat__label {
   font-weight: 800;
+}
+
+/* Sidebar mode: past the point where the bottom tab bar gives way to the top
+   nav, the cuisine row moves to a sticky left column instead of a horizontal
+   strip that scrolls out of view with the rest of the page. */
+@media (min-width: 641px) {
+  .home-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    padding: 0 var(--gutter);
+  }
+
+  .home-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cats-wrap {
+    flex: none;
+    width: 176px;
+    border-bottom: 0;
+    position: sticky;
+    top: calc(var(--top-h) + 96px);
+    max-height: calc(100dvh - var(--top-h) - 96px - 16px);
+    overflow: hidden;
+  }
+
+  /* The right-edge fade was for the horizontal scroll cue; the sidebar has
+     no equivalent (it scrolls vertically, if at all, with a native bar). */
+  .cats-wrap::after {
+    content: none;
+  }
+
+  .cats {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 4px;
+    overflow-x: visible;
+    overflow-y: auto;
+    max-height: 100%;
+  }
+
+  .cat {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 8px 10px;
+    border-bottom: 0;
+    border-radius: var(--r-ctl);
+  }
+
+  /* No room (or reason) to fan neighbors aside in a vertical list — a quiet
+     background + a small rightward nudge reads as "reach toward this one"
+     without the horizontal accordion's layout math. */
+  .cat:hover {
+    background: var(--inset);
+    transform: translateX(2px);
+  }
+
+  .cat--active {
+    background: var(--inset);
+    border-bottom: 0;
+  }
+
+  .cat__bubble {
+    width: 34px;
+    height: 34px;
+    flex: none;
+  }
+
+  .cat__label {
+    font-size: 14px;
+    white-space: normal;
+  }
 }
 
 /* -------------------------------------------------------------- trust line */

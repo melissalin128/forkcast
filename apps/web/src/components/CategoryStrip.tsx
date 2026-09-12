@@ -68,17 +68,30 @@ export function CategoryStrip({ value, onChange }: Props) {
   const stripRef = useRef<HTMLDivElement>(null);
 
   // A deep link like `/?category=sushi` lands with its tile off-screen: bring it into view.
+  // Horizontal strip on mobile, vertical sidebar from 641px up (styles.css) — scroll
+  // whichever axis the current layout actually overflows on.
   useEffect(() => {
     const strip = stripRef.current;
     const tile = strip?.querySelector<HTMLElement>('.cat--active');
     if (!strip || !tile) return;
     const pad = 16;
-    const left = tile.offsetLeft - pad;
-    const right = tile.offsetLeft + tile.offsetWidth + pad;
-    let target: number | null = null;
-    if (left < strip.scrollLeft) target = left;
-    else if (right > strip.scrollLeft + strip.clientWidth) target = right - strip.clientWidth;
-    if (target !== null) strip.scrollTo({ left: Math.max(0, target), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+
+    if (strip.scrollWidth > strip.clientWidth) {
+      const left = tile.offsetLeft - pad;
+      const right = tile.offsetLeft + tile.offsetWidth + pad;
+      let target: number | null = null;
+      if (left < strip.scrollLeft) target = left;
+      else if (right > strip.scrollLeft + strip.clientWidth) target = right - strip.clientWidth;
+      if (target !== null) strip.scrollTo({ left: Math.max(0, target), behavior });
+    } else if (strip.scrollHeight > strip.clientHeight) {
+      const top = tile.offsetTop - pad;
+      const bottom = tile.offsetTop + tile.offsetHeight + pad;
+      let target: number | null = null;
+      if (top < strip.scrollTop) target = top;
+      else if (bottom > strip.scrollTop + strip.clientHeight) target = bottom - strip.clientHeight;
+      if (target !== null) strip.scrollTo({ top: Math.max(0, target), behavior });
+    }
   }, [value]);
 
   return (
