@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
-import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { PrefsProvider } from './hooks/usePrefs';
+import { Account } from './pages/Account';
+import { Home } from './pages/Home';
+import { Prices } from './pages/Prices';
+import { Search } from './pages/Search';
+import { Store } from './pages/Store';
 
 // Static hosts that cannot rewrite deep links to index.html (a shared preview
-// page, GitHub Pages) build with VITE_ROUTER=hash so /browse becomes #/browse.
+// page, GitHub Pages) build with VITE_ROUTER=hash so /search becomes #/search.
 const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter;
-import { Browse } from './pages/Browse';
-import { Compare } from './pages/Compare';
-import { Landing } from './pages/Landing';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -16,17 +19,30 @@ function ScrollToTop() {
   return null;
 }
 
+/** Old `/r/:id` links from the first build land on the store page. */
+function LegacyStore() {
+  const { id = '' } = useParams();
+  return <Navigate to={`/store/${id}`} replace />;
+}
+
 export default function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/browse" element={<Browse />} />
-        <Route path="/r/:id" element={<Compare />} />
-        {/* Tabs that are designed but not built in v1 land on Search. */}
-        <Route path="*" element={<Navigate to="/browse" replace />} />
-      </Routes>
-    </Router>
+    <PrefsProvider>
+      <Router>
+        <ScrollToTop />
+        <div className="app">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/store/:id" element={<Store />} />
+            <Route path="/prices" element={<Prices />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/browse" element={<Navigate to="/search" replace />} />
+            <Route path="/r/:id" element={<LegacyStore />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </PrefsProvider>
   );
 }

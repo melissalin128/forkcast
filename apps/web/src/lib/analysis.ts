@@ -1,16 +1,16 @@
-import { NOW, PLATFORM_BY_SLUG } from '../data/mock';
-import type { Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
+import { NOW, PLATFORM_BY_SLUG, PLATFORMS } from '../data/mock';
+import type { MenuItem, Offer, PlatformSlug, PriceSnapshot, Restaurant } from '../types';
 
-export const money = (n: number) =>
-  (n < 0 ? '−' : '') + '$' + Math.abs(n).toFixed(2);
-
-export const eta = (o: Offer) => `${o.etaMin} min`;
+export const money = (n: number) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toFixed(2);
 
 export const platformName = (slug: PlatformSlug) => PLATFORM_BY_SLUG[slug].name;
 
 export function ratingCount(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n);
 }
+
+export const offerFor = (r: Restaurant, slug: PlatformSlug) =>
+  r.offers.find((o) => o.platformSlug === slug);
 
 export function bestOffer(r: Restaurant): Offer | undefined {
   return [...r.offers].sort((a, b) => a.total - b.total)[0];
@@ -24,57 +24,21 @@ export function fastestOffer(r: Restaurant): Offer | undefined {
   return [...r.offers].sort((a, b) => a.etaMin - b.etaMin)[0];
 }
 
-/** "$5.10 less than Uber Eats" / "Only on Grubhub" / "Same price everywhere". */
-export function comparisonSentence(r: Restaurant, suffix = ''): string {
-  const best = bestOffer(r);
-  const worst = worstOffer(r);
-  if (!best || !worst) return 'Not listed nearby';
-  if (r.offers.length === 1) return `Only on ${platformName(best.platformSlug)}`;
-  const diff = worst.total - best.total;
-  if (diff < 0.05) return 'Same price everywhere';
-  return `${money(diff)} less than ${platformName(worst.platformSlug)}${suffix}`;
+/** Dollars between the cheapest and priciest listing (0 when only one app lists it). */
+export function saving(r: Restaurant): number {
+  const b = bestOffer(r);
+  const w = worstOffer(r);
+  if (!b || !w || r.offers.length < 2) return 0;
+  return Math.round((w.total - b.total) * 100) / 100;
 }
 
-export type Tone = 'win' | 'accent' | 'warn' | 'muted';
-
-/**
- * The one sentence under the cheapest platform on a card. Promo wins, then a
- * dinner-peak warning, then the plain comparison.
- */
-export function cardSentence(r: Restaurant): { text: string; tone: Tone } {
-  const best = bestOffer(r);
-  if (!best) return { text: 'Not listed nearby', tone: 'muted' };
-  const promo = promoShort(best);
-  const compare = comparisonSentence(r);
-  if (promo) {
-    const tail = r.offers.length > 1 && !compare.startsWith('Same') ? `, ${compare}` : '';
-    return { text: `${promo}${tail}`, tone: 'accent' };
-  }
-  if ((r.peakSurcharge ?? 0) >= 3) {
-    const h = NOW.getHours();
-    const when = h >= 17 && h < 21 ? 'at dinner' : 'right now';
-    return { text: `Everyone is $${Math.round(r.peakSurcharge ?? 0)} pricier ${when}`, tone: 'warn' };
-  }
-  return { text: compare, tone: r.offers.length === 1 ? 'muted' : 'win' };
-}
-
-/** "20% off today ($4.60)" — a percentage never appears without its dollars. */
-export function promoShort(o: Offer | undefined): string | null {
-  if (!o?.promo || o.promoDiscount <= 0) return null;
-  const { rule } = o.promo;
-  if (rule.type === 'percent') return `${rule.value}% off today (${money(o.promoDiscount)})`;
-  if (rule.type === 'flat') return `$${rule.value} off today`;
-  return `Free delivery today (${money(o.promoDiscount)})`;
-}
-
-/** Promo copy with the dollar amount always next to the percentage. */
-export function promoSentence(o: Offer | undefined): string | null {
-  if (!o?.promo || o.promoDiscount <= 0) return null;
-  const on = ` on ${platformName(o.platformSlug)}`;
-  const { rule } = o.promo;
-  if (rule.type === 'percent') return `${rule.value}% off (${money(o.promoDiscount)})${on}`;
-  if (rule.type === 'flat') return `$${rule.value} off${on}`;
-  return `Free delivery (${money(o.promoDiscount)})${on}`;
+/** "save $5.10 vs DoorDash" / "only app that lists it" / "same price everywhere". */
+export function savingsTail(r: Restaurant): string {
+  const w = worstOffer(r);
+  if (!w || r.offers.length < 2) return 'only app that lists it';
+  const s = saving(r);
+  if (s < 0.05) return 'same price everywhere';
+  return `save ${money(s)} vs ${platformName(w.platformSlug)}`;
 }
 
 export const fees = (o: Offer) =>
@@ -84,24 +48,43 @@ export function deepLink(slug: PlatformSlug, r: Restaurant): string {
   return PLATFORM_BY_SLUG[slug].deepLink.replace('{q}', encodeURIComponent(r.name));
 }
 
+/**
+ * Menu for the Store page. The API may not send one yet, so fall back to the
+ * representative order priced by each platform's markup on the subtotal.
+ */
+export function menuFor(r: Restaurant): MenuItem[] {
+  if (r.menu?.length) return r.menu;
+  const floor = Math.min(...r.offers.map((o) => o.subtotal));
+  const share = 1 / Math.max(1, r.order.reduce((n, l) => n + l.qty, 0));
+  return r.order.map((line) => ({
+    name: line.name,
+    price: Math.round(floor * share * 100) / 100,
+    prices: Object.fromEntries(
+      r.offers.map((o) => [o.platformSlug, Math.round(o.subtotal * share * 100) / 100]),
+    ) as Partial<Record<PlatformSlug, number>>,
+  }));
+}
+
+export function cheapestMenuPlatform(item: MenuItem): PlatformSlug | undefined {
+  return PLATFORMS.map((p) => p.slug)
+    .filter((s) => item.prices[s] !== undefined)
+    .sort((a, b) => (item.prices[a] ?? 0) - (item.prices[b] ?? 0))[0];
+}
+
 // ---------------------------------------------------------------------------
 // Best time to order
 // ---------------------------------------------------------------------------
 
-const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const clock = (h: number) => {
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}`;
-};
+const clock = (h: number) => `${h % 12 === 0 ? 12 : h % 12}`;
 const ampm = (h: number) => (h < 12 ? 'am' : 'pm');
 
-/** "Wed 2–4 pm" */
+/** "Wednesday 2–4 pm" */
 export function windowLabel(dow: number, hour: number) {
   const end = hour + 2;
-  const sameMeridiem = ampm(hour) === ampm(end);
-  return `${DAY_SHORT[dow]} ${clock(hour)}${sameMeridiem ? '' : ' ' + ampm(hour)}–${clock(end)} ${ampm(end)}`;
+  const same = ampm(hour) === ampm(end);
+  return `${DAY_LONG[dow]} ${clock(hour)}${same ? '' : ' ' + ampm(hour)}–${clock(end)} ${ampm(end)}`;
 }
 
 /** "Wednesday afternoon" */
@@ -168,22 +151,15 @@ export function bestTime(snapshots: PriceSnapshot[], slug: PlatformSlug): BestTi
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
   const now = rows[rows.length - 1].total;
-  const saving = Math.max(0, now - best.avg);
+  const gain = Math.max(0, now - best.avg);
   return {
     platformSlug: slug,
     best,
     worst,
     now,
-    saving,
-    savingPct: now > 0 ? Math.round((saving / now) * 100) : 0,
+    saving: gain,
+    savingPct: now > 0 ? Math.round((gain / now) * 100) : 0,
   };
-}
-
-export function peakLabel(date = NOW) {
-  const h = date.getHours();
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const isPeak = h >= 17 && h < 21;
-  return `${DAY_LONG[date.getDay()]} ${clock(h)}:${m} ${ampm(h)} is ${isPeak ? 'a peak hour' : 'off-peak'}`;
 }
 
 export function minutesAgo(iso: string, now = NOW) {

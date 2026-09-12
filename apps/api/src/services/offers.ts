@@ -104,7 +104,7 @@ export async function priceRestaurant(ctx: PricingContext, r: Restaurant): Promi
           listTotal: offer.total,
           etaMin: offer.etaMin,
           etaMax: offer.etaMax,
-          deepLink: adapters[platform].storeUrl(base.platformRestaurantId),
+          deepLink: offer.deepLink ?? adapters[platform].storeUrl(base.platformRestaurantId),
           fetchedAt: new Date(offer.fetchedAt).toISOString(),
           promo: offer.promo
             ? { code: offer.promo.code, description: offer.promo.description, endsAt: new Date(offer.promo.endsAt).toISOString() }

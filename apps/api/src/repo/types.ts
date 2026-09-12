@@ -11,6 +11,9 @@ export interface RestaurantFilter {
 export type NewUser = Pick<User, 'zip' | 'subscriptions' | 'dietaryDefaults'> &
   Partial<Pick<User, 'savedRestaurantIds' | 'history'>>;
 
+/** A restaurant discovered by the live scrapers; keyed by `slug`. */
+export type NewRestaurant = Omit<Restaurant, 'id'>;
+
 /**
  * The small storage contract the routes are written against. `MongoRepository`
  * and `MemoryRepository` both implement it, so the API runs with or without a
@@ -24,6 +27,11 @@ export interface Repository {
   listRestaurants(filter?: RestaurantFilter): Promise<Restaurant[]>;
   /** Accepts a Mongo ObjectId string or a slug. */
   getRestaurant(idOrSlug: string): Promise<Restaurant | null>;
+  /**
+   * Insert or update by slug. Existing `platformIds` are merged (a scrape of one
+   * platform never drops the ids found on another); other fields are replaced.
+   */
+  upsertRestaurant(input: NewRestaurant): Promise<Restaurant>;
 
   /** Promos whose window contains `now`, optionally for one platform. */
   listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]>;

@@ -69,9 +69,21 @@ export interface OrderLine {
   qty: number;
 }
 
+/** One menu line with the price each platform lists it at (missing = not listed there). */
+export interface MenuItem {
+  name: string;
+  /** Restaurant's own menu price, before platform markup. */
+  price: number;
+  prices: Partial<Record<PlatformSlug, number>>;
+}
+
 export interface Restaurant {
   id: string;
   name: string;
+  /** Home-screen category chip this place lives under (Pizza, Ramen, Grocery…). Optional for the API. */
+  category?: string;
+  /** Short menu for the Store page. Optional for the API; the web app falls back to `order`. */
+  menu?: MenuItem[];
   cuisine: string[];
   dietaryTags: string[];
   rating: number;

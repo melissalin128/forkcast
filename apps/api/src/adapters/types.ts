@@ -23,6 +23,10 @@ export interface PlatformListing {
   imageUrl?: string;
   /** Deep link to the store page on the platform. */
   url?: string;
+  /** Fee / ETA as shown on the search results card, when the platform lists them there. */
+  deliveryFee?: number;
+  etaMin?: number;
+  etaMax?: number;
 }
 
 export interface FetchOfferOptions {

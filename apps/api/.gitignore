@@ -1,0 +1,9 @@
+node_modules/
+dist/
+# Persistent Chromium profiles for the live scrapers (cookies, address, challenge tokens)
+.browser-profile/
+# Debug screenshots / HTML dumps written by the scrapers when SCRAPER_DEBUG_DIR is set
+.scraper-debug/
+.env
+.env.*
+!.env.example

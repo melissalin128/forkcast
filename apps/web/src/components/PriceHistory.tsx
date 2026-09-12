@@ -6,23 +6,25 @@ import type { PlatformSlug, PriceSnapshot } from '../types';
 interface Props {
   snapshots: PriceSnapshot[];
   highlight: PlatformSlug;
-  /** Best window to shade in mint (10%). */
+  /** Cheapest window to shade in mint. */
   band?: { fromAt: string; toAt: string };
 }
 
-const H = 220;
-const PLOT_TOP = 6;
-const PLOT_BOTTOM = 190;
+const H = 190;
+const PLOT_TOP = 8;
+const PLOT_BOTTOM = 160;
+const PAD_L = 34;
+const PAD_R = 30;
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
- * 7-day delivered total per platform as inline SVG. Lines only use brand
- * colors; the "now" marker is the accent; the best window is a mint band.
+ * 7-day delivered total per platform as inline SVG. Lines use brand colors;
+ * the "now" marker is the accent; the cheapest window is a mint band.
  */
 export function PriceHistory({ snapshots, highlight, band }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { width } = useSize(wrapRef);
-  const W = Math.max(280, width || 760);
+  const W = Math.max(280, width || 340);
 
   const model = useMemo(() => {
     const series = PLATFORMS.map((p) => ({
@@ -45,55 +47,65 @@ export function PriceHistory({ snapshots, highlight, band }: Props) {
 
   if (!model) {
     return (
-      <div className="chart__svgwrap" ref={wrapRef}>
-        <div className="chart__plain">No price history yet.</div>
+      <div className="chart__wrap" ref={wrapRef}>
+        <p className="card__foot">No price history yet.</p>
       </div>
     );
   }
 
   const { series, t0, t1, lo, hi } = model;
-  const x = (iso: string) => ((Date.parse(iso) - t0) / Math.max(1, t1 - t0)) * W;
+  const plotW = W - PAD_L - PAD_R;
+  const x = (iso: string) => PAD_L + ((Date.parse(iso) - t0) / Math.max(1, t1 - t0)) * plotW;
   const y = (v: number) => PLOT_BOTTOM - ((v - lo) / (hi - lo)) * (PLOT_BOTTOM - PLOT_TOP);
   const path = (rows: PriceSnapshot[]) =>
     rows.map((s, i) => `${i ? 'L' : 'M'}${x(s.capturedAt).toFixed(1)},${y(s.total).toFixed(1)}`).join(' ');
 
-  // Gridlines at 4 round dollar levels.
   const grid: number[] = [];
   const step = Math.max(1, Math.ceil((hi - lo) / 4));
   for (let v = Math.ceil(lo); v <= hi; v += step) grid.push(v);
 
-  // Day ticks at each local midnight.
   const ticks: { x: number; label: string }[] = [];
-  const first = series[0].rows;
   let lastDay = -1;
-  for (const s of first) {
+  for (const s of series[0].rows) {
     const d = new Date(s.capturedAt);
     if (d.getHours() === 0 && d.getDay() !== lastDay) {
       lastDay = d.getDay();
-      const tx = x(s.capturedAt);
-      if (tx < W - 36) ticks.push({ x: tx, label: DAY[d.getDay()] }); // keep clear of "Now"
+      ticks.push({ x: x(s.capturedAt), label: DAY[d.getDay()] });
     }
   }
 
   const hl = series.find((s) => s.platform.slug === highlight);
   const last = hl?.rows[hl.rows.length - 1];
+  const nowX = PAD_L + plotW;
 
   return (
-    <div className="chart__svgwrap" ref={wrapRef}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Delivered total over the last 7 days, one line per platform">
-        {band && (() => {
-          // A 2-hour window is ~1% of the week; widen it so the eye can find it.
-          const x0 = x(band.fromAt);
-          const x1 = x(band.toAt) + W / 168;
-          const minW = 28;
-          const w = Math.max(minW, x1 - x0);
-          const left = Math.min(Math.max(0, x0 - (w - (x1 - x0)) / 2), W - w);
-          return <rect x={left} y={0} width={w} height={PLOT_BOTTOM} fill="var(--win)" opacity={0.1} />;
-        })()}
+    <div className="chart__wrap" ref={wrapRef}>
+      <svg
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label="Delivered total over the last 7 days, one line per app"
+      >
+        {band &&
+          (() => {
+            const x0 = x(band.fromAt);
+            const x1 = x(band.toAt) + plotW / 168;
+            const w = Math.max(26, x1 - x0);
+            const left = Math.min(Math.max(PAD_L, x0 - (w - (x1 - x0)) / 2), nowX - w);
+            return (
+              <g>
+                <rect x={left} y={PLOT_TOP - 4} width={w} height={PLOT_BOTTOM - PLOT_TOP + 4} fill="var(--win)" opacity={0.16} rx={3} />
+                <text className="chart__axis chart__axis--win" x={left + w / 2} y={PLOT_BOTTOM + 30} textAnchor="middle">
+                  cheapest
+                </text>
+              </g>
+            );
+          })()}
         {grid.map((v) => (
           <g key={v}>
-            <line x1={0} y1={y(v)} x2={W} y2={y(v)} stroke="var(--line)" strokeWidth={1} />
-            <text className="chart__axis" x={0} y={y(v) - 4}>
+            <line x1={PAD_L} y1={y(v)} x2={nowX} y2={y(v)} stroke="var(--line)" strokeWidth={1} />
+            <text className="chart__axis" x={PAD_L - 6} y={y(v) + 4} textAnchor="end">
               ${v}
             </text>
           </g>
@@ -104,22 +116,22 @@ export function PriceHistory({ snapshots, highlight, band }: Props) {
             d={path(s.rows)}
             fill="none"
             stroke={s.platform.brandColor}
-            strokeWidth={s.platform.slug === highlight ? 2.5 : 1.75}
+            strokeWidth={s.platform.slug === highlight ? 2.5 : 1.5}
             strokeLinejoin="round"
             strokeLinecap="round"
-            opacity={s.platform.slug === highlight ? 1 : 0.8}
+            opacity={s.platform.slug === highlight ? 1 : 0.7}
           />
         ))}
-        <line x1={W} y1={0} x2={W} y2={PLOT_BOTTOM} stroke="var(--accent)" strokeWidth={1} strokeDasharray="3 3" />
+        <line x1={nowX} y1={PLOT_TOP - 4} x2={nowX} y2={PLOT_BOTTOM} stroke="var(--accent)" strokeWidth={1.5} strokeDasharray="3 3" />
         {last && hl && (
-          <circle cx={W} cy={y(last.total)} r={4} fill={hl.platform.brandColor} stroke="var(--bg)" strokeWidth={2} />
+          <circle cx={nowX} cy={y(last.total)} r={4.5} fill={hl.platform.brandColor} stroke="#fff" strokeWidth={2} />
         )}
         {ticks.map((t) => (
-          <text key={t.label + t.x} className="chart__axis" x={t.x} y={212}>
+          <text key={t.label + t.x} className="chart__axis" x={t.x} y={PLOT_BOTTOM + 16} textAnchor="middle">
             {t.label}
           </text>
         ))}
-        <text className="chart__axis" x={W} y={212} textAnchor="end" fill="var(--accent)" style={{ fill: 'var(--accent)' }}>
+        <text className="chart__axis chart__axis--accent" x={nowX} y={PLOT_BOTTOM + 16} textAnchor="middle">
           Now
         </text>
       </svg>

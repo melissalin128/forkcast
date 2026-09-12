@@ -88,6 +88,15 @@ export interface Offer {
   etaMax: number;
   promo?: OfferPromo;
   fetchedAt: Date;
+  /**
+   * Live scrapers set this when the platform's delivery-address flow could not
+   * be completed, so the fees may be for the platform's default location.
+   */
+  locationUnverified?: boolean;
+  /** Store page URL as the platform canonicalised it (falls back to adapter.storeUrl). */
+  deepLink?: string;
+  /** The menu item the subtotal was priced on (when the cart could not be matched by name). */
+  representativeItem?: { name: string; price: number };
 }
 
 export interface PriceSnapshot {

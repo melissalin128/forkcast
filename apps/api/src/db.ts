@@ -12,8 +12,7 @@ export async function connectDb(): Promise<Repository> {
   if (repo) return repo;
 
   if (!config.mongodbUri) {
-    console.warn('[db] MONGODB_URI is not set -> using in-memory store seeded from src/seed/data.ts');
-    repo = MemoryRepository.seeded();
+    repo = memoryFallback();
     return repo;
   }
 
@@ -24,10 +23,24 @@ export async function connectDb(): Promise<Repository> {
     return repo;
   } catch (err) {
     const reason = err instanceof Error ? err.message.split('\n')[0] : String(err);
-    console.warn(`[db] could not connect to MongoDB (${reason}) -> using in-memory store seeded from src/seed/data.ts`);
-    repo = MemoryRepository.seeded();
+    console.warn(`[db] could not connect to MongoDB (${reason})`);
+    repo = memoryFallback();
     return repo;
   }
+}
+
+/**
+ * With the mock adapters the memory store is seeded (restaurants, promos, 7 days of history).
+ * With the live adapters it starts empty: the seed's platform ids are not real store ids, so
+ * scraping them would only produce errors. `npm run scrape` fills it.
+ */
+function memoryFallback(): Repository {
+  if (config.adapter === 'live') {
+    console.warn('[db] no MongoDB -> in-memory store, empty until you run `npm run scrape` (ADAPTER=live)');
+    return MemoryRepository.empty();
+  }
+  console.warn('[db] no MongoDB -> using in-memory store seeded from src/seed/data.ts');
+  return MemoryRepository.seeded();
 }
 
 export function getRepo(): Repository {

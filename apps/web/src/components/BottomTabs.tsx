@@ -1,26 +1,23 @@
 import { NavLink } from 'react-router-dom';
-import { AlertIcon, HistoryIcon, SearchIcon, UserIcon } from './Icons';
+import { HomeIcon, PricesIcon, SearchIcon, UserIcon } from './Icons';
 
 const TABS = [
-  { to: '/browse', label: 'Search', Icon: SearchIcon },
-  { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/alerts', label: 'Alerts', Icon: AlertIcon },
-  { to: '/you', label: 'You', Icon: UserIcon },
+  { to: '/', label: 'Home', Icon: HomeIcon, end: true },
+  { to: '/search', label: 'Search', Icon: SearchIcon, end: false },
+  { to: '/prices', label: 'Prices', Icon: PricesIcon, end: false },
+  { to: '/account', label: 'Account', Icon: UserIcon, end: false },
 ];
 
-/** Phone-only bottom navigation. Only Search is wired in v1. */
+/** Bottom tab bar, shown at ≤640px on every screen. */
 export function BottomTabs() {
   return (
     <nav className="tabbar" aria-label="Primary">
-      {TABS.map(({ to, label, Icon }) => (
+      {TABS.map(({ to, label, Icon, end }) => (
         <NavLink
           key={to}
           to={to}
+          end={end}
           className={({ isActive }) => `tabbar__item${isActive ? ' tabbar__item--active' : ''}`}
-          onClick={(e) => {
-            if (to !== '/browse') e.preventDefault();
-          }}
-          aria-disabled={to !== '/browse'}
         >
           <Icon size={22} />
           <span>{label}</span>

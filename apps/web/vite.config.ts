@@ -19,7 +19,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          three: ['three'],
           vendor: ['react', 'react-dom', 'react-router-dom', 'animejs'],
         },
       },

@@ -20,7 +20,7 @@ import {
   type SubscriptionSlug,
   type User,
 } from '../models';
-import { servesZip, type NewUser, type Repository, type RestaurantFilter } from './types';
+import { servesZip, type NewRestaurant, type NewUser, type Repository, type RestaurantFilter } from './types';
 
 const oid = (v: unknown): string => String(v);
 const isObjectId = (s: string): boolean => Types.ObjectId.isValid(s) && String(new Types.ObjectId(s)) === s;
@@ -84,6 +84,9 @@ const toOffer = (d: AnyDoc): Offer => ({
     ? { code: d.promo.code, description: d.promo.description ?? undefined, rule: d.promo.rule, startsAt: new Date(d.promo.startsAt), endsAt: new Date(d.promo.endsAt) }
     : undefined,
   fetchedAt: new Date(d.fetchedAt),
+  ...(d.locationUnverified ? { locationUnverified: true } : {}),
+  ...(d.deepLink ? { deepLink: d.deepLink } : {}),
+  ...(d.representativeItem?.name ? { representativeItem: { name: d.representativeItem.name, price: d.representativeItem.price } } : {}),
 });
 
 const toSnapshot = (d: AnyDoc): PriceSnapshot => ({
@@ -139,6 +142,14 @@ export class MongoRepository implements Repository {
       ? await RestaurantModel.findById(idOrSlug).lean()
       : await RestaurantModel.findOne({ slug: idOrSlug }).lean();
     return doc ? toRestaurant(doc) : null;
+  }
+
+  async upsertRestaurant(input: NewRestaurant): Promise<Restaurant> {
+    const { platformIds, ...fields } = input;
+    const set: AnyDoc = { ...fields };
+    for (const [platform, id] of Object.entries(platformIds)) if (id) set[`platformIds.${platform}`] = id;
+    const doc = await RestaurantModel.findOneAndUpdate({ slug: input.slug }, { $set: set }, { upsert: true, new: true, setDefaultsOnInsert: true }).lean();
+    return toRestaurant(doc as AnyDoc);
   }
 
   async listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]> {

@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import type { Offer, Platform, PriceSnapshot, Promo, Restaurant, User } from '../models/types';
 import { platforms as seedPlatforms, promos as seedPromos, restaurants as seedRestaurants } from '../seed/data';
 import { generateSnapshots } from '../seed/snapshots';
-import { matchesFilter, type NewUser, type Repository, type RestaurantFilter } from './types';
+import { matchesFilter, type NewRestaurant, type NewUser, type Repository, type RestaurantFilter } from './types';
 
 export class MemoryRepository implements Repository {
   readonly kind = 'memory' as const;
@@ -20,6 +20,14 @@ export class MemoryRepository implements Repository {
   /** restaurantId -> snapshots (append-only) */
   private snapshots = new Map<string, PriceSnapshot[]>();
   private users = new Map<string, User>();
+
+  /** Platforms + promos only: the live scrapers fill in restaurants, offers and history. */
+  static empty(): MemoryRepository {
+    const repo = new MemoryRepository();
+    repo.platforms = seedPlatforms.map((p) => ({ ...p, id: p.slug }));
+    repo.promos = seedPromos.map((p, i) => ({ ...p, id: `promo_${i + 1}` }));
+    return repo;
+  }
 
   static seeded(options: { historyDays?: number; now?: Date } = {}): MemoryRepository {
     const repo = new MemoryRepository();
@@ -45,6 +53,19 @@ export class MemoryRepository implements Repository {
 
   async getRestaurant(idOrSlug: string): Promise<Restaurant | null> {
     return this.restaurants.get(idOrSlug) ?? [...this.restaurants.values()].find((r) => r.id === idOrSlug) ?? null;
+  }
+
+  async upsertRestaurant(input: NewRestaurant): Promise<Restaurant> {
+    const existing = this.restaurants.get(input.slug);
+    const merged: Restaurant = {
+      ...(existing ?? {}),
+      ...input,
+      id: existing?.id ?? input.slug,
+      platformIds: { ...(existing?.platformIds ?? {}), ...input.platformIds },
+      imageUrl: input.imageUrl ?? existing?.imageUrl,
+    };
+    this.restaurants.set(input.slug, merged);
+    return merged;
   }
 
   async listActivePromos(now: Date, platformSlug?: string): Promise<Promo[]> {

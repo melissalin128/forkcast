@@ -29,6 +29,10 @@ const OfferSchema = new Schema(
     etaMax: { type: Number, required: true },
     promo: { type: OfferPromoSchema },
     fetchedAt: { type: Date, required: true, default: () => new Date() },
+    // live-scraper extras
+    locationUnverified: { type: Boolean },
+    deepLink: { type: String },
+    representativeItem: { type: new Schema({ name: String, price: Number }, { _id: false }) },
   },
   { collection: 'offers' },
 );
