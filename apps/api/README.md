@@ -13,6 +13,7 @@ npm start                      # node dist/server.js
 npm test                       # node:test via tsx
 npm run seed                   # needs MONGODB_URI
 npm run scrape -- --zip 15213 --q pizza   # live scrape, see "Live scraping" below
+npm run deals -- --status                 # Apify deals feed, see "Deals feed" below
 ```
 
 ## Environment
@@ -26,7 +27,13 @@ Read from the repo-root `.env` (see `.env.example`), falling back to the cwd.
 | `ADAPTER_<PLATFORM>` | unset | Per-platform override of `ADAPTER` (same values). `ADAPTER_GRUBHUB=live` scrapes Grubhub with the local Playwright adapter (it needs no Apify actor) while `ADAPTER=apify` keeps DoorDash and Uber Eats on actors. `GET /api/health` reports the resolved mode per platform. |
 | `PORT`        | `4000`  | |
 | `SCRAPER_*`   |         | Playwright scraper knobs, listed under "Live scraping". |
-| `APIFY_*`     |         | Apify token / actor ids, listed under "Collecting through Apify". |
+| `APIFY_TOKEN`, `APIFY_<PLATFORM>_*` | | Adapter-layer Apify token / actor ids, listed under "Collecting through Apify". Separate from the deals-feed vars below. |
+| `APIFY_API_KEY` | unset | Apify token for the deals feed. Sent in an Authorization header only, never in a URL or a log line. |
+| `DEALS_LIVE_RUNS` | `0` | **Master switch for spending credit.** Off unless set to `1`; no actor run can start without it. Reads, ingests and every endpoint work regardless. |
+| `APIFY_WEBHOOK_SECRET` | unset | Shared secret Apify sends back on the run-finished webhook. |
+| `CRON_SECRET` | unset | Bearer token Vercel Cron sends to `/api/apify/reconcile`. |
+| `API_PUBLIC_URL` | unset | Public URL of this API, used to build the webhook URL passed to Apify. |
+| `DEALS_CONFIG_PATH` | `apps/api/deals.config.json` | Override the deals configuration file. |
 
 ## Endpoints
 
@@ -119,7 +126,66 @@ src/
   seed/data.ts     3 platforms, ~45 Pittsburgh restaurants, promos
   seed/snapshots.ts hourly snapshot generator
   seed.ts          `npm run seed` (Mongo, idempotent)
+  deals/           Apify deals layer: config, REST client, cost guard, providers,
+                   ingest, jobs, scoring, fixtures (+ tests)
+  deals.ts         `npm run deals` CLI
+api/index.ts       Vercel serverless entry (same Express app as server.ts)
+deals.config.json  addresses, feed queries, spend caps, actor ids, ranking weights
+docs/apify-setup.md  creating the schedules and webhook in the Apify console
 ```
+
+## Deals feed (Apify)
+
+A second, separate data source from the Playwright scrapers below: **DoorDash
+promos collected through an Apify actor**, on a schedule, into MongoDB. The API
+only ever reads the database, so no request waits on Apify.
+
+- **Feed**: four scheduled runs a day (08:00, 12:30, 17:30, 22:00 America/New_York)
+  over a preset cuisine list, populating the front page for web and mobile.
+- **Search**: `POST /api/deals/search` answers from the database immediately and
+  starts one background refresh for that query if the budget allows.
+
+Configuration lives in `apps/api/deals.config.json` (addresses, cuisine list,
+spend caps, actor id and pricing, ranking weights). Secrets stay in env:
+`APIFY_API_KEY`, `APIFY_WEBHOOK_SECRET`, `CRON_SECRET`, `API_PUBLIC_URL`.
+
+> **Nothing spends credit unless `DEALS_LIVE_RUNS=1`.** It is off by default, so
+> a local run, a stray request or a fresh deploy cannot start an actor. The CLI
+> exposes it as `--live`.
+
+### Commands
+
+```bash
+npm run deals -- --status                        # runs, active deals, credit burned
+npm run deals -- --feed --dry-run                # the exact actor input, starts nothing
+npm run deals -- --fixture src/deals/__fixtures__/doordash-search.json   # parse a fixture into the DB
+npm run deals -- --ingest-run <apifyRunId>       # ingest a run that already happened (free)
+npm run deals -- --dump-run <apifyRunId> --out <file>   # save a finished run as a fixture (free)
+npm run deals -- --reconcile                     # pick up runs whose webhook never arrived
+npm run deals -- --feed --live                   # start the feed for real (COSTS CREDIT)
+npm run deals -- --q "primanti bros" --live      # start a search run (COSTS CREDIT)
+```
+
+### Endpoints
+
+| endpoint | what it does |
+|---|---|
+| `GET /api/deals` | active deals for an address, ranked; filter by `platform`, `type`, `maxDistance`, `q`, `limit` |
+| `POST /api/deals/search` | database answer now, background refresh if the budget allows |
+| `GET /api/deals/jobs/:id` | poll one background refresh |
+| `GET /api/deals/runs` | run history, spend, remaining budget, configured caps |
+| `POST /api/apify/webhook` | Apify's run-finished callback, shared-secret authenticated |
+| `GET /api/apify/reconcile` | Vercel Cron backstop for missed webhooks |
+
+### Cost control
+
+Every run passes one cost guard, which enforces a per-run result cap, a
+cumulative spend ceiling, daily feed and search caps over a rolling 24 hours,
+and in-flight deduplication. Refusals are recorded as `skipped` rows in
+`scrapeRuns`, so the ledger shows what was chosen *not* to run and why.
+
+Setting up the schedules and the webhook in the Apify console:
+**`docs/apify-setup.md`**.
 
 ## Collecting through Apify
 

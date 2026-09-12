@@ -1,0 +1,6 @@
+node_modules
+dist
+.browser-profile
+.scraper-debug
+src/**/*.test.ts
+src/deals/__fixtures__
