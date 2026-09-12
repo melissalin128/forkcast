@@ -416,7 +416,7 @@ ul {
   font-size: 30px;
   line-height: 1;
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-  filter: grayscale(65%);
+  filter: grayscale(45%);
   transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 120ms;
 }
 
@@ -1057,7 +1057,7 @@ ul {
    Airbnb-style: the image edge and a little whitespace do all the work. */
 .row__photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   border-radius: var(--r-card);
   transition: transform 300ms ease;
 }
@@ -1205,7 +1205,7 @@ ul {
 
 .sk--photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   border-radius: var(--r-card);
 }
 
